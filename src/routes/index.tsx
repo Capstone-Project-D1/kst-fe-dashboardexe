@@ -11,14 +11,29 @@ import Login from "@/pages/login/Login";
 import Register from "@/pages/register/Register";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import DashboardLayout from "@/layouts/dashboardLayout/DashboardLayout";
+// KST CANGAR
+import BooklistAtp from "@/pages/kst-cangar/booklistAtp/BooklistAtp";
+import StokOpname from "@/pages/kst-cangar/stopOpname/StokOpname";
 
-// Helper component for pages that aren't created yet
-const DummyPage = ({ title }: { title: string }) => (
-  <div className="p-8 flex flex-col items-center justify-center min-h-[400px]">
-    <h1 className="text-2xl font-bold text-gray-800 mb-2">{title}</h1>
-    <p className="text-gray-500">Halaman ini sedang dalam pengembangan.</p>
-  </div>
-);
+// KST JATIKERTO
+
+import Kemitraan from "@/pages/kst-jatikerto/kemitraan/Kemitraan";
+import Konservasi from "@/pages/kst-jatikerto/konservasi/Konservasi";
+import PelayananAkademik from "@/pages/kst-jatikerto/pelayananAkademik/PelayananAkademik";
+import Pertanian from "@/pages/kst-jatikerto/pertanian/Pertanian";
+import Peternakan from "@/pages/kst-jatikerto/peternakan/Peternakan";
+
+// KST NGIJO
+import Produksi from "@/pages/kst-ngijo/produksi/Produksi";
+import TrackerInovasi from "@/pages/kst-ngijo/trackerInovasi/TrackerInovasi";
+
+// // Helper component for pages that aren't created yet
+// const DummyPage = ({ title }: { title: string }) => (
+//   <div className="p-8 flex flex-col items-center justify-center min-h-[400px]">
+//     <h1 className="text-2xl font-bold text-gray-800 mb-2">{title}</h1>
+//     <p className="text-gray-500">Halaman ini sedang dalam pengembangan.</p>
+//   </div>
+// );
 
 export const AppRoutes = () => {
   return (
@@ -40,17 +55,24 @@ export const AppRoutes = () => {
           >
             <Route index element={<Navigate to={ROUTES.DASHBOARD} replace />} />
             <Route path={ROUTES.DASHBOARD.substring(1)} element={<Dashboard />} />
-            <Route path={ROUTES.TRACKER_INOVASI.substring(1)} element={<DummyPage title="Tracker Inovasi" />} />
-            <Route path={ROUTES.PRODUKSI.substring(1)} element={<DummyPage title="Produksi" />} />
-            <Route path={ROUTES.STOK_OPNAME.substring(1)} element={<DummyPage title="Stok Opname" />} />
-            <Route path={ROUTES.BOOKLIST_ATP.substring(1)} element={<DummyPage title="Booklist ATP" />} />
-            <Route path={ROUTES.PERTANIAN.substring(1)} element={<DummyPage title="Pertanian" />} />
-            <Route path={ROUTES.PETERNAKAN.substring(1)} element={<DummyPage title="Peternakan" />} />
-            <Route path={ROUTES.KONSERVASI.substring(1)} element={<DummyPage title="Konservasi" />} />
-            <Route path={ROUTES.PELAYANAN_AKADEMIK.substring(1)} element={<DummyPage title="Pelayanan Akademik" />} />
-            <Route path={ROUTES.KEMITRAAN.substring(1)} element={<DummyPage title="Kemitraan" />} />
-            <Route path={ROUTES.PROFILE.substring(1)} element={<DummyPage title="Profil" />} />
-            <Route path={ROUTES.CHANGE_PASSWORD.substring(1)} element={<DummyPage title="Ganti Password" />} />
+
+            {/* KST CANGAR */}
+            <Route path={ROUTES.BOOKLIST_ATP.substring(1)} element={<BooklistAtp />} />
+            <Route path={ROUTES.STOK_OPNAME.substring(1)} element={<StokOpname />} />
+
+            {/* KST JATIKERTO */}
+            <Route path={ROUTES.KEMITRAAN.substring(1)} element={<Kemitraan />} />
+            <Route path={ROUTES.KONSERVASI.substring(1)} element={<Konservasi />} />
+            <Route path={ROUTES.PELAYANAN_AKADEMIK.substring(1)} element={<PelayananAkademik />} />
+            <Route path={ROUTES.PERTANIAN.substring(1)} element={<Pertanian />} />
+            <Route path={ROUTES.PETERNAKAN.substring(1)} element={<Peternakan />} />
+
+            {/* KST NGIJO */}
+            <Route path={ROUTES.PRODUKSI.substring(1)} element={<Produksi />} />
+            <Route path={ROUTES.TRACKER_INOVASI.substring(1)} element={<TrackerInovasi />} />
+
+            {/* <Route path={ROUTES.PROFILE.substring(1)} element={<DummyPage title="Profil" />} />
+            <Route path={ROUTES.CHANGE_PASSWORD.substring(1)} element={<DummyPage title="Ganti Password" />} /> */}
           </Route>
 
           {/* Default/Catch-all Route */}
