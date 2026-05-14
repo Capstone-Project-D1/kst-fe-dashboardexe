@@ -1,4 +1,3 @@
-import * as React from "react"
 import {
   Activity,
   Package,
@@ -6,8 +5,6 @@ import {
   TrendingDown,
   Users,
   ClipboardList,
-  ArrowUpRight,
-  ArrowDownRight
 } from "lucide-react"
 import {
   Bar,
@@ -17,10 +14,9 @@ import {
   YAxis,
   Area,
   AreaChart,
-  ResponsiveContainer
 } from "recharts"
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import {
   ChartContainer,
