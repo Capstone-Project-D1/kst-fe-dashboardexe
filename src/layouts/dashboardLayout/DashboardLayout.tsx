@@ -1,37 +1,20 @@
-import Navbar from '@layouts/dashboardLayout/components/Navbar'
-import Sidebar from '@layouts/dashboardLayout/components/Sidebar'
-import { Outlet } from 'react-router-dom'
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
+import { AppSidebar } from "./components/AppSidebar"
+import { AppNavbar } from "./components/AppNavbar"
+import { Outlet } from "react-router-dom"
 
-
-function DashboardLayout() {
+export default function DashboardLayout() {
   return (
-    <div
-      width='100%'
-    >
-      <Sidebar />
-      <div
-        direction='column'
-        flex='1'
-        minWidth='0'
-        overflow='hidden'
-      >
-        <Navbar />
-        <div
-          flex='1'
-          minHeight='0'
-          backgroundColor='#edeff3'
-          overflowY='auto'
-        >
-          <Container
-            maxWidth='container.xl'
-            paddingX='3rem'
-          >
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-gray-50">
+        <AppSidebar />
+        <SidebarInset className="flex flex-col">
+          <AppNavbar />
+          <main className="flex-1">
             <Outlet />
-          </Container>
-        </Flex>
-      </Flex>
-    </Flex>
+          </main>
+        </SidebarInset>
+      </div>
+    </SidebarProvider>
   )
 }
-
-export default DashboardLayout
