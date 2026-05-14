@@ -1,10 +1,12 @@
+import * as React from "react"
 import { Search, ChevronRight } from "lucide-react"
 import { useLocation } from "react-router-dom"
-import { Input } from "@/components/ui/input"
 import { ROUTES } from "@/routes/routes"
+import { SearchCommand } from "./SearchCommand"
 
 export function AppNavbar() {
   const location = useLocation()
+  const [open, setOpen] = React.useState(false)
 
   // Mapping paths to readable titles
   const getBreadcrumbTitle = (path: string) => {
@@ -46,15 +48,21 @@ export function AppNavbar() {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Search Input Mockup */}
-        <div className="relative w-[205px] group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-3 text-gray-400 group-focus-within:text-gray-600 transition-colors" />
-          <Input
-            placeholder="Type to search..."
-            className="pl-8 h-8 bg-gray-50 border-gray-100 text-[12px] rounded-lg focus-visible:ring-[#27A376] focus-visible:bg-white transition-all"
-          />
-        </div>
+        {/* Search Trigger */}
+        <button
+          onClick={() => setOpen(true)}
+          className="relative w-[220px] group flex items-center h-8 bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-lg px-3 transition-all cursor-text"
+        >
+          <Search className="size-3 text-gray-400 group-hover:text-gray-600 transition-colors mr-2" />
+          <span className="text-[12px] text-gray-400 flex-1 text-left">Cari Konten...</span>
+          <kbd className="pointer-events-none hidden h-5 select-none items-center gap-1 rounded border border-gray-200 bg-white px-1.5 font-mono text-[10px] font-medium text-gray-400 opacity-100 sm:flex">
+            <span className="text-xs">Shift + </span>
+            <span className="text-xs">K</span>
+          </kbd>
+        </button>
       </div>
+
+      <SearchCommand open={open} setOpen={setOpen} />
     </header>
   )
 }
