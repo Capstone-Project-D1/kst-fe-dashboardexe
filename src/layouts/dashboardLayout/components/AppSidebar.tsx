@@ -32,6 +32,7 @@ import {
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { ROUTES } from "@/routes/routes"
+import { useAuth } from "@/hooks/useAuth"
 
 // Static data structure mapped to ROUTES
 const NAV_ITEMS = [
@@ -109,7 +110,8 @@ const NAV_ITEMS = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation()
-  
+  const { logout } = useAuth()
+
   const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({
     "Home": true,
     "KST Ngijo": true,
@@ -175,7 +177,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                     {group.items.map((item) => {
                       const isActive = location.pathname === item.url
                       const Icon = item.icon
-                      
+
                       return (
                         <SidebarMenuItem key={item.title}>
                           <SidebarMenuButton
@@ -218,7 +220,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </div>
         <Button
           variant="outline"
-          className="w-full justify-between gap-2 border-gray-200 text-gray-700 font-semibold hover:bg-gray-50 rounded-lg h-8 text-[12px] group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center"
+          onClick={logout}
+          className="w-full justify-between gap-2 border-gray-200 text-gray-700 font-semibold hover:bg-red-500 hover:text-white rounded-lg h-8 text-[12px] group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center"
         >
           <span className="group-data-[collapsible=icon]:hidden">Logout</span>
           <LogOut className="size-3" />
