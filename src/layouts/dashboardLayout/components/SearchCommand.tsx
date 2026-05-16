@@ -1,0 +1,156 @@
+import * as React from "react"
+import { useNavigate } from "react-router-dom"
+import {
+  Calculator,
+  Calendar,
+  CreditCard,
+  Settings,
+  Smile,
+  User,
+  LayoutDashboard,
+  Activity,
+  Package,
+  ClipboardList,
+  Book,
+  Sprout,
+  PawPrint,
+  Leaf,
+  GraduationCap,
+  Handshake,
+  Users,
+} from "lucide-react"
+
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandSeparator,
+  CommandShortcut,
+} from "@/components/ui/command"
+import { ROUTES } from "@/routes/routes"
+
+interface SearchCommandProps {
+  open: boolean
+  setOpen: (open: boolean) => void
+}
+
+export function SearchCommand({ open, setOpen }: SearchCommandProps) {
+  const navigate = useNavigate()
+
+  React.useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setOpen(!open)
+      }
+    }
+
+    document.addEventListener("keydown", down)
+    return () => document.removeEventListener("keydown", down)
+  }, [open, setOpen])
+
+  const runCommand = React.useCallback(
+    (command: () => unknown) => {
+      setOpen(false)
+      command()
+    },
+    [setOpen]
+  )
+
+  return (
+    <CommandDialog open={open} onOpenChange={setOpen}>
+      <CommandInput placeholder="Cari Konten..." />
+      <CommandList>
+        <CommandEmpty>No results found.</CommandEmpty>
+        <CommandGroup heading="Pages">
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.DASHBOARD))}>
+            <LayoutDashboard className="mr-2 h-4 w-4" />
+            <span>Beranda</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.TRACKER_INOVASI))}>
+            <Activity className="mr-2 h-4 w-4" />
+            <span>Tracker Inovasi</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.PRODUKSI))}>
+            <Package className="mr-2 h-4 w-4" />
+            <span>Produksi</span>
+          </CommandItem>
+        </CommandGroup>
+        <CommandSeparator />
+        <CommandGroup heading="KST Jatikerto">
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.PERTANIAN))}>
+            <Sprout className="mr-2 h-4 w-4" />
+            <span>Pertanian</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.PETERNAKAN))}>
+            <PawPrint className="mr-2 h-4 w-4" />
+            <span>Peternakan</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.KONSERVASI))}>
+            <Leaf className="mr-2 h-4 w-4" />
+            <span>Konservasi</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.PELAYANAN_AKADEMIK))}>
+            <GraduationCap className="mr-2 h-4 w-4" />
+            <span>Pelayanan Akademik</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.KEMITRAAN))}>
+            <Handshake className="mr-2 h-4 w-4" />
+            <span>Kemitraan</span>
+          </CommandItem>
+        </CommandGroup>
+        <CommandSeparator />
+        <CommandGroup heading="KST Cangar">
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.STOK_OPNAME))}>
+            <ClipboardList className="mr-2 h-4 w-4" />
+            <span>Stok Opname</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.BOOKLIST_ATP))}>
+            <Book className="mr-2 h-4 w-4" />
+            <span>Booklist ATP</span>
+          </CommandItem>
+        </CommandGroup>
+        <CommandGroup heading="Dashboard Statistics">
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.DASHBOARD))}>
+            <Activity className="mr-2 h-4 w-4" />
+            <span>Total KST Aktif</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.DASHBOARD))}>
+            <Package className="mr-2 h-4 w-4" />
+            <span>Total Produksi</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.DASHBOARD))}>
+            <ClipboardList className="mr-2 h-4 w-4" />
+            <span>Total Operasional Aktif</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.DASHBOARD))}>
+            <Activity className="mr-2 h-4 w-4" />
+            <span>Proyek Riset Aktif</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.DASHBOARD))}>
+            <Activity className="mr-2 h-4 w-4" />
+            <span>Sustainability Index</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.DASHBOARD))}>
+            <Users className="mr-2 h-4 w-4" />
+            <span>Mitra / Kolaborasi</span>
+          </CommandItem>
+        </CommandGroup>
+        <CommandSeparator />
+        <CommandGroup heading="Settings">
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.PROFILE))}>
+            <User className="mr-2 h-4 w-4" />
+            <span>Profile</span>
+          </CommandItem>
+          <CommandItem onSelect={() => runCommand(() => navigate(ROUTES.CHANGE_PASSWORD))}>
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Settings</span>
+          </CommandItem>
+        </CommandGroup>
+      </CommandList>
+    </CommandDialog>
+  )
+}
