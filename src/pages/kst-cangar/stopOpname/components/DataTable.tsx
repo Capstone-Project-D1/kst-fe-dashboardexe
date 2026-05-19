@@ -25,80 +25,201 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 
-const dummyData = [
+type DisplayType = "jumlah-stok" | "barang-masuk" | "barang-keluar";
+
+interface StockRow {
+  id: number;
+  name: string;
+  satuan: string;
+  stockAwal: number;
+  retur: number;
+  keteranganRetur: string;
+  stockAkhir: number;
+  stockFisik: number;
+  selisih: number;
+  keteranganSelisih: string;
+  barangMasuk: number[];
+  barangKeluar: number[];
+  totalMasuk: number;
+  totalKeluar: number;
+  total: number;
+}
+
+const dummyData: StockRow[] = [
   {
     id: 1,
     name: "Kentang Granola",
-    initialStock: 500,
-    daily: [50, 60, 70, 50, 60, 30, 30],
+    satuan: "Kg",
+    stockAwal: 500,
+    retur: 10,
+    keteranganRetur: "Kualitas tidak sesuai",
+    stockAkhir: 650,
+    stockFisik: 635,
+    selisih: -5,
+    keteranganSelisih: "Selisih perhitungan",
+    barangMasuk: [50, 60, 70, 50, 60, 30, 30],
+    barangKeluar: [50, 60, 70, 50, 60, 30, 30],
+    totalMasuk: 500,
+    totalKeluar: 200,
     total: 500,
   },
   {
     id: 2,
     name: "Singkong",
-    initialStock: 450,
-    daily: [45, 55, 65, 40, 50, 25, 35],
+    satuan: "Kg",
+    stockAwal: 450,
+    retur: 5,
+    keteranganRetur: "Kemasan rusak",
+    stockAkhir: 560,
+    stockFisik: 550,
+    selisih: -10,
+    keteranganSelisih: "Selisih gudang",
+    barangMasuk: [45, 55, 65, 40, 50, 25, 35],
+    barangKeluar: [30, 45, 40, 35, 50, 20, 25],
+    totalMasuk: 450,
+    totalKeluar: 245,
     total: 450,
   },
   {
     id: 3,
     name: "Stroberi",
-    initialStock: 600,
-    daily: [60, 70, 80, 55, 65, 35, 40],
+    satuan: "Kg",
+    stockAwal: 600,
+    retur: 12,
+    keteranganRetur: "Sebagian busuk",
+    stockAkhir: 720,
+    stockFisik: 710,
+    selisih: -10,
+    keteranganSelisih: "Selisih timbang",
+    barangMasuk: [60, 70, 80, 55, 65, 35, 40],
+    barangKeluar: [40, 50, 60, 45, 55, 30, 35],
+    totalMasuk: 600,
+    totalKeluar: 315,
     total: 600,
   },
   {
     id: 4,
     name: "Apel Batu",
-    initialStock: 550,
-    daily: [53, 63, 73, 48, 58, 28, 33],
+    satuan: "Kg",
+    stockAwal: 550,
+    retur: 8,
+    keteranganRetur: "Retur supplier",
+    stockAkhir: 680,
+    stockFisik: 675,
+    selisih: -5,
+    keteranganSelisih: "Selisih kecil",
+    barangMasuk: [53, 63, 73, 48, 58, 28, 33],
+    barangKeluar: [35, 45, 55, 40, 50, 25, 30],
+    totalMasuk: 550,
+    totalKeluar: 280,
     total: 550,
   },
   {
     id: 5,
     name: "Kopi",
-    initialStock: 470,
-    daily: [47, 57, 67, 43, 53, 27, 32],
+    satuan: "Kg",
+    stockAwal: 470,
+    retur: 4,
+    keteranganRetur: "Kemasan bocor",
+    stockAkhir: 590,
+    stockFisik: 585,
+    selisih: -5,
+    keteranganSelisih: "Selisih input",
+    barangMasuk: [47, 57, 67, 43, 53, 27, 32],
+    barangKeluar: [30, 40, 45, 35, 42, 22, 28],
+    totalMasuk: 470,
+    totalKeluar: 242,
     total: 470,
   },
   {
     id: 6,
     name: "Jeruk",
-    initialStock: 530,
-    daily: [52, 62, 72, 49, 59, 29, 34],
+    satuan: "Kg",
+    stockAwal: 530,
+    retur: 6,
+    keteranganRetur: "Kualitas turun",
+    stockAkhir: 640,
+    stockFisik: 638,
+    selisih: -2,
+    keteranganSelisih: "Selisih minor",
+    barangMasuk: [52, 62, 72, 49, 59, 29, 34],
+    barangKeluar: [35, 42, 50, 39, 47, 25, 30],
+    totalMasuk: 530,
+    totalKeluar: 268,
     total: 530,
   },
   {
     id: 7,
     name: "Tomat",
-    initialStock: 490,
-    daily: [48, 58, 68, 44, 54, 26, 31],
+    satuan: "Kg",
+    stockAwal: 490,
+    retur: 7,
+    keteranganRetur: "Barang rusak",
+    stockAkhir: 600,
+    stockFisik: 592,
+    selisih: -8,
+    keteranganSelisih: "Selisih opname",
+    barangMasuk: [48, 58, 68, 44, 54, 26, 31],
+    barangKeluar: [33, 43, 53, 37, 47, 21, 29],
+    totalMasuk: 490,
+    totalKeluar: 263,
     total: 490,
   },
   {
     id: 8,
     name: "Mentimun",
-    initialStock: 520,
-    daily: [50, 60, 70, 47, 57, 28, 33],
+    satuan: "Kg",
+    stockAwal: 520,
+    retur: 3,
+    keteranganRetur: "Tidak sesuai standar",
+    stockAkhir: 630,
+    stockFisik: 625,
+    selisih: -5,
+    keteranganSelisih: "Selisih perhitungan",
+    barangMasuk: [50, 60, 70, 47, 57, 28, 33],
+    barangKeluar: [35, 45, 52, 40, 46, 24, 30],
+    totalMasuk: 520,
+    totalKeluar: 272,
     total: 520,
   },
   {
     id: 9,
-    name: "Tomat",
-    initialStock: 580,
-    daily: [58, 68, 78, 53, 63, 32, 37],
+    name: "Tomat Cherry Premium Super Panjang",
+    satuan: "Kg",
+    stockAwal: 580,
+    retur: 9,
+    keteranganRetur: "Retur karena kualitas tidak sesuai standar pengiriman",
+    stockAkhir: 700,
+    stockFisik: 690,
+    selisih: -10,
+    keteranganSelisih: "Selisih antara catatan sistem dan stok fisik gudang",
+    barangMasuk: [58, 68, 78, 53, 63, 32, 37],
+    barangKeluar: [45, 55, 62, 48, 52, 28, 33],
+    totalMasuk: 580,
+    totalKeluar: 323,
     total: 580,
   },
   {
     id: 10,
     name: "Alpukat",
-    initialStock: 610,
-    daily: [61, 71, 81, 56, 66, 34, 39],
+    satuan: "Kg",
+    stockAwal: 610,
+    retur: 2,
+    keteranganRetur: "Baik",
+    stockAkhir: 750,
+    stockFisik: 750,
+    selisih: 0,
+    keteranganSelisih: "Sesuai",
+    barangMasuk: [61, 71, 81, 56, 66, 34, 39],
+    barangKeluar: [50, 60, 70, 48, 58, 30, 35],
+    totalMasuk: 610,
+    totalKeluar: 351,
     total: 610,
   },
 ];
 
 const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
+const days = ["S", "S", "R", "K", "J", "S", "M"];
 
 function MonthTab({
   label,
@@ -116,7 +237,7 @@ function MonthTab({
         "px-4 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-150 whitespace-nowrap",
         active
           ? "bg-gray-900 text-white shadow-sm"
-          : "text-gray-500 hover:text-gray-800 hover:bg-gray-100",
+          : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
       )}
     >
       {label}
@@ -126,13 +247,21 @@ function MonthTab({
 
 export default function DataTable() {
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
+  const [displayType, setDisplayType] = useState<DisplayType>("barang-masuk");
+
+  const isJumlahStok = displayType === "jumlah-stok";
+  const isBarangMasuk = displayType === "barang-masuk";
+
+  const activityLabel = isBarangMasuk ? "Barang Masuk" : "Barang Keluar";
+  const totalLabel = isBarangMasuk ? "Total Masuk" : "Total Keluar";
 
   return (
     <div className="space-y-4">
+      {/* ── Filters ───────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-2">
         <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
           <Select defaultValue="2026">
-            <SelectTrigger className="w-[100px] h-10 border-gray-200 rounded-lg">
+            <SelectTrigger className="w-[100px] h-10 border-gray-200 rounded-lg bg-white">
               <SelectValue placeholder="Tahun" />
             </SelectTrigger>
             <SelectContent>
@@ -155,95 +284,260 @@ export default function DataTable() {
           </div>
         </div>
 
-        <Select defaultValue="masuk">
-          <SelectTrigger className="w-[180px] h-10 border-gray-200 rounded-lg">
+        <Select
+          value={displayType}
+          onValueChange={(value) => setDisplayType(value as DisplayType)}
+        >
+          <SelectTrigger className="w-[190px] h-10 border-gray-200 rounded-lg bg-white">
             <div className="flex items-center gap-2">
               <LayoutGrid className="size-4" />
-              <SelectValue placeholder="Tipe" />
+              <SelectValue placeholder="Data yang Ditampilkan" />
             </div>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="masuk">Barang Masuk</SelectItem>
-            <SelectItem value="keluar">Barang Keluar</SelectItem>
+            <SelectItem value="jumlah-stok">Jumlah Stok</SelectItem>
+            <SelectItem value="barang-masuk">Barang Masuk</SelectItem>
+            <SelectItem value="barang-keluar">Barang Keluar</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
+      {/* ── Data Table ────────────────────────────────────────────── */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        <Table>
-          <TableHeader className="bg-[#F9FAFB]">
-            <TableRow className="hover:bg-transparent border-gray-200">
-              <TableHead className="w-[60px] font-bold text-gray-700">
-                No.
-              </TableHead>
-              <TableHead className="font-bold text-gray-700">
-                Nama Barang
-              </TableHead>
-              <TableHead className="text-right font-bold text-gray-700">
-                Stok Awal
-              </TableHead>
-              <TableHead className="text-center p-0" colSpan={7}>
-                <div className="flex flex-col">
-                  <span className="font-bold text-gray-700 py-2">
-                    Barang Masuk
-                  </span>
-                  <div className="grid grid-cols-7">
-                    {["S", "S", "R", "K", "J", "S", "M"].map((day, idx) => (
-                      <span
-                        key={idx}
-                        className="py-2 text-[10px] font-bold text-gray-400"
+        <div className="overflow-x-auto">
+          {isJumlahStok ? (
+            <Table className="min-w-[1250px]">
+              <TableHeader className="bg-[#F9FAFB]">
+                <TableRow className="hover:bg-transparent border-gray-200">
+                  <TableHead className="w-[60px] font-bold text-gray-700 pl-5">
+                    No.
+                  </TableHead>
+
+                  <TableHead className="font-bold text-gray-700 min-w-[220px]">
+                    Nama Barang
+                  </TableHead>
+
+                  <TableHead className="font-bold text-gray-700 min-w-[90px]">
+                    Satuan
+                  </TableHead>
+
+                  <TableHead className="text-right font-bold text-gray-700 min-w-[110px]">
+                    Stok Awal
+                  </TableHead>
+
+                  <TableHead className="text-right font-bold text-gray-700 min-w-[90px]">
+                    Retur
+                  </TableHead>
+
+                  <TableHead className="font-bold text-gray-700 min-w-[220px]">
+                    Keterangan Retur
+                  </TableHead>
+
+                  <TableHead className="text-right font-bold text-gray-700 min-w-[110px]">
+                    Stok Akhir
+                  </TableHead>
+
+                  <TableHead className="text-right font-bold text-gray-700 min-w-[110px]">
+                    Stok Fisik
+                  </TableHead>
+
+                  <TableHead className="text-right font-bold text-gray-700 min-w-[90px]">
+                    Selisih
+                  </TableHead>
+
+                  <TableHead className="font-bold text-gray-700 min-w-[220px]">
+                    Keterangan Selisih
+                  </TableHead>
+
+                  <TableHead className="text-right font-bold text-gray-700 min-w-[110px]">
+                    Total
+                  </TableHead>
+
+                  <TableHead className="w-[50px]" />
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {dummyData.map((item, index) => (
+                  <TableRow
+                    key={item.id}
+                    className="border-gray-100 hover:bg-gray-50/50 group"
+                  >
+                    <TableCell className="font-medium text-gray-600 pl-5">
+                      {index + 1}.
+                    </TableCell>
+
+                    <TableCell className="font-semibold text-gray-900 max-w-[220px] whitespace-normal break-words leading-relaxed">
+                      {item.name}
+                    </TableCell>
+
+                    <TableCell className="text-gray-500 whitespace-nowrap">
+                      {item.satuan}
+                    </TableCell>
+
+                    <TableCell className="text-right font-medium text-gray-500 whitespace-nowrap tabular-nums">
+                      {item.stockAwal}
+                    </TableCell>
+
+                    <TableCell
+                      className={cn(
+                        "text-right font-medium whitespace-nowrap tabular-nums",
+                        item.retur > 0 ? "text-red-500" : "text-gray-500"
+                      )}
+                    >
+                      {item.retur}
+                    </TableCell>
+
+                    <TableCell className="text-gray-500 max-w-[220px] whitespace-normal break-words leading-relaxed">
+                      {item.keteranganRetur}
+                    </TableCell>
+
+                    <TableCell className="text-right text-gray-500 whitespace-nowrap tabular-nums">
+                      {item.stockAkhir}
+                    </TableCell>
+
+                    <TableCell className="text-right text-gray-500 whitespace-nowrap tabular-nums">
+                      {item.stockFisik}
+                    </TableCell>
+
+                    <TableCell
+                      className={cn(
+                        "text-right font-medium whitespace-nowrap tabular-nums",
+                        item.selisih < 0
+                          ? "text-red-500"
+                          : item.selisih > 0
+                          ? "text-emerald-600"
+                          : "text-gray-500"
+                      )}
+                    >
+                      {item.selisih > 0 ? `+${item.selisih}` : item.selisih}
+                    </TableCell>
+
+                    <TableCell className="text-gray-500 max-w-[220px] whitespace-normal break-words leading-relaxed">
+                      {item.keteranganSelisih}
+                    </TableCell>
+
+                    <TableCell className="text-right font-bold text-gray-900 whitespace-nowrap tabular-nums">
+                      {item.total}
+                    </TableCell>
+
+                    <TableCell className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
                       >
-                        {day}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </TableHead>
-              <TableHead className="text-right font-bold text-gray-700">
-                Total Masuk
-              </TableHead>
-              <TableHead className="w-[50px]"></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {dummyData.map((item, index) => (
-              <TableRow
-                key={item.id}
-                className="border-gray-100 hover:bg-gray-50/50"
-              >
-                <TableCell className="font-medium text-gray-600">
-                  {index + 1}.
-                </TableCell>
-                <TableCell className="font-semibold text-gray-900">
-                  {item.name}
-                </TableCell>
-                <TableCell className="text-right font-medium text-gray-500">
-                  {item.initialStock}
-                </TableCell>
-                {item.daily.map((val, idx) => (
-                  <TableCell
-                    key={idx}
-                    className="text-center text-xs font-medium text-gray-500 p-2 border-l border-gray-50 first:border-l-0"
-                  >
-                    {val}
-                  </TableCell>
+                        <MoreVertical className="size-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
                 ))}
-                <TableCell className="text-right font-bold text-[#27A376]">
-                  {item.total}
-                </TableCell>
-                <TableCell className="text-center">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 text-gray-400"
-                  >
-                    <MoreVertical className="size-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+              </TableBody>
+            </Table>
+          ) : (
+            <Table className="min-w-[1100px]">
+              <TableHeader className="bg-[#F9FAFB]">
+                <TableRow className="hover:bg-transparent border-gray-200">
+                  <TableHead className="w-[60px] font-bold text-gray-700 pl-5">
+                    No.
+                  </TableHead>
+
+                  <TableHead className="font-bold text-gray-700 min-w-[220px]">
+                    Nama Barang
+                  </TableHead>
+
+                  <TableHead className="text-right font-bold text-gray-700 min-w-[120px]">
+                    Stok Awal
+                  </TableHead>
+
+                  <TableHead className="text-center p-0 min-w-[420px]" colSpan={7}>
+                    <div className="flex flex-col">
+                      <span className="font-bold text-gray-700 py-2">
+                        {activityLabel}
+                      </span>
+
+                      <div className="grid grid-cols-7 border-t border-gray-100">
+                        {days.map((day, index) => (
+                          <span
+                            key={index}
+                            className="py-2 text-[10px] font-bold text-gray-400"
+                          >
+                            {day}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </TableHead>
+
+                  <TableHead className="text-right font-bold text-gray-700 min-w-[130px]">
+                    {totalLabel}
+                  </TableHead>
+
+                  <TableHead className="w-[50px]" />
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {dummyData.map((item, index) => {
+                  const dailyValues = isBarangMasuk
+                    ? item.barangMasuk
+                    : item.barangKeluar;
+
+                  const totalValue = isBarangMasuk
+                    ? item.totalMasuk
+                    : item.totalKeluar;
+
+                  return (
+                    <TableRow
+                      key={item.id}
+                      className="border-gray-100 hover:bg-gray-50/50 group"
+                    >
+                      <TableCell className="font-medium text-gray-600 pl-5">
+                        {index + 1}.
+                      </TableCell>
+
+                      <TableCell className="font-semibold text-gray-900 max-w-[220px] whitespace-normal break-words leading-relaxed">
+                        {item.name}
+                      </TableCell>
+
+                      <TableCell className="text-right font-medium text-gray-500 whitespace-nowrap tabular-nums">
+                        {item.stockAwal}
+                      </TableCell>
+
+                      {dailyValues.map((value, index) => (
+                        <TableCell
+                          key={index}
+                          className="text-center text-xs font-medium text-gray-500 p-2 border-l border-gray-50 first:border-l-0 whitespace-nowrap tabular-nums"
+                        >
+                          {value}
+                        </TableCell>
+                      ))}
+
+                      <TableCell
+                        className={cn(
+                          "text-right font-bold whitespace-nowrap tabular-nums",
+                          isBarangMasuk ? "text-[#27A376]" : "text-red-500"
+                        )}
+                      >
+                        {totalValue}
+                      </TableCell>
+
+                      <TableCell className="text-center">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <MoreVertical className="size-4" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </div>
 
         {/* Pagination */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 border-t border-gray-100 bg-[#F9FAFB]">
@@ -251,6 +545,7 @@ export default function DataTable() {
             <span className="text-sm font-medium text-gray-500">
               Baris per Page
             </span>
+
             <Select defaultValue="10">
               <SelectTrigger className="w-[70px] h-9 border-gray-200">
                 <SelectValue />
@@ -267,6 +562,7 @@ export default function DataTable() {
             <span className="text-sm font-medium text-gray-600">
               Page 1 dari 7
             </span>
+
             <div className="flex items-center gap-1">
               <Button
                 variant="outline"
@@ -275,6 +571,7 @@ export default function DataTable() {
               >
                 <ChevronsLeft className="size-4 text-gray-400" />
               </Button>
+
               <Button
                 variant="outline"
                 size="icon"
@@ -282,6 +579,7 @@ export default function DataTable() {
               >
                 <ChevronLeft className="size-4 text-gray-400" />
               </Button>
+
               <Button
                 variant="outline"
                 size="icon"
@@ -289,6 +587,7 @@ export default function DataTable() {
               >
                 <ChevronRight className="size-4 text-gray-400" />
               </Button>
+
               <Button
                 variant="outline"
                 size="icon"

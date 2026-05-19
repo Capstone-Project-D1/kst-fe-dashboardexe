@@ -134,12 +134,6 @@ export default function Dashboard() {
                 variant="outline"
                 className="bg-white text-gray-900 border-gray-200 text-[10px] font-bold h-6 px-2.5 rounded-full"
               >
-                KST Ngijo
-              </Badge>
-              <Badge
-                variant="outline"
-                className="bg-white text-gray-900 border-gray-200 text-[10px] font-bold h-6 px-2.5 rounded-full"
-              >
                 KST Jatikerto
               </Badge>
             </div>
