@@ -149,8 +149,8 @@ export default function Dashboard() {
               <div className="text-3xl font-extrabold text-gray-900 tracking-tight">
                 1.500
               </div>
-              <Badge className="bg-[#E9F7F2] text-[#27A376] border-none text-[11px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
-                <TrendingUp className="size-3" />
+              <Badge className="bg-[#E9F7F2] text-[#27A376] text-[11px] font-bold px-2 py-1 rounded-md flex items-center gap-1 border-[#B2DDB5] bg-[#F5FBF5]">
+                <TrendingUp className="size-4 text-[#46A758]" />
                 +15%
               </Badge>
             </div>
@@ -188,8 +188,8 @@ export default function Dashboard() {
               <div className="text-3xl font-extrabold text-gray-900 tracking-tight">
                 1.500
               </div>
-              <Badge className="bg-[#E9F7F2] text-[#27A376] border-none text-[11px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
-                <TrendingUp className="size-3" />
+              <Badge className="bg-[#E9F7F2] text-[#27A376] border-[#B2DDB5] bg-[#F5FBF5] text-[11px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
+                <TrendingUp className="size-4 text-[#46A758]" />
                 +5%
               </Badge>
             </div>
@@ -228,7 +228,7 @@ export default function Dashboard() {
           <CardContent className="pt-6">
             <ChartContainer
               config={researchConfig}
-              className="h-[200px] w-full mb-4"
+              className="h-50 w-full mb-4"
             >
               <AreaChart
                 data={researchData}
@@ -289,8 +289,8 @@ export default function Dashboard() {
               <span className="text-4xl font-extrabold text-gray-900 tracking-tight">
                 1.500
               </span>
-              <Badge className="bg-[#E9F7F2] text-[#27A376] border-none text-[11px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
-                <TrendingUp className="size-3" />
+              <Badge className="bg-[#E9F7F2] text-[#27A376] border-[#B2DDB5] bg-[#F5FBF5] text-[11px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
+                <TrendingUp className="size-4 text-[#46A758]" />
                 +15%
               </Badge>
             </div>
@@ -341,7 +341,7 @@ export default function Dashboard() {
               </p>
               <ChartContainer
                 config={collaborationConfig}
-                className="h-[200px] w-full"
+                className="h-50 w-full"
               >
                 <BarChart
                   data={collaborationData}
@@ -388,8 +388,8 @@ export default function Dashboard() {
                   <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
                     500
                   </span>
-                  <Badge className="bg-[#E9F7F2] text-[#27A376] border-none text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
-                    <TrendingUp className="size-3" />
+                  <Badge className="bg-[#E9F7F2] text-[#27A376] border-[#B2DDB5] bg-[#F5FBF5] text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
+                    <TrendingUp className="size-4 text-[#46A758]" />
                     +12.5%
                   </Badge>
                 </div>
@@ -408,8 +408,8 @@ export default function Dashboard() {
                   <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
                     200
                   </span>
-                  <Badge className="bg-red-50 text-red-500 border-none text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
-                    <TrendingDown className="size-3" />
+                  <Badge className="bg-red-50 text-[#E5484D] border-[#F8D7DA] bg-[#FFF5F5] text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
+                    <TrendingDown className="size-4 text-[#E5484D]" />
                     -20%
                   </Badge>
                 </div>

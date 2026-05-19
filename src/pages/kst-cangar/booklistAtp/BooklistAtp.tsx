@@ -171,7 +171,7 @@ function MonthTab({
         "px-4 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-150 whitespace-nowrap",
         active
           ? "bg-gray-900 text-white shadow-sm"
-          : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+          : "text-gray-500 hover:text-gray-800 hover:bg-gray-100",
       )}
     >
       {label}
@@ -188,7 +188,7 @@ export default function BooklistAtp() {
   const totalPages = 7;
   const lunasCount = bookingData.filter((row) => row.status === "Lunas").length;
   const belumLunasCount = bookingData.filter(
-    (row) => row.status === "Belum Lunas"
+    (row) => row.status === "Belum Lunas",
   ).length;
 
   return (
@@ -196,9 +196,7 @@ export default function BooklistAtp() {
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_1fr_auto] gap-4">
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
-              <CalendarCheck className="size-4" />
-            </div>
+            <CalendarCheck className="size-5 text-gray-500" />
             <span className="text-[12px] font-semibold text-gray-600">
               Total Booking
             </span>
@@ -208,9 +206,9 @@ export default function BooklistAtp() {
             <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
               1
             </span>
-            <div className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-600">
-              <TrendingUp className="size-3" />
-              +12.5%
+            <div className="flex h-6 py-0.5 px-2 justify-center items-center gap-1 rounded-md border border-[#B2DDB5] bg-[#F5FBF5]">
+              <TrendingUp className="size-4 text-[#46A758]" />
+              <p className="text-xs font-bold text-[#46A758]">+12.5%</p>
             </div>
           </div>
 
@@ -226,9 +224,7 @@ export default function BooklistAtp() {
 
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col gap-3">
           <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
-              <Wallet className="size-4" />
-            </div>
+            <Wallet className="size-5 text-gray-500" />
             <span className="text-[12px] font-semibold text-gray-600">
               Total Pendapatan
             </span>
@@ -238,9 +234,9 @@ export default function BooklistAtp() {
             <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
               Rp 1.800.000
             </span>
-            <div className="flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold bg-red-50 text-red-500">
-              <TrendingDown className="size-3" />
-              -20%
+            <div className="flex h-6 py-0.5 px-2 justify-center items-center gap-1 rounded-md border border-[#F8D7DA] bg-[#FFF5F5]">
+              <TrendingDown className="size-4 text-[#E5484D]" />
+              <p className="text-xs font-bold text-[#E5484D]">-20%</p>
             </div>
           </div>
 
@@ -390,7 +386,7 @@ export default function BooklistAtp() {
                         "inline-flex items-center gap-1.5 text-[12px] font-semibold",
                         row.status === "Lunas"
                           ? "text-emerald-600"
-                          : "text-red-500"
+                          : "text-red-500",
                       )}
                     >
                       <span
@@ -398,7 +394,7 @@ export default function BooklistAtp() {
                           "size-2 rounded-full",
                           row.status === "Lunas"
                             ? "bg-emerald-500"
-                            : "bg-red-500"
+                            : "bg-red-500",
                         )}
                       />
                       {row.status}
@@ -451,8 +447,7 @@ export default function BooklistAtp() {
                 },
                 {
                   icon: ChevronLeft,
-                  action: () =>
-                    setCurrentPage(Math.max(1, currentPage - 1)),
+                  action: () => setCurrentPage(Math.max(1, currentPage - 1)),
                   disabled: currentPage === 1,
                 },
                 {

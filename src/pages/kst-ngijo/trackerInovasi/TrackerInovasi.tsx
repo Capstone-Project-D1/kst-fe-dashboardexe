@@ -79,8 +79,7 @@ const summaryCards: SummaryCardData[] = [
     value: "8",
     trend: 12.5,
     trendLabel: "Peningkatan 12.5% dari bulan lalu",
-    description:
-      "Paten yang tertunda pada bulan ini meningkat sebesar 12.5%.",
+    description: "Paten yang tertunda pada bulan ini meningkat sebesar 12.5%.",
   },
   {
     icon: Users,
@@ -219,16 +218,16 @@ function SummaryCard({ data }: { data: SummaryCardData }) {
 
         <div
           className={cn(
-            "flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold",
+            "flex h-6 py-0.5 px-2 justify-center items-center gap-1 rounded-md border text-[11px] font-bold",
             isPositive
-              ? "bg-emerald-50 text-emerald-600"
-              : "bg-red-50 text-red-500"
+              ? "border-[#B2DDB5] bg-[#F5FBF5] text-[#46A758]"
+              : "border-[#F8D7DA] bg-[#FFF5F5] text-[#E5484D]",
           )}
         >
           {isPositive ? (
-            <TrendingUp className="size-3" />
+            <TrendingUp className="size-4 text-[#46A758]" />
           ) : (
-            <TrendingDown className="size-3" />
+            <TrendingDown className="size-4 text-[#E5484D]" />
           )}
           {isPositive ? "+" : ""}
           {data.trend}%
@@ -236,9 +235,7 @@ function SummaryCard({ data }: { data: SummaryCardData }) {
       </div>
 
       <div className="space-y-0.5">
-        <p className="text-[13px] font-bold text-gray-800">
-          {data.trendLabel}
-        </p>
+        <p className="text-[13px] font-bold text-gray-800">{data.trendLabel}</p>
         <p className="text-[11px] text-gray-400 font-medium leading-relaxed">
           {data.description}
         </p>
@@ -263,7 +260,7 @@ function MonthTab({
         "px-4 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-150 whitespace-nowrap",
         active
           ? "bg-gray-900 text-white shadow-sm"
-          : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+          : "text-gray-500 hover:text-gray-800 hover:bg-gray-100",
       )}
     >
       {label}
@@ -375,12 +372,12 @@ export default function TrackerInovasi() {
 
                   <TableCell className="max-w-[260px] whitespace-normal break-words leading-relaxed">
                     <span className="text-[13px] font-medium">
-                      <span className={cn("font-bold", getTrlColor(row.trlLevel))}>
+                      <span
+                        className={cn("font-bold", getTrlColor(row.trlLevel))}
+                      >
                         TRL {row.trlLevel}
                       </span>
-                      <span className="text-gray-500">
-                        {" "}- {row.trlLabel}
-                      </span>
+                      <span className="text-gray-500"> - {row.trlLabel}</span>
                     </span>
                   </TableCell>
 
@@ -428,8 +425,7 @@ export default function TrackerInovasi() {
                 },
                 {
                   icon: ChevronLeft,
-                  action: () =>
-                    setCurrentPage(Math.max(1, currentPage - 1)),
+                  action: () => setCurrentPage(Math.max(1, currentPage - 1)),
                   disabled: currentPage === 1,
                 },
                 {
