@@ -540,7 +540,6 @@ export default function Keberlanjutan() {
         </div>
       </div>
 
-      {/* ── Sensor Table ──────────────────────────────────────────── */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <Table className="min-w-[1000px]">
