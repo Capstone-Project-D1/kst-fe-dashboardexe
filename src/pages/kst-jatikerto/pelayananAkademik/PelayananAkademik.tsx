@@ -22,17 +22,31 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 interface MahasiswaRow {
   no: number;
   namaMahasiswa: string;
   dosenPembimbing: string;
-  programStudi: string;
+  programStudi:
+    | "Teknik Informatika"
+    | "Sistem Informasi"
+    | "Teknik Komputer"
+    | "Pendidikan Teknologi Informasi"
+    | "Teknologi Informasi";
   mulai: string;
   selesai: string;
   luasan: string;
   judulPenelitian: string;
 }
+
+const programStudiStyles = {
+  "Teknik Informatika": "bg-sky-400 border-sky-500 text-white",
+  "Teknik Komputer": "bg-amber-400 border-amber-500 text-white",
+  "Teknologi Informasi": "bg-emerald-400 border-emerald-500 text-white",
+  "Sistem Informasi": "bg-orange-400 border-orange-500 text-white",
+  "Pendidikan Teknologi Informasi": "bg-rose-400 border-rose-500 text-white",
+};
 
 const tableData: MahasiswaRow[] = [
   {
@@ -43,13 +57,14 @@ const tableData: MahasiswaRow[] = [
     mulai: "Desember",
     selesai: "Januari",
     luasan: "150 m²",
-    judulPenelitian: "Judul dari Sebuah Penelitian yang Cukup Panjang dan Perlu Turun Baris",
+    judulPenelitian:
+      "Judul dari Sebuah Penelitian yang Cukup Panjang dan Perlu Turun Baris",
   },
   {
     no: 2,
     namaMahasiswa: "Mahasiswa 2",
     dosenPembimbing: "Dosen Pembimbing 2",
-    programStudi: "Prodi 2",
+    programStudi: "Sistem Informasi",
     mulai: "Januari",
     selesai: "Februari",
     luasan: "200 m²",
@@ -59,7 +74,7 @@ const tableData: MahasiswaRow[] = [
     no: 3,
     namaMahasiswa: "Mahasiswa 3",
     dosenPembimbing: "Dosen Pembimbing 3",
-    programStudi: "Prodi 3",
+    programStudi: "Teknik Informatika",
     mulai: "Februari",
     selesai: "Maret",
     luasan: "180 m²",
@@ -69,7 +84,7 @@ const tableData: MahasiswaRow[] = [
     no: 4,
     namaMahasiswa: "Mahasiswa 4",
     dosenPembimbing: "Dosen Pembimbing 4",
-    programStudi: "Prodi 4",
+    programStudi: "Teknologi Informasi",
     mulai: "Maret",
     selesai: "April",
     luasan: "220 m²",
@@ -79,61 +94,11 @@ const tableData: MahasiswaRow[] = [
     no: 5,
     namaMahasiswa: "Mahasiswa 5",
     dosenPembimbing: "Dosen Pembimbing 5",
-    programStudi: "Prodi 5",
+    programStudi: "Teknik Komputer",
     mulai: "April",
     selesai: "Mei",
     luasan: "250 m²",
     judulPenelitian: "Optimalisasi Sistem Informasi Perusahaan",
-  },
-  {
-    no: 6,
-    namaMahasiswa: "Mahasiswa 6",
-    dosenPembimbing: "Dosen Pembimbing 6",
-    programStudi: "Prodi 6",
-    mulai: "Mei",
-    selesai: "Juni",
-    luasan: "170 m²",
-    judulPenelitian: "Pemodelan Data untuk Prediksi Cuaca",
-  },
-  {
-    no: 7,
-    namaMahasiswa: "Mahasiswa 7",
-    dosenPembimbing: "Dosen Pembimbing 7",
-    programStudi: "Prodi 7",
-    mulai: "Juni",
-    selesai: "Juli",
-    luasan: "300 m²",
-    judulPenelitian: "Rancang Bangun Robotika Otomatis",
-  },
-  {
-    no: 8,
-    namaMahasiswa: "Mahasiswa 8",
-    dosenPembimbing: "Dosen Pembimbing 8",
-    programStudi: "Prodi 8",
-    mulai: "Juli",
-    selesai: "Agustus",
-    luasan: "210 m²",
-    judulPenelitian: "Kajian Dampak Sosial Media",
-  },
-  {
-    no: 9,
-    namaMahasiswa: "Mahasiswa 9",
-    dosenPembimbing: "Dosen Pembimbing 9",
-    programStudi: "Prodi 9",
-    mulai: "Agustus",
-    selesai: "September",
-    luasan: "190 m²",
-    judulPenelitian: "Analisis Keamanan Jaringan Komputer",
-  },
-  {
-    no: 10,
-    namaMahasiswa: "Mahasiswa 10",
-    dosenPembimbing: "Dosen Pembimbing 10",
-    programStudi: "Prodi 10",
-    mulai: "September",
-    selesai: "Oktober",
-    luasan: "160 m²",
-    judulPenelitian: "Pengembangan Model Pembelajaran Mesin",
   },
 ];
 
@@ -171,7 +136,7 @@ export default function PelayananAkademik() {
                   "px-4 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-150 whitespace-nowrap",
                   selectedMonth === month
                     ? "bg-gray-900 text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-100",
                 )}
               >
                 {month}
@@ -237,8 +202,14 @@ export default function PelayananAkademik() {
                     {row.dosenPembimbing}
                   </TableCell>
 
-                  <TableCell className="text-[13px] text-gray-600 max-w-[180px] whitespace-normal break-words leading-relaxed">
-                    {row.programStudi}
+                  <TableCell className="text-[13px] text-gray-600 whitespace-normal break-words leading-relaxed">
+                    {programStudiStyles[row.programStudi] ? (
+                      <Badge
+                        className={`${programStudiStyles[row.programStudi]} border`}
+                      >
+                        {row.programStudi}
+                      </Badge>
+                    ) : null}
                   </TableCell>
 
                   <TableCell className="text-[13px] text-gray-600 min-w-[120px] whitespace-nowrap">
@@ -298,8 +269,7 @@ export default function PelayananAkademik() {
                 },
                 {
                   icon: ChevronLeft,
-                  action: () =>
-                    setCurrentPage(Math.max(1, currentPage - 1)),
+                  action: () => setCurrentPage(Math.max(1, currentPage - 1)),
                   disabled: currentPage === 1,
                 },
                 {
