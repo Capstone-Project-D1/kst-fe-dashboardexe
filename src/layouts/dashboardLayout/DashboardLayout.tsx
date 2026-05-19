@@ -8,9 +8,9 @@ export default function DashboardLayout() {
     <SidebarProvider>
       <div className="flex min-h-screen w-full bg-gray-50">
         <AppSidebar />
-        <SidebarInset className="flex flex-col">
+        <SidebarInset className="flex flex-col min-w-0 overflow-x-hidden">
           <AppNavbar />
-          <main className="flex-1">
+          <main className="flex-1 overflow-x-hidden">
             <Outlet />
           </main>
         </SidebarInset>

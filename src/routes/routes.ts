@@ -9,6 +9,7 @@ export const ROUTES = {
 
   DASHBOARD: '/dashboard',
   TRACKER_INOVASI: '/tracker-inovasi',
+  KEBERLANJUTAN: '/keberlanjutan',
   PRODUKSI: '/produksi',
   STOK_OPNAME: '/stok-opname',
   BOOKLIST_ATP: '/booklist-atp',

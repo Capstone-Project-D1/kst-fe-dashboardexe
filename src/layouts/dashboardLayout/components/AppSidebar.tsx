@@ -55,9 +55,9 @@ const NAV_ITEMS = [
         icon: Activity,
       },
       {
-        title: "Produksi",
-        url: ROUTES.PRODUKSI,
-        icon: Package,
+        title: "Keberlanjutan",
+        url: ROUTES.KEBERLANJUTAN,
+        icon: Leaf,
       },
     ],
   },

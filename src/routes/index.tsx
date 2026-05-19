@@ -24,8 +24,8 @@ import Pertanian from "@/pages/kst-jatikerto/pertanian/Pertanian";
 import Peternakan from "@/pages/kst-jatikerto/peternakan/Peternakan";
 
 // KST NGIJO
-import Produksi from "@/pages/kst-ngijo/produksi/Produksi";
-import TrackerInovasi from "@/pages/kst-cangar/stopOpname/TrackerInovasi";
+import Keberlanjutan from "@/pages/kst-ngijo/keberlanjutan/Keberlanjutan";
+import TrackerInovasi from "@/pages/kst-ngijo/trackerInovasi/TrackerInovasi";
 
 // // Helper component for pages that aren't created yet
 // const DummyPage = ({ title }: { title: string }) => (
@@ -68,7 +68,7 @@ export const AppRoutes = () => {
             <Route path={ROUTES.PETERNAKAN.substring(1)} element={<Peternakan />} />
 
             {/* KST NGIJO */}
-            <Route path={ROUTES.PRODUKSI.substring(1)} element={<Produksi />} />
+            <Route path={ROUTES.KEBERLANJUTAN.substring(1)} element={<Keberlanjutan />} />
             <Route path={ROUTES.TRACKER_INOVASI.substring(1)} element={<TrackerInovasi />} />
 
             {/* <Route path={ROUTES.PROFILE.substring(1)} element={<DummyPage title="Profil" />} />
