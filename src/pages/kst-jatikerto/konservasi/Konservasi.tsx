@@ -23,8 +23,6 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-// ─── TYPES & DATA ────────────────────────────────────────────────────────────
-
 interface KonservasiRow {
   no: number;
   namaKomoditas: string;
@@ -46,7 +44,7 @@ const tableData: KonservasiRow[] = [
   },
   {
     no: 2,
-    namaKomoditas: "Kijang Jawa dengan Nama Ilmiah yang Cukup Panjang",
+    namaKomoditas: "Kijang Jawa kijang jawa pajero",
     foto:
       "https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=300&h=160&fit=crop",
     jumlah: 18,
@@ -85,8 +83,6 @@ const tableData: KonservasiRow[] = [
 
 const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
 
-// ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
-
 export default function Konservasi() {
   const [selectedYear, setSelectedYear] = useState("2026");
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
@@ -99,7 +95,6 @@ export default function Konservasi() {
 
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
-      {/* ── Filters ───────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
           <Select value={selectedYear} onValueChange={setSelectedYear}>
@@ -151,7 +146,6 @@ export default function Konservasi() {
         </Select>
       </div>
 
-      {/* ── Data Table ────────────────────────────────────────────── */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <Table className="min-w-[1100px]">
@@ -195,12 +189,10 @@ export default function Konservasi() {
                     {row.no}.
                   </TableCell>
 
-                  {/* Nama panjang → turun baris */}
                   <TableCell className="text-[13px] font-medium text-gray-900 max-w-[240px] whitespace-normal break-words leading-relaxed">
                     {row.namaKomoditas}
                   </TableCell>
 
-                  {/* Foto → ukuran tetap */}
                   <TableCell className="min-w-[180px]">
                     <div className="flex justify-center">
                       <img
@@ -211,17 +203,14 @@ export default function Konservasi() {
                     </div>
                   </TableCell>
 
-                  {/* Angka → tetap satu baris dan rata tengah */}
                   <TableCell className="text-[13px] text-gray-600 font-medium text-center min-w-[100px] whitespace-nowrap tabular-nums">
                     {row.jumlah}
                   </TableCell>
 
-                  {/* Satuan pendek → tetap satu baris */}
                   <TableCell className="text-[13px] text-gray-500 min-w-[120px] whitespace-nowrap">
                     {row.satuan}
                   </TableCell>
 
-                  {/* Keterangan panjang → turun baris */}
                   <TableCell className="text-[13px] text-gray-600 max-w-[260px] whitespace-normal break-words leading-relaxed">
                     {row.keterangan}
                   </TableCell>

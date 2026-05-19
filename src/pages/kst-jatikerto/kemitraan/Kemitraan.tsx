@@ -23,8 +23,6 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-// ─── TYPES & DATA ────────────────────────────────────────────────────────────
-
 interface MitraRow {
   no: number;
   mitra: string;
@@ -108,8 +106,6 @@ const tableData: MitraRow[] = [
 
 const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
 
-// ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
-
 export default function Kemitraan() {
   const [selectedYear, setSelectedYear] = useState("2026");
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
@@ -120,7 +116,6 @@ export default function Kemitraan() {
 
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
-      {/* ── Filters ───────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
         <Select value={selectedYear} onValueChange={setSelectedYear}>
           <SelectTrigger className="h-9 border-gray-200 bg-white text-[13px] font-medium">
@@ -153,7 +148,6 @@ export default function Kemitraan() {
         </div>
       </div>
 
-      {/* ── Data Table ────────────────────────────────────────────── */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <Table className="min-w-[1200px]">

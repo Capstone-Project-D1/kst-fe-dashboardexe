@@ -23,8 +23,6 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-// ─── TYPES & DATA ────────────────────────────────────────────────────────────
-
 interface MahasiswaRow {
   no: number;
   namaMahasiswa: string;
@@ -39,8 +37,8 @@ interface MahasiswaRow {
 const tableData: MahasiswaRow[] = [
   {
     no: 1,
-    namaMahasiswa: "Mahasiswa 1 dengan Nama yang Cukup Panjang",
-    dosenPembimbing: "Dr. Dosen Pembimbing dengan Nama Panjang",
+    namaMahasiswa: "Mahasiswa 1 bin fulan marfuah",
+    dosenPembimbing: "Dr. Dosen Pembimbing baik tak terkira",
     programStudi: "Teknik Informatika",
     mulai: "Desember",
     selesai: "Januari",
@@ -109,7 +107,7 @@ const tableData: MahasiswaRow[] = [
   },
   {
     no: 8,
-    namaMahasiswa: "Mahasiswa 3 namanya pinga sanggupkah memulai kembali",
+    namaMahasiswa: "Mahasiswa 8",
     dosenPembimbing: "Dosen Pembimbing 8",
     programStudi: "Prodi 8",
     mulai: "Juli",
@@ -141,8 +139,6 @@ const tableData: MahasiswaRow[] = [
 
 const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
 
-// ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
-
 export default function PelayananAkademik() {
   const [selectedYear, setSelectedYear] = useState("2026");
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
@@ -153,7 +149,6 @@ export default function PelayananAkademik() {
 
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
-      {/* ── Filters ───────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
         <Select value={selectedYear} onValueChange={setSelectedYear}>
           <SelectTrigger className="h-9 border-gray-200 bg-white text-[13px] font-medium">
@@ -186,7 +181,6 @@ export default function PelayananAkademik() {
         </div>
       </div>
 
-      {/* ── Data Table ────────────────────────────────────────────── */}
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <Table className="min-w-[1450px]">

@@ -45,7 +45,6 @@ export default function DataTable() {
 
   return (
     <div className="space-y-4">
-      {/* Filters Row */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-2">
         <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
           <Select defaultValue="2026">
@@ -90,7 +89,6 @@ export default function DataTable() {
         </Select>
       </div>
 
-      {/* Table Section */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
         <Table>
           <TableHeader className="bg-[#F9FAFB]">
