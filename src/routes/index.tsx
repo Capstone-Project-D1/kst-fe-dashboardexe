@@ -25,7 +25,7 @@ import Peternakan from "@/pages/kst-jatikerto/peternakan/Peternakan";
 
 // KST NGIJO
 import Produksi from "@/pages/kst-ngijo/produksi/Produksi";
-import TrackerInovasi from "@/pages/kst-ngijo/trackerInovasi/TrackerInovasi";
+import TrackerInovasi from "@/pages/kst-cangar/stopOpname/TrackerInovasi";
 
 // // Helper component for pages that aren't created yet
 // const DummyPage = ({ title }: { title: string }) => (
