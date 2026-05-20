@@ -258,7 +258,10 @@ export default function DataTable() {
   const totalLabel = isBarangMasuk ? "Total Masuk" : "Total Keluar";
 
   const rowsPerPageNumber = Number(rowsPerPage);
-  const totalPages = Math.max(1, Math.ceil(dummyData.length / rowsPerPageNumber));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(dummyData.length / rowsPerPageNumber)
+  );
 
   const paginatedData = dummyData.slice(
     (currentPage - 1) * rowsPerPageNumber,
@@ -320,39 +323,50 @@ export default function DataTable() {
             <Table className="min-w-[1250px]">
               <TableHeader className="bg-[#F9FAFB]">
                 <TableRow className="hover:bg-transparent border-gray-200">
-                  <TableHead className="w-[60px] font-bold text-gray-700 pl-5">
+                  <TableHead className="w-[60px] font-bold text-gray-700 text-center">
                     No.
                   </TableHead>
+
                   <TableHead className="font-bold text-gray-700 min-w-[220px]">
                     Nama Barang
                   </TableHead>
-                  <TableHead className="font-bold text-gray-700 min-w-[90px]">
+
+                  <TableHead className="font-bold text-gray-700 min-w-[90px] text-center">
                     Satuan
                   </TableHead>
-                  <TableHead className="text-right font-bold text-gray-700 min-w-[110px]">
+
+                  <TableHead className="font-bold text-gray-700 min-w-[110px] text-center">
                     Stok Awal
                   </TableHead>
-                  <TableHead className="text-right font-bold text-gray-700 min-w-[90px]">
+
+                  <TableHead className="font-bold text-gray-700 min-w-[90px] text-center">
                     Retur
                   </TableHead>
-                  <TableHead className="font-bold text-gray-700 min-w-[220px]">
+
+                  <TableHead className="font-bold text-gray-700 min-w-[220px] text-center">
                     Keterangan Retur
                   </TableHead>
-                  <TableHead className="text-right font-bold text-gray-700 min-w-[110px]">
+
+                  <TableHead className="font-bold text-gray-700 min-w-[110px] text-center">
                     Stok Akhir
                   </TableHead>
-                  <TableHead className="text-right font-bold text-gray-700 min-w-[110px]">
+
+                  <TableHead className="font-bold text-gray-700 min-w-[110px] text-center">
                     Stok Fisik
                   </TableHead>
-                  <TableHead className="text-right font-bold text-gray-700 min-w-[90px]">
+
+                  <TableHead className="font-bold text-gray-700 min-w-[90px] text-center">
                     Selisih
                   </TableHead>
-                  <TableHead className="font-bold text-gray-700 min-w-[220px]">
+
+                  <TableHead className="font-bold text-gray-700 min-w-[220px] text-center">
                     Keterangan Selisih
                   </TableHead>
-                  <TableHead className="text-right font-bold text-gray-700 min-w-[110px]">
+
+                  <TableHead className="font-bold text-gray-700 min-w-[110px] text-center">
                     Total
                   </TableHead>
+
                   <TableHead className="w-[50px]" />
                 </TableRow>
               </TableHeader>
@@ -363,7 +377,7 @@ export default function DataTable() {
                     key={item.id}
                     className="border-gray-100 hover:bg-gray-50/50 group"
                   >
-                    <TableCell className="font-medium text-gray-600 pl-5">
+                    <TableCell className="font-medium text-gray-600 text-center">
                       {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                     </TableCell>
 
@@ -371,38 +385,38 @@ export default function DataTable() {
                       {item.name}
                     </TableCell>
 
-                    <TableCell className="text-gray-500 whitespace-nowrap">
+                    <TableCell className="text-gray-500 text-center whitespace-nowrap">
                       {item.satuan}
                     </TableCell>
 
-                    <TableCell className="text-right font-medium text-gray-500 whitespace-nowrap tabular-nums">
+                    <TableCell className="text-center font-medium text-gray-500 whitespace-nowrap tabular-nums">
                       {item.stockAwal}
                     </TableCell>
 
                     <TableCell
                       className={cn(
-                        "text-right font-medium whitespace-nowrap tabular-nums",
+                        "text-center font-medium whitespace-nowrap tabular-nums",
                         item.retur > 0 ? "text-red-500" : "text-gray-500"
                       )}
                     >
                       {item.retur}
                     </TableCell>
 
-                    <TableCell className="text-gray-500 max-w-[220px] whitespace-normal break-words leading-relaxed">
+                    <TableCell className="text-gray-500 text-center max-w-[220px] whitespace-normal break-words leading-relaxed">
                       {item.keteranganRetur}
                     </TableCell>
 
-                    <TableCell className="text-right text-gray-500 whitespace-nowrap tabular-nums">
+                    <TableCell className="text-center text-gray-500 whitespace-nowrap tabular-nums">
                       {item.stockAkhir}
                     </TableCell>
 
-                    <TableCell className="text-right text-gray-500 whitespace-nowrap tabular-nums">
+                    <TableCell className="text-center text-gray-500 whitespace-nowrap tabular-nums">
                       {item.stockFisik}
                     </TableCell>
 
                     <TableCell
                       className={cn(
-                        "text-right font-medium whitespace-nowrap tabular-nums",
+                        "text-center font-medium whitespace-nowrap tabular-nums",
                         item.selisih < 0
                           ? "text-red-500"
                           : item.selisih > 0
@@ -413,11 +427,11 @@ export default function DataTable() {
                       {item.selisih > 0 ? `+${item.selisih}` : item.selisih}
                     </TableCell>
 
-                    <TableCell className="text-gray-500 max-w-[220px] whitespace-normal break-words leading-relaxed">
+                    <TableCell className="text-gray-500 text-center max-w-[220px] whitespace-normal break-words leading-relaxed">
                       {item.keteranganSelisih}
                     </TableCell>
 
-                    <TableCell className="text-right font-bold text-gray-900 whitespace-nowrap tabular-nums">
+                    <TableCell className="text-center font-bold text-gray-900 whitespace-nowrap tabular-nums">
                       {item.total}
                     </TableCell>
 
@@ -441,13 +455,19 @@ export default function DataTable() {
                   <TableHead className="w-[60px] font-bold text-gray-700 pl-5">
                     No.
                   </TableHead>
+
                   <TableHead className="font-bold text-gray-700 min-w-[220px]">
                     Nama Barang
                   </TableHead>
+
                   <TableHead className="text-right font-bold text-gray-700 min-w-[120px]">
                     Stok Awal
                   </TableHead>
-                  <TableHead className="text-center p-0 min-w-[420px]" colSpan={7}>
+
+                  <TableHead
+                    className="text-center p-0 min-w-[420px]"
+                    colSpan={7}
+                  >
                     <div className="flex flex-col">
                       <span className="font-bold text-gray-700 py-2">
                         {activityLabel}
@@ -465,9 +485,11 @@ export default function DataTable() {
                       </div>
                     </div>
                   </TableHead>
+
                   <TableHead className="text-right font-bold text-gray-700 min-w-[130px]">
                     {totalLabel}
                   </TableHead>
+
                   <TableHead className="w-[50px]" />
                 </TableRow>
               </TableHeader>
@@ -550,6 +572,7 @@ export default function DataTable() {
               <SelectTrigger className="w-[70px] h-9 border-gray-200">
                 <SelectValue />
               </SelectTrigger>
+
               <SelectContent>
                 <SelectItem value="5">5</SelectItem>
                 <SelectItem value="10">10</SelectItem>

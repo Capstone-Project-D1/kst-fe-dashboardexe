@@ -64,6 +64,57 @@ const researchConfig = {
   },
 } satisfies ChartConfig;
 
+function CircularProgress({
+  value,
+  label,
+  color = "#168FFF",
+}: {
+  value: number;
+  label: string;
+  color?: string;
+}) {
+  const radius = 58;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference - (value / 100) * circumference;
+
+  return (
+    <div className="relative inline-flex items-center justify-center">
+      <svg width="155" height="155" className="-rotate-90">
+        <circle
+          cx="77.5"
+          cy="77.5"
+          r={radius}
+          fill="none"
+          stroke="#EFEFEF"
+          strokeWidth="10"
+        />
+
+        <circle
+          cx="77.5"
+          cy="77.5"
+          r={radius}
+          fill="none"
+          stroke={color}
+          strokeWidth="10"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          className="transition-all duration-700"
+        />
+      </svg>
+
+      <div className="absolute flex flex-col items-center">
+        <span className="text-4xl font-extrabold text-gray-900">
+          {value}
+        </span>
+        <span className="text-[12px] font-medium text-gray-400">
+          {label}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function Dashboard() {
   return (
     <div className="flex flex-col gap-4 p-4 md:p-6 bg-gray-50/50 min-h-screen">
@@ -143,7 +194,7 @@ export default function Dashboard() {
               <div className="text-3xl font-extrabold text-gray-900 tracking-tight">
                 1.500
               </div>
-              <Badge className="bg-[#E9F7F2] text-[#27A376] text-[11px] font-bold px-2 py-1 rounded-md flex items-center gap-1 border-[#B2DDB5] bg-[#F5FBF5]">
+              <Badge className="text-[#27A376] text-[11px] font-bold px-2 py-1 rounded-md flex items-center gap-1 border-[#B2DDB5] bg-[#F5FBF5]">
                 <TrendingUp className="size-4 text-[#46A758]" />
                 +15%
               </Badge>
@@ -182,7 +233,7 @@ export default function Dashboard() {
               <div className="text-3xl font-extrabold text-gray-900 tracking-tight">
                 1.500
               </div>
-              <Badge className="bg-[#E9F7F2] text-[#27A376] border-[#B2DDB5] bg-[#F5FBF5] text-[11px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
+              <Badge className="text-[#27A376] border-[#B2DDB5] bg-[#F5FBF5] text-[11px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
                 <TrendingUp className="size-4 text-[#46A758]" />
                 +5%
               </Badge>
@@ -267,10 +318,12 @@ export default function Dashboard() {
               <div className="p-2 bg-[#27A376] rounded-lg text-white">
                 <TrendingUp className="size-5" />
               </div>
+
               <CardTitle className="text-sm font-semibold text-gray-700">
                 Sustainability Index
               </CardTitle>
             </div>
+
             <Badge
               variant="outline"
               className="bg-white text-gray-900 border-gray-200 text-[10px] font-bold h-6 px-2.5 rounded-full"
@@ -278,22 +331,14 @@ export default function Dashboard() {
               KST Ngijo
             </Badge>
           </CardHeader>
-          <CardContent className="pt-6 space-y-8">
-            <div className="flex items-center justify-between">
-              <span className="text-4xl font-extrabold text-gray-900 tracking-tight">
-                1.500
-              </span>
-              <Badge className="bg-[#E9F7F2] text-[#27A376] border-[#B2DDB5] bg-[#F5FBF5] text-[11px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
-                <TrendingUp className="size-4 text-[#46A758]" />
-                +15%
-              </Badge>
-            </div>
-            <div className="space-y-3">
-              <p className="text-[14px] font-bold text-gray-800">
-                Peningkatan 12.5% dari bulan lalu
-              </p>
-              <p className="text-[12px] text-gray-400 font-medium leading-relaxed">
-                Total barang pada bulan ini meningkat sebesar 15%.
+
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center gap-4">
+              <CircularProgress value={94} label="Excellent" />
+
+              <p className="text-[12px] text-gray-700 font-semibold text-center">
+                Kinerja 12% lebih tinggi dibandingkan kuartal lalu.
+                <TrendingUp className="inline-block ml-1 size-3 text-gray-700" />
               </p>
             </div>
           </CardContent>
@@ -382,7 +427,7 @@ export default function Dashboard() {
                   <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
                     500
                   </span>
-                  <Badge className="bg-[#E9F7F2] text-[#27A376] border-[#B2DDB5] bg-[#F5FBF5] text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
+                  <Badge className="text-[#27A376] border-[#B2DDB5] bg-[#F5FBF5] text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
                     <TrendingUp className="size-4 text-[#46A758]" />
                     +12.5%
                   </Badge>
@@ -402,7 +447,7 @@ export default function Dashboard() {
                   <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
                     200
                   </span>
-                  <Badge className="bg-red-50 text-[#E5484D] border-[#F8D7DA] bg-[#FFF5F5] text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
+                  <Badge className="text-[#E5484D] border-[#F8D7DA] bg-[#FFF5F5] text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
                     <TrendingDown className="size-4 text-[#E5484D]" />
                     -20%
                   </Badge>
