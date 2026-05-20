@@ -91,7 +91,14 @@ export default function Konservasi() {
   const [selectedCategory, setSelectedCategory] =
     useState("konservasi-hewan");
 
-  const totalPages = 7;
+  const rowsPerPageNumber = Number(rowsPerPage);
+  const totalPages = Math.max(1, Math.ceil(tableData.length / rowsPerPageNumber));
+
+  const paginatedData = tableData.slice(
+    (currentPage - 1) * rowsPerPageNumber,
+    currentPage * rowsPerPageNumber
+  );
+
 
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
@@ -180,13 +187,13 @@ export default function Konservasi() {
             </TableHeader>
 
             <TableBody>
-              {tableData.map((row) => (
+              {paginatedData.map((row, index) => (
                 <TableRow
                   key={row.no}
                   className="hover:bg-gray-50/50 group"
                 >
                   <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
-                    {row.no}.
+                    {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                   </TableCell>
 
                   <TableCell className="text-[13px] font-medium text-gray-900 max-w-[240px] whitespace-normal break-words leading-relaxed">
@@ -230,7 +237,13 @@ export default function Konservasi() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-5 py-3 border-t border-gray-100">
           <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
             <span className="whitespace-nowrap">Baris per Page</span>
-            <Select value={rowsPerPage} onValueChange={setRowsPerPage}>
+            <Select
+              value={rowsPerPage}
+              onValueChange={(value) => {
+                setRowsPerPage(value);
+                setCurrentPage(1);
+              }}
+            >
               <SelectTrigger className="h-8 w-[70px] border-gray-200 bg-white text-[13px]">
                 <SelectValue />
               </SelectTrigger>

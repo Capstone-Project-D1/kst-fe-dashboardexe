@@ -287,7 +287,7 @@ function MonthTab({
         "px-4 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-150 whitespace-nowrap",
         active
           ? "bg-gray-900 text-white shadow-sm"
-          : "text-gray-500 hover:text-gray-800 hover:bg-gray-100",
+          : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
       )}
     >
       {label}
@@ -302,10 +302,18 @@ export default function BooklistAtp() {
   const [rowsPerPage, setRowsPerPage] = useState("10");
   const [displayType, setDisplayType] = useState<DisplayType>("reservasi");
 
-  const totalPages = 7;
+  const activeData = displayType === "reservasi" ? bookingData : customerData;
+  const rowsPerPageNumber = Number(rowsPerPage);
+  const totalPages = Math.max(1, Math.ceil(activeData.length / rowsPerPageNumber));
+
+  const paginatedData = activeData.slice(
+    (currentPage - 1) * rowsPerPageNumber,
+    currentPage * rowsPerPageNumber
+  );
+
   const lunasCount = bookingData.filter((row) => row.status === "Lunas").length;
   const belumLunasCount = bookingData.filter(
-    (row) => row.status === "Belum Lunas",
+    (row) => row.status === "Belum Lunas"
   ).length;
 
   return (
@@ -417,7 +425,10 @@ export default function BooklistAtp() {
 
         <Select
           value={displayType}
-          onValueChange={(value) => setDisplayType(value as DisplayType)}
+          onValueChange={(value) => {
+            setDisplayType(value as DisplayType);
+            setCurrentPage(1);
+          }}
         >
           <SelectTrigger className="w-[190px] h-9 border-gray-200 rounded-lg bg-white">
             <div className="flex items-center gap-2">
@@ -441,48 +452,39 @@ export default function BooklistAtp() {
                   <TableHead className="font-bold text-gray-500 text-[12px] w-[50px] pl-5">
                     No.
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[240px]">
                     Nama Pelanggan
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[120px]">
                     Check In
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[120px]">
                     Check Out
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[180px]">
                     Tipe
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[140px]">
                     No Unit
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[150px]">
                     Harga
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[130px]">
                     Status
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[220px]">
                     Keterangan Status
                   </TableHead>
-
                   <TableHead className="w-[48px]" />
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                {bookingData.map((row) => (
+                {(paginatedData as BookingRow[]).map((row, index) => (
                   <TableRow key={row.no} className="hover:bg-gray-50/50 group">
                     <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
-                      {row.no}.
+                      {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                     </TableCell>
 
                     <TableCell className="text-[13px] font-medium text-gray-900 max-w-[240px] whitespace-normal break-words leading-relaxed">
@@ -515,7 +517,7 @@ export default function BooklistAtp() {
                           "inline-flex items-center gap-1.5 text-[12px] font-semibold",
                           row.status === "Lunas"
                             ? "text-emerald-600"
-                            : "text-red-500",
+                            : "text-red-500"
                         )}
                       >
                         <span
@@ -523,7 +525,7 @@ export default function BooklistAtp() {
                             "size-2 rounded-full",
                             row.status === "Lunas"
                               ? "bg-emerald-500"
-                              : "bg-red-500",
+                              : "bg-red-500"
                           )}
                         />
                         {row.status}
@@ -550,44 +552,36 @@ export default function BooklistAtp() {
                   <TableHead className="font-bold text-gray-500 text-[12px] w-[50px] pl-5">
                     No.
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[200px]">
                     Nama Pelanggan
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[200px]">
                     Domisili
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[140px]">
                     Kontak
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-500 text-[12px] text-right min-w-[120px]">
                     Jumlah Tamu
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[150px]">
                     Harga
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[130px]">
                     Status
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[220px]">
                     Keterangan Status
                   </TableHead>
-
                   <TableHead className="w-[48px]" />
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                {customerData.map((row) => (
+                {(paginatedData as CustomerRow[]).map((row, index) => (
                   <TableRow key={row.no} className="hover:bg-gray-50/50 group">
                     <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
-                      {row.no}.
+                      {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                     </TableCell>
 
                     <TableCell className="text-[13px] font-medium text-gray-900 max-w-[200px] whitespace-normal break-words leading-relaxed">
@@ -616,7 +610,7 @@ export default function BooklistAtp() {
                           "inline-flex items-center gap-1.5 text-[12px] font-semibold",
                           row.status === "Lunas"
                             ? "text-emerald-600"
-                            : "text-red-500",
+                            : "text-red-500"
                         )}
                       >
                         <span
@@ -624,7 +618,7 @@ export default function BooklistAtp() {
                             "size-2 rounded-full",
                             row.status === "Lunas"
                               ? "bg-emerald-500"
-                              : "bg-red-500",
+                              : "bg-red-500"
                           )}
                         />
                         {row.status}
@@ -647,12 +641,17 @@ export default function BooklistAtp() {
           )}
         </div>
 
-        {/* Pagination */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-5 py-3 border-t border-gray-100">
           <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
             <span className="whitespace-nowrap">Baris per Page</span>
 
-            <Select value={rowsPerPage} onValueChange={setRowsPerPage}>
+            <Select
+              value={rowsPerPage}
+              onValueChange={(value) => {
+                setRowsPerPage(value);
+                setCurrentPage(1);
+              }}
+            >
               <SelectTrigger className="h-8 w-[70px] border-gray-200 bg-white text-[13px]">
                 <SelectValue />
               </SelectTrigger>
@@ -660,6 +659,7 @@ export default function BooklistAtp() {
                 <SelectItem value="5">5</SelectItem>
                 <SelectItem value="10">10</SelectItem>
                 <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
               </SelectContent>
             </Select>
           </div>

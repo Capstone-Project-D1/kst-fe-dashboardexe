@@ -139,8 +139,6 @@ const sensorData: SensorRow[] = [
   },
 ];
 
-// ─── CIRCULAR PROGRESS COMPONENT ────────────────────────────────────────────
-
 function CircularProgress({
   value,
   label,
@@ -218,14 +216,23 @@ export default function Keberlanjutan() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
 
-  const totalPages = 3;
   const totalWater = 14200 + 6700;
   const pct = Math.round((14200 / totalWater) * 100);
+
+  const rowsPerPageNumber = Number(rowsPerPage);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(sensorData.length / rowsPerPageNumber)
+  );
+
+  const paginatedSensorData = sensorData.slice(
+    (currentPage - 1) * rowsPerPageNumber,
+    currentPage * rowsPerPageNumber
+  );
 
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Green Performance */}
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col gap-4">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-emerald-50 text-emerald-600">
@@ -250,7 +257,6 @@ export default function Keberlanjutan() {
           </p>
         </div>
 
-        {/* Siklus Hidup Air */}
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col gap-4">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-blue-50 text-blue-600">
@@ -310,7 +316,6 @@ export default function Keberlanjutan() {
           </p>
         </div>
 
-        {/* Metrik Limbah */}
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col gap-3">
           <div className="flex items-start justify-between gap-2">
             <div className="flex items-center gap-2.5">
@@ -379,7 +384,6 @@ export default function Keberlanjutan() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Dinamika Energi */}
         <div className="lg:col-span-2 bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col gap-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2.5">
@@ -459,7 +463,6 @@ export default function Keberlanjutan() {
           </div>
         </div>
 
-        {/* Total Energi Terbarukan */}
         <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col gap-4">
           <div className="flex items-center gap-2.5">
             <div className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
@@ -574,10 +577,10 @@ export default function Keberlanjutan() {
             </TableHeader>
 
             <TableBody>
-              {sensorData.map((row) => (
+              {paginatedSensorData.map((row, index) => (
                 <TableRow key={row.no} className="hover:bg-gray-50/50 group">
                   <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
-                    {row.no}.
+                    {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                   </TableCell>
 
                   <TableCell className="text-[13px] font-medium text-gray-900 max-w-[260px] whitespace-normal break-words leading-relaxed">
@@ -629,12 +632,17 @@ export default function Keberlanjutan() {
           </Table>
         </div>
 
-        {/* Pagination */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-5 py-3 border-t border-gray-100">
           <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
             <span className="whitespace-nowrap">Baris per Page</span>
 
-            <Select value={rowsPerPage} onValueChange={setRowsPerPage}>
+            <Select
+              value={rowsPerPage}
+              onValueChange={(value) => {
+                setRowsPerPage(value);
+                setCurrentPage(1);
+              }}
+            >
               <SelectTrigger className="h-8 w-[70px] border-gray-200 bg-white text-[13px]">
                 <SelectValue />
               </SelectTrigger>

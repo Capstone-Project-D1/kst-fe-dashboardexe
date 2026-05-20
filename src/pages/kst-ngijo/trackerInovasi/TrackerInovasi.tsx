@@ -29,8 +29,6 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 
-// ─── TYPES ───────────────────────────────────────────────────────────────────
-
 interface SummaryCardData {
   icon: React.ElementType;
   iconBg: string;
@@ -50,8 +48,6 @@ interface InovasiRow {
   trlLevel: number;
   trlLabel: string;
 }
-
-// ─── DUMMY DATA ──────────────────────────────────────────────────────────────
 
 const summaryCards: SummaryCardData[] = [
   {
@@ -221,7 +217,7 @@ function SummaryCard({ data }: { data: SummaryCardData }) {
             "flex h-6 py-0.5 px-2 justify-center items-center gap-1 rounded-md border text-[11px] font-bold",
             isPositive
               ? "border-[#B2DDB5] bg-[#F5FBF5] text-[#46A758]"
-              : "border-[#F8D7DA] bg-[#FFF5F5] text-[#E5484D]",
+              : "border-[#F8D7DA] bg-[#FFF5F5] text-[#E5484D]"
           )}
         >
           {isPositive ? (
@@ -235,7 +231,9 @@ function SummaryCard({ data }: { data: SummaryCardData }) {
       </div>
 
       <div className="space-y-0.5">
-        <p className="text-[13px] font-bold text-gray-800">{data.trendLabel}</p>
+        <p className="text-[13px] font-bold text-gray-800">
+          {data.trendLabel}
+        </p>
         <p className="text-[11px] text-gray-400 font-medium leading-relaxed">
           {data.description}
         </p>
@@ -260,7 +258,7 @@ function MonthTab({
         "px-4 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-150 whitespace-nowrap",
         active
           ? "bg-gray-900 text-white shadow-sm"
-          : "text-gray-500 hover:text-gray-800 hover:bg-gray-100",
+          : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
       )}
     >
       {label}
@@ -274,7 +272,16 @@ export default function TrackerInovasi() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
 
-  const totalPages = 7;
+  const rowsPerPageNumber = Number(rowsPerPage);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(tableData.length / rowsPerPageNumber)
+  );
+
+  const paginatedData = tableData.slice(
+    (currentPage - 1) * rowsPerPageNumber,
+    currentPage * rowsPerPageNumber
+  );
 
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
@@ -345,13 +352,13 @@ export default function TrackerInovasi() {
             </TableHeader>
 
             <TableBody>
-              {tableData.map((row) => (
+              {paginatedData.map((row, index) => (
                 <TableRow
                   key={row.idProyek}
                   className="hover:bg-gray-50/50 group"
                 >
                   <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
-                    {row.no}.
+                    {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                   </TableCell>
 
                   <TableCell className="text-[13px] font-medium text-gray-900 max-w-[260px] whitespace-normal break-words leading-relaxed">
@@ -392,12 +399,17 @@ export default function TrackerInovasi() {
           </Table>
         </div>
 
-        {/* Pagination */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-5 py-3 border-t border-gray-100">
           <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
             <span className="whitespace-nowrap">Baris per Page</span>
 
-            <Select value={rowsPerPage} onValueChange={setRowsPerPage}>
+            <Select
+              value={rowsPerPage}
+              onValueChange={(value) => {
+                setRowsPerPage(value);
+                setCurrentPage(1);
+              }}
+            >
               <SelectTrigger className="h-8 w-[70px] border-gray-200 bg-white text-[13px]">
                 <SelectValue />
               </SelectTrigger>

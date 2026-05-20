@@ -248,6 +248,8 @@ function MonthTab({
 export default function DataTable() {
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
   const [displayType, setDisplayType] = useState<DisplayType>("barang-masuk");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [rowsPerPage, setRowsPerPage] = useState("10");
 
   const isJumlahStok = displayType === "jumlah-stok";
   const isBarangMasuk = displayType === "barang-masuk";
@@ -255,9 +257,16 @@ export default function DataTable() {
   const activityLabel = isBarangMasuk ? "Barang Masuk" : "Barang Keluar";
   const totalLabel = isBarangMasuk ? "Total Masuk" : "Total Keluar";
 
+  const rowsPerPageNumber = Number(rowsPerPage);
+  const totalPages = Math.max(1, Math.ceil(dummyData.length / rowsPerPageNumber));
+
+  const paginatedData = dummyData.slice(
+    (currentPage - 1) * rowsPerPageNumber,
+    currentPage * rowsPerPageNumber
+  );
+
   return (
     <div className="space-y-4">
-      {/* ── Filters ───────────────────────────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-2">
         <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
           <Select defaultValue="2026">
@@ -286,7 +295,10 @@ export default function DataTable() {
 
         <Select
           value={displayType}
-          onValueChange={(value) => setDisplayType(value as DisplayType)}
+          onValueChange={(value) => {
+            setDisplayType(value as DisplayType);
+            setCurrentPage(1);
+          }}
         >
           <SelectTrigger className="w-[190px] h-10 border-gray-200 rounded-lg bg-white">
             <div className="flex items-center gap-2">
@@ -302,7 +314,6 @@ export default function DataTable() {
         </Select>
       </div>
 
-      {/* ── Data Table ────────────────────────────────────────────── */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           {isJumlahStok ? (
@@ -312,59 +323,48 @@ export default function DataTable() {
                   <TableHead className="w-[60px] font-bold text-gray-700 pl-5">
                     No.
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-700 min-w-[220px]">
                     Nama Barang
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-700 min-w-[90px]">
                     Satuan
                   </TableHead>
-
                   <TableHead className="text-right font-bold text-gray-700 min-w-[110px]">
                     Stok Awal
                   </TableHead>
-
                   <TableHead className="text-right font-bold text-gray-700 min-w-[90px]">
                     Retur
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-700 min-w-[220px]">
                     Keterangan Retur
                   </TableHead>
-
                   <TableHead className="text-right font-bold text-gray-700 min-w-[110px]">
                     Stok Akhir
                   </TableHead>
-
                   <TableHead className="text-right font-bold text-gray-700 min-w-[110px]">
                     Stok Fisik
                   </TableHead>
-
                   <TableHead className="text-right font-bold text-gray-700 min-w-[90px]">
                     Selisih
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-700 min-w-[220px]">
                     Keterangan Selisih
                   </TableHead>
-
                   <TableHead className="text-right font-bold text-gray-700 min-w-[110px]">
                     Total
                   </TableHead>
-
                   <TableHead className="w-[50px]" />
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                {dummyData.map((item, index) => (
+                {paginatedData.map((item, index) => (
                   <TableRow
                     key={item.id}
                     className="border-gray-100 hover:bg-gray-50/50 group"
                   >
                     <TableCell className="font-medium text-gray-600 pl-5">
-                      {index + 1}.
+                      {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                     </TableCell>
 
                     <TableCell className="font-semibold text-gray-900 max-w-[220px] whitespace-normal break-words leading-relaxed">
@@ -441,15 +441,12 @@ export default function DataTable() {
                   <TableHead className="w-[60px] font-bold text-gray-700 pl-5">
                     No.
                   </TableHead>
-
                   <TableHead className="font-bold text-gray-700 min-w-[220px]">
                     Nama Barang
                   </TableHead>
-
                   <TableHead className="text-right font-bold text-gray-700 min-w-[120px]">
                     Stok Awal
                   </TableHead>
-
                   <TableHead className="text-center p-0 min-w-[420px]" colSpan={7}>
                     <div className="flex flex-col">
                       <span className="font-bold text-gray-700 py-2">
@@ -468,17 +465,15 @@ export default function DataTable() {
                       </div>
                     </div>
                   </TableHead>
-
                   <TableHead className="text-right font-bold text-gray-700 min-w-[130px]">
                     {totalLabel}
                   </TableHead>
-
                   <TableHead className="w-[50px]" />
                 </TableRow>
               </TableHeader>
 
               <TableBody>
-                {dummyData.map((item, index) => {
+                {paginatedData.map((item, index) => {
                   const dailyValues = isBarangMasuk
                     ? item.barangMasuk
                     : item.barangKeluar;
@@ -493,7 +488,7 @@ export default function DataTable() {
                       className="border-gray-100 hover:bg-gray-50/50 group"
                     >
                       <TableCell className="font-medium text-gray-600 pl-5">
-                        {index + 1}.
+                        {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                       </TableCell>
 
                       <TableCell className="font-semibold text-gray-900 max-w-[220px] whitespace-normal break-words leading-relaxed">
@@ -539,18 +534,24 @@ export default function DataTable() {
           )}
         </div>
 
-        {/* Pagination */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 p-4 border-t border-gray-100 bg-[#F9FAFB]">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium text-gray-500">
               Baris per Page
             </span>
 
-            <Select defaultValue="10">
+            <Select
+              value={rowsPerPage}
+              onValueChange={(value) => {
+                setRowsPerPage(value);
+                setCurrentPage(1);
+              }}
+            >
               <SelectTrigger className="w-[70px] h-9 border-gray-200">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="5">5</SelectItem>
                 <SelectItem value="10">10</SelectItem>
                 <SelectItem value="25">25</SelectItem>
                 <SelectItem value="50">50</SelectItem>
@@ -560,14 +561,16 @@ export default function DataTable() {
 
           <div className="flex items-center gap-6">
             <span className="text-sm font-medium text-gray-600">
-              Page 1 dari 7
+              Page {currentPage} dari {totalPages}
             </span>
 
             <div className="flex items-center gap-1">
               <Button
                 variant="outline"
                 size="icon"
-                className="size-8 rounded-md border-gray-200"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(1)}
+                className="size-8 rounded-md border-gray-200 disabled:opacity-30"
               >
                 <ChevronsLeft className="size-4 text-gray-400" />
               </Button>
@@ -575,7 +578,9 @@ export default function DataTable() {
               <Button
                 variant="outline"
                 size="icon"
-                className="size-8 rounded-md border-gray-200"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                className="size-8 rounded-md border-gray-200 disabled:opacity-30"
               >
                 <ChevronLeft className="size-4 text-gray-400" />
               </Button>
@@ -583,7 +588,11 @@ export default function DataTable() {
               <Button
                 variant="outline"
                 size="icon"
-                className="size-8 rounded-md border-gray-200"
+                disabled={currentPage === totalPages}
+                onClick={() =>
+                  setCurrentPage(Math.min(totalPages, currentPage + 1))
+                }
+                className="size-8 rounded-md border-gray-200 disabled:opacity-30"
               >
                 <ChevronRight className="size-4 text-gray-400" />
               </Button>
@@ -591,7 +600,9 @@ export default function DataTable() {
               <Button
                 variant="outline"
                 size="icon"
-                className="size-8 rounded-md border-gray-200"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(totalPages)}
+                className="size-8 rounded-md border-gray-200 disabled:opacity-30"
               >
                 <ChevronsRight className="size-4 text-gray-400" />
               </Button>
