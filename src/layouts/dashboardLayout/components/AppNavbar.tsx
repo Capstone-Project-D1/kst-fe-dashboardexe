@@ -1,12 +1,14 @@
 import * as React from "react";
-import { Search, ChevronRight } from "lucide-react";
+import { Search, ChevronRight, Menu } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { ROUTES } from "@/routes/routes";
 import { SearchCommand } from "./SearchCommand";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export function AppNavbar() {
   const location = useLocation();
   const [open, setOpen] = React.useState(false);
+  const { toggleSidebar } = useSidebar();
 
   // Mapping paths to readable titles and optional parent section
   const getBreadcrumb = (path: string): { parent?: string; title: string } => {
@@ -45,7 +47,16 @@ export function AppNavbar() {
   const breadcrumb = getBreadcrumb(location.pathname);
 
   return (
-    <header className="flex h-[51px] shrink-0 items-center gap-2 border-b border-gray-100 bg-white px-4 sticky top-0 z-10">
+    <header className="flex h-[51px] shrink-0 items-center gap-2 border-b border-gray-100 bg-white px-3 sm:px-4 sticky top-0 z-10">
+      {/* Burger menu — visible only on mobile */}
+      <button
+        onClick={toggleSidebar}
+        className="md:hidden p-1.5 -ml-1 rounded-lg hover:bg-gray-100 transition-colors"
+        aria-label="Toggle menu"
+      >
+        <Menu className="size-5 text-gray-600" />
+      </button>
+
       <div className="flex items-center gap-4 flex-1 min-w-0">
         {/* Dynamic Breadcrumbs */}
         <nav className="flex items-center text-[12px] font-medium min-w-0">
@@ -71,11 +82,19 @@ export function AppNavbar() {
         </nav>
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Search Trigger */}
+      <div className="flex items-center gap-2 shrink-0">
+        {/* Search — icon-only on mobile, full bar on md+ */}
         <button
           onClick={() => setOpen(true)}
-          className="relative w-[220px] group flex items-center h-8 bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-lg px-3 transition-all cursor-text"
+          className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
+          aria-label="Search"
+        >
+          <Search className="size-4 text-gray-500" />
+        </button>
+
+        <button
+          onClick={() => setOpen(true)}
+          className="hidden md:flex relative w-[220px] group items-center h-8 bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-lg px-3 transition-all cursor-text"
         >
           <Search className="size-3 text-gray-400 group-hover:text-gray-600 transition-colors mr-2" />
           <span className="text-[12px] text-gray-400 flex-1 text-left">
