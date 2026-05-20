@@ -287,7 +287,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <div className="px-1 group-data-[collapsible=icon]:hidden">
             <Button
               onClick={() => setIsReportModalOpen(true)}
-              className="w-full justify-start gap-2 bg-[#27A376] hover:bg-[#1f8a63] text-white font-semibold rounded-lg h-9 shadow-sm text-[12px]"
+              className="w-full justify-center gap-2 bg-[#27A376] hover:bg-[#1f8a63] text-white font-semibold rounded-lg h-9 shadow-sm text-[12px]"
             >
               <Download className="size-3" />
               <span>Unduh Laporan</span>
