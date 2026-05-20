@@ -146,13 +146,15 @@ export default function Pertanian() {
   const [rowsPerPage, setRowsPerPage] = useState("10");
 
   const rowsPerPageNumber = Number(rowsPerPage);
-  const totalPages = Math.max(1, Math.ceil(tableData.length / rowsPerPageNumber));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(tableData.length / rowsPerPageNumber)
+  );
 
   const paginatedData = tableData.slice(
     (currentPage - 1) * rowsPerPageNumber,
     currentPage * rowsPerPageNumber
   );
-
 
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
@@ -161,6 +163,7 @@ export default function Pertanian() {
           <SelectTrigger className="h-9 border-gray-200 bg-white text-[13px] font-medium">
             <SelectValue />
           </SelectTrigger>
+
           <SelectContent>
             <SelectItem value="2024">2024</SelectItem>
             <SelectItem value="2025">2025</SelectItem>
@@ -194,7 +197,7 @@ export default function Pertanian() {
             <TableHeader>
               <TableRow className="bg-gray-50/80 hover:bg-gray-50/80">
                 <TableHead
-                  className="font-bold text-gray-500 text-[12px] w-[50px] pl-5"
+                  className="font-bold text-gray-500 text-[12px] w-[50px] text-center px-0"
                   rowSpan={2}
                 >
                   No.
@@ -208,36 +211,37 @@ export default function Pertanian() {
                 </TableHead>
 
                 <TableHead
-                  className="font-bold text-gray-500 text-[12px] min-w-[130px]"
+                  className="font-bold text-gray-500 text-[12px] min-w-[130px] text-center px-0"
                   rowSpan={2}
                 >
                   Proyeksi Panen
                 </TableHead>
 
                 <TableHead
-                  className="font-bold text-gray-500 text-[12px] min-w-[90px]"
+                  className="font-bold text-gray-500 text-[12px] min-w-[90px] text-center px-0"
                   rowSpan={2}
                 >
                   Satuan
                 </TableHead>
 
                 <TableHead
-                  className="font-bold text-gray-500 text-[12px] min-w-[120px]"
+                  className="font-bold text-gray-500 text-[12px] min-w-[120px] text-center px-0"
                   rowSpan={2}
                 >
                   Luas Usaha
                 </TableHead>
 
                 <TableHead
-                  className="font-bold text-gray-500 text-[12px] text-center border-b-0 min-w-[220px]"
+                  className="font-bold text-gray-500 text-[12px] text-center border-b-0 min-w-[220px] px-0"
                   colSpan={2}
                 >
-                  <div>Masa Tanam</div>
-                  <div className="flex mt-1">
-                    <span className="flex-1 text-[10px] font-semibold text-gray-400">
+                  <div className="w-full text-center">Masa Tanam</div>
+
+                  <div className="grid grid-cols-2 mt-1 w-full">
+                    <span className="text-center text-[10px] font-semibold text-gray-400">
                       Satuan Bulan
                     </span>
-                    <span className="flex-1 text-[10px] font-semibold text-gray-400">
+                    <span className="text-center text-[10px] font-semibold text-gray-400">
                       Per-Tahun
                     </span>
                   </div>
@@ -257,7 +261,7 @@ export default function Pertanian() {
             <TableBody>
               {paginatedData.map((row, index) => (
                 <TableRow key={row.no} className="hover:bg-gray-50/50 group">
-                  <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
+                  <TableCell className="text-[13px] text-gray-500 font-medium text-center px-0">
                     {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                   </TableCell>
 
@@ -265,23 +269,23 @@ export default function Pertanian() {
                     {row.nama}
                   </TableCell>
 
-                  <TableCell className="text-[13px] text-gray-600 font-medium whitespace-nowrap tabular-nums">
+                  <TableCell className="text-[13px] text-gray-600 font-medium text-center whitespace-nowrap tabular-nums px-0">
                     {row.proyeksiPanen}
                   </TableCell>
 
-                  <TableCell className="text-[13px] text-gray-500 whitespace-nowrap">
+                  <TableCell className="text-[13px] text-gray-500 text-center whitespace-nowrap px-0">
                     {row.satuan}
                   </TableCell>
 
-                  <TableCell className="text-[13px] text-gray-600 whitespace-nowrap tabular-nums">
+                  <TableCell className="text-[13px] text-gray-600 text-center whitespace-nowrap tabular-nums px-0">
                     {row.luasUsaha}
                   </TableCell>
 
-                  <TableCell className="text-[13px] text-gray-600 text-center whitespace-nowrap tabular-nums">
+                  <TableCell className="text-[13px] text-gray-600 text-center whitespace-nowrap tabular-nums w-[110px] px-0">
                     {row.masaTanamBulan}
                   </TableCell>
 
-                  <TableCell className="text-[13px] text-gray-600 text-center whitespace-nowrap">
+                  <TableCell className="text-[13px] text-gray-600 text-center whitespace-nowrap w-[110px] px-0">
                     {row.masaTanamTahun}
                   </TableCell>
 
@@ -289,7 +293,7 @@ export default function Pertanian() {
                     {row.keterangan}
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="text-center">
                     <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-gray-100">
                       <MoreVertical className="size-4 text-gray-400" />
                     </button>
@@ -304,6 +308,7 @@ export default function Pertanian() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-5 py-3 border-t border-gray-100">
           <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
             <span className="whitespace-nowrap">Baris per Page</span>
+
             <Select
               value={rowsPerPage}
               onValueChange={(value) => {
@@ -314,6 +319,7 @@ export default function Pertanian() {
               <SelectTrigger className="h-8 w-[70px] border-gray-200 bg-white text-[13px]">
                 <SelectValue />
               </SelectTrigger>
+
               <SelectContent>
                 <SelectItem value="5">5</SelectItem>
                 <SelectItem value="10">10</SelectItem>

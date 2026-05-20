@@ -263,7 +263,7 @@ export default function Konservasi() {
                   Jumlah
                 </TableHead>
 
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[120px]">
+                <TableHead className="font-bold text-gray-500 text-[12px] text-center min-w-[120px]">
                   Satuan
                 </TableHead>
 
@@ -303,7 +303,7 @@ export default function Konservasi() {
                     {row.jumlah}
                   </TableCell>
 
-                  <TableCell className="text-[13px] text-gray-500 min-w-[120px] whitespace-nowrap">
+                  <TableCell className="text-[13px] text-gray-500 text-center min-w-[120px] whitespace-nowrap">
                     {row.satuan}
                   </TableCell>
 

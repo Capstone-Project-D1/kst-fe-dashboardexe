@@ -561,7 +561,7 @@ export default function BooklistAtp() {
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[140px]">
                     Kontak
                   </TableHead>
-                  <TableHead className="font-bold text-gray-500 text-[12px] text-right min-w-[120px]">
+                  <TableHead className="font-bold text-gray-500 text-[12px] min-w-[120px]">
                     Jumlah Tamu
                   </TableHead>
                   <TableHead className="font-bold text-gray-500 text-[12px] min-w-[150px]">
@@ -596,7 +596,7 @@ export default function BooklistAtp() {
                       {row.kontak}
                     </TableCell>
 
-                    <TableCell className="text-[13px] text-right text-gray-500 whitespace-nowrap tabular-nums">
+                    <TableCell className="text-[13px] text-center text-gray-500 whitespace-nowrap tabular-nums">
                       {row.jumlahTamu}
                     </TableCell>
 

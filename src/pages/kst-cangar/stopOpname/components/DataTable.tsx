@@ -452,7 +452,7 @@ export default function DataTable() {
             <Table className="min-w-[1100px]">
               <TableHeader className="bg-[#F9FAFB]">
                 <TableRow className="hover:bg-transparent border-gray-200">
-                  <TableHead className="w-[60px] font-bold text-gray-700 pl-5">
+                  <TableHead className="w-[60px] font-bold text-gray-700 text-center">
                     No.
                   </TableHead>
 
@@ -460,7 +460,7 @@ export default function DataTable() {
                     Nama Barang
                   </TableHead>
 
-                  <TableHead className="text-right font-bold text-gray-700 min-w-[120px]">
+                  <TableHead className="text-center font-bold text-gray-700 min-w-[120px]">
                     Stok Awal
                   </TableHead>
 
@@ -486,7 +486,7 @@ export default function DataTable() {
                     </div>
                   </TableHead>
 
-                  <TableHead className="text-right font-bold text-gray-700 min-w-[130px]">
+                  <TableHead className="text-center font-bold text-gray-700 min-w-[130px]">
                     {totalLabel}
                   </TableHead>
 
@@ -509,7 +509,7 @@ export default function DataTable() {
                       key={item.id}
                       className="border-gray-100 hover:bg-gray-50/50 group"
                     >
-                      <TableCell className="font-medium text-gray-600 pl-5">
+                      <TableCell className="font-medium text-gray-600 text-center">
                         {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                       </TableCell>
 
@@ -517,7 +517,7 @@ export default function DataTable() {
                         {item.name}
                       </TableCell>
 
-                      <TableCell className="text-right font-medium text-gray-500 whitespace-nowrap tabular-nums">
+                      <TableCell className="text-center font-medium text-gray-500 whitespace-nowrap tabular-nums">
                         {item.stockAwal}
                       </TableCell>
 
@@ -532,7 +532,7 @@ export default function DataTable() {
 
                       <TableCell
                         className={cn(
-                          "text-right font-bold whitespace-nowrap tabular-nums",
+                          "text-center font-bold whitespace-nowrap tabular-nums",
                           isBarangMasuk ? "text-[#27A376]" : "text-red-500"
                         )}
                       >

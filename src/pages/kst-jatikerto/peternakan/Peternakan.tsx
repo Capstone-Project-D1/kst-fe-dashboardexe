@@ -35,16 +35,106 @@ interface PeternakanRow {
 }
 
 const tableData: PeternakanRow[] = [
-  { no: 1, namaKomoditas: "Sapi", jumlah: 1500, satuan: "Ekor", luasUsaha: "700 m²", ketersediaanBulan: 1, ketersediaanTahun: "1 Kali", keterangan: "Keterangan" },
-  { no: 2, namaKomoditas: "Kambing", jumlah: 800, satuan: "Ekor", luasUsaha: "400 m²", ketersediaanBulan: 2, ketersediaanTahun: "2 Kali", keterangan: "Rutin setiap pagi" },
-  { no: 3, namaKomoditas: "Ayam", jumlah: 3000, satuan: "Ekor", luasUsaha: "500 m²", ketersediaanBulan: 3, ketersediaanTahun: "3 Kali", keterangan: "Pemberian pakan organik" },
-  { no: 4, namaKomoditas: "Bebek", jumlah: 1200, satuan: "Ekor", luasUsaha: "350 m²", ketersediaanBulan: 1, ketersediaanTahun: "1 Kali", keterangan: "Pengontrolan kesehatan rutin" },
-  { no: 5, namaKomoditas: "Kelinci", jumlah: 600, satuan: "Ekor", luasUsaha: "150 m²", ketersediaanBulan: 1, ketersediaanTahun: "1 Kali", keterangan: "Pemberian sayuran segar" },
-  { no: 6, namaKomoditas: "Ikan Lele", jumlah: 5000, satuan: "Ekor", luasUsaha: "200 m²", ketersediaanBulan: 2, ketersediaanTahun: "2 Kali", keterangan: "Pemantauan kualitas air" },
-  { no: 7, namaKomoditas: "Kuda", jumlah: 50, satuan: "Ekor", luasUsaha: "1000 m²", ketersediaanBulan: 1, ketersediaanTahun: "1 Kali", keterangan: "Pelatihan mingguan" },
-  { no: 8, namaKomoditas: "Itik", jumlah: 1500, satuan: "Ekor", luasUsaha: "300 m²", ketersediaanBulan: 1, ketersediaanTahun: "1 Kali", keterangan: "Pengendalian hama" },
-  { no: 9, namaKomoditas: "Burung Puyuh", jumlah: 2500, satuan: "Ekor", luasUsaha: "200 m²", ketersediaanBulan: 3, ketersediaanTahun: "3 Kali", keterangan: "Pemberian suplemen vitamin" },
-  { no: 10, namaKomoditas: "Domba", jumlah: 900, satuan: "Ekor", luasUsaha: "600 m²", ketersediaanBulan: 2, ketersediaanTahun: "2 Kali", keterangan: "Pemeriksaan kesehatan bulanan" },
+  {
+    no: 1,
+    namaKomoditas: "Sapi",
+    jumlah: 1500,
+    satuan: "Ekor",
+    luasUsaha: "700 m²",
+    ketersediaanBulan: 1,
+    ketersediaanTahun: "1 Kali",
+    keterangan: "Keterangan",
+  },
+  {
+    no: 2,
+    namaKomoditas: "Kambing",
+    jumlah: 800,
+    satuan: "Ekor",
+    luasUsaha: "400 m²",
+    ketersediaanBulan: 2,
+    ketersediaanTahun: "2 Kali",
+    keterangan: "Rutin setiap pagi",
+  },
+  {
+    no: 3,
+    namaKomoditas: "Ayam",
+    jumlah: 3000,
+    satuan: "Ekor",
+    luasUsaha: "500 m²",
+    ketersediaanBulan: 3,
+    ketersediaanTahun: "3 Kali",
+    keterangan: "Pemberian pakan organik",
+  },
+  {
+    no: 4,
+    namaKomoditas: "Bebek",
+    jumlah: 1200,
+    satuan: "Ekor",
+    luasUsaha: "350 m²",
+    ketersediaanBulan: 1,
+    ketersediaanTahun: "1 Kali",
+    keterangan: "Pengontrolan kesehatan rutin",
+  },
+  {
+    no: 5,
+    namaKomoditas: "Kelinci",
+    jumlah: 600,
+    satuan: "Ekor",
+    luasUsaha: "150 m²",
+    ketersediaanBulan: 1,
+    ketersediaanTahun: "1 Kali",
+    keterangan: "Pemberian sayuran segar",
+  },
+  {
+    no: 6,
+    namaKomoditas: "Ikan Lele",
+    jumlah: 5000,
+    satuan: "Ekor",
+    luasUsaha: "200 m²",
+    ketersediaanBulan: 2,
+    ketersediaanTahun: "2 Kali",
+    keterangan: "Pemantauan kualitas air",
+  },
+  {
+    no: 7,
+    namaKomoditas: "Kuda",
+    jumlah: 50,
+    satuan: "Ekor",
+    luasUsaha: "1000 m²",
+    ketersediaanBulan: 1,
+    ketersediaanTahun: "1 Kali",
+    keterangan: "Pelatihan mingguan",
+  },
+  {
+    no: 8,
+    namaKomoditas: "Itik",
+    jumlah: 1500,
+    satuan: "Ekor",
+    luasUsaha: "300 m²",
+    ketersediaanBulan: 1,
+    ketersediaanTahun: "1 Kali",
+    keterangan: "Pengendalian hama",
+  },
+  {
+    no: 9,
+    namaKomoditas: "Burung Puyuh",
+    jumlah: 2500,
+    satuan: "Ekor",
+    luasUsaha: "200 m²",
+    ketersediaanBulan: 3,
+    ketersediaanTahun: "3 Kali",
+    keterangan: "Pemberian suplemen vitamin",
+  },
+  {
+    no: 10,
+    namaKomoditas: "Domba",
+    jumlah: 900,
+    satuan: "Ekor",
+    luasUsaha: "600 m²",
+    ketersediaanBulan: 2,
+    ketersediaanTahun: "2 Kali",
+    keterangan: "Pemeriksaan kesehatan bulanan",
+  },
 ];
 
 const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
@@ -56,22 +146,24 @@ export default function Peternakan() {
   const [rowsPerPage, setRowsPerPage] = useState("10");
 
   const rowsPerPageNumber = Number(rowsPerPage);
-  const totalPages = Math.max(1, Math.ceil(tableData.length / rowsPerPageNumber));
+  const totalPages = Math.max(
+    1,
+    Math.ceil(tableData.length / rowsPerPageNumber)
+  );
 
   const paginatedData = tableData.slice(
     (currentPage - 1) * rowsPerPageNumber,
     currentPage * rowsPerPageNumber
   );
 
-
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
-      {/* ── Filters ───────────────────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
         <Select value={selectedYear} onValueChange={setSelectedYear}>
           <SelectTrigger className="h-9 border-gray-200 bg-white text-[13px] font-medium">
             <SelectValue />
           </SelectTrigger>
+
           <SelectContent>
             <SelectItem value="2024">2024</SelectItem>
             <SelectItem value="2025">2025</SelectItem>
@@ -104,35 +196,64 @@ export default function Peternakan() {
           <Table className="min-w-[1050px]">
             <TableHeader>
               <TableRow className="bg-gray-50/80 hover:bg-gray-50/80">
-                <TableHead className="font-bold text-gray-500 text-[12px] w-[50px] pl-5" rowSpan={2}>
+                <TableHead
+                  className="font-bold text-gray-500 text-[12px] w-[50px] text-center px-0"
+                  rowSpan={2}
+                >
                   No.
                 </TableHead>
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[180px]" rowSpan={2}>
+
+                <TableHead
+                  className="font-bold text-gray-500 text-[12px] min-w-[180px]"
+                  rowSpan={2}
+                >
                   Nama Komoditas
                 </TableHead>
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[100px]" rowSpan={2}>
+
+                <TableHead
+                  className="font-bold text-gray-500 text-[12px] min-w-[100px] text-center px-0"
+                  rowSpan={2}
+                >
                   Jumlah
                 </TableHead>
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[90px]" rowSpan={2}>
+
+                <TableHead
+                  className="font-bold text-gray-500 text-[12px] min-w-[90px] text-center px-0"
+                  rowSpan={2}
+                >
                   Satuan
                 </TableHead>
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[120px]" rowSpan={2}>
+
+                <TableHead
+                  className="font-bold text-gray-500 text-[12px] min-w-[120px] text-center px-0"
+                  rowSpan={2}
+                >
                   Luas Usaha
                 </TableHead>
-                <TableHead className="font-bold text-gray-500 text-[12px] text-center border-b-0 min-w-[220px]" colSpan={2}>
-                  <div>Ketersediaan</div>
-                  <div className="flex mt-1">
-                    <span className="flex-1 text-[10px] font-semibold text-gray-400">
+
+                <TableHead
+                  className="font-bold text-gray-500 text-[12px] text-center border-b-0 min-w-[220px] px-0"
+                  colSpan={2}
+                >
+                  <div className="w-full text-center">Ketersediaan</div>
+
+                  <div className="grid grid-cols-2 mt-1 w-full">
+                    <span className="text-center text-[10px] font-semibold text-gray-400">
                       Satuan Bulan
                     </span>
-                    <span className="flex-1 text-[10px] font-semibold text-gray-400">
+                    <span className="text-center text-[10px] font-semibold text-gray-400">
                       Per-Tahun
                     </span>
                   </div>
                 </TableHead>
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[220px]" rowSpan={2}>
+
+                <TableHead
+                  className="font-bold text-gray-500 text-[12px] min-w-[220px]"
+                  rowSpan={2}
+                >
                   Keterangan
                 </TableHead>
+
                 <TableHead className="w-[48px]" rowSpan={2} />
               </TableRow>
             </TableHeader>
@@ -140,7 +261,7 @@ export default function Peternakan() {
             <TableBody>
               {paginatedData.map((row, index) => (
                 <TableRow key={row.no} className="hover:bg-gray-50/50 group">
-                  <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
+                  <TableCell className="text-[13px] text-gray-500 font-medium text-center px-0">
                     {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                   </TableCell>
 
@@ -148,23 +269,23 @@ export default function Peternakan() {
                     {row.namaKomoditas}
                   </TableCell>
 
-                  <TableCell className="text-[13px] text-gray-600 font-medium whitespace-nowrap tabular-nums">
+                  <TableCell className="text-[13px] text-gray-600 font-medium text-center whitespace-nowrap tabular-nums px-0">
                     {row.jumlah}
                   </TableCell>
 
-                  <TableCell className="text-[13px] text-gray-500 whitespace-nowrap">
+                  <TableCell className="text-[13px] text-gray-500 text-center whitespace-nowrap px-0">
                     {row.satuan}
                   </TableCell>
 
-                  <TableCell className="text-[13px] text-gray-600 whitespace-nowrap tabular-nums">
+                  <TableCell className="text-[13px] text-gray-600 text-center whitespace-nowrap tabular-nums px-0">
                     {row.luasUsaha}
                   </TableCell>
 
-                  <TableCell className="text-[13px] text-gray-600 text-center whitespace-nowrap tabular-nums">
+                  <TableCell className="text-[13px] text-gray-600 text-center whitespace-nowrap tabular-nums w-[110px] px-0">
                     {row.ketersediaanBulan}
                   </TableCell>
 
-                  <TableCell className="text-[13px] text-gray-600 text-center whitespace-nowrap">
+                  <TableCell className="text-[13px] text-gray-600 text-center whitespace-nowrap w-[110px] px-0">
                     {row.ketersediaanTahun}
                   </TableCell>
 
@@ -172,7 +293,7 @@ export default function Peternakan() {
                     {row.keterangan}
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="text-center">
                     <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-gray-100">
                       <MoreVertical className="size-4 text-gray-400" />
                     </button>
@@ -183,10 +304,10 @@ export default function Peternakan() {
           </Table>
         </div>
 
-        {/* Pagination */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-5 py-3 border-t border-gray-100">
           <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
             <span className="whitespace-nowrap">Baris per Page</span>
+
             <Select
               value={rowsPerPage}
               onValueChange={(value) => {
@@ -197,6 +318,7 @@ export default function Peternakan() {
               <SelectTrigger className="h-8 w-[70px] border-gray-200 bg-white text-[13px]">
                 <SelectValue />
               </SelectTrigger>
+
               <SelectContent>
                 <SelectItem value="5">5</SelectItem>
                 <SelectItem value="10">10</SelectItem>
@@ -212,10 +334,28 @@ export default function Peternakan() {
 
             <div className="flex items-center gap-1">
               {[
-                { icon: ChevronsLeft, action: () => setCurrentPage(1), disabled: currentPage === 1 },
-                { icon: ChevronLeft, action: () => setCurrentPage(Math.max(1, currentPage - 1)), disabled: currentPage === 1 },
-                { icon: ChevronRight, action: () => setCurrentPage(Math.min(totalPages, currentPage + 1)), disabled: currentPage === totalPages },
-                { icon: ChevronsRight, action: () => setCurrentPage(totalPages), disabled: currentPage === totalPages },
+                {
+                  icon: ChevronsLeft,
+                  action: () => setCurrentPage(1),
+                  disabled: currentPage === 1,
+                },
+                {
+                  icon: ChevronLeft,
+                  action: () =>
+                    setCurrentPage(Math.max(1, currentPage - 1)),
+                  disabled: currentPage === 1,
+                },
+                {
+                  icon: ChevronRight,
+                  action: () =>
+                    setCurrentPage(Math.min(totalPages, currentPage + 1)),
+                  disabled: currentPage === totalPages,
+                },
+                {
+                  icon: ChevronsRight,
+                  action: () => setCurrentPage(totalPages),
+                  disabled: currentPage === totalPages,
+                },
               ].map((btn, i) => (
                 <button
                   key={i}
