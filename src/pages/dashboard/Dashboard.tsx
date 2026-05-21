@@ -104,12 +104,8 @@ function CircularProgress({
       </svg>
 
       <div className="absolute flex flex-col items-center">
-        <span className="text-4xl font-extrabold text-gray-900">
-          {value}
-        </span>
-        <span className="text-[12px] font-medium text-gray-400">
-          {label}
-        </span>
+        <span className="text-4xl font-extrabold text-gray-900">{value}</span>
+        <span className="text-[12px] font-medium text-gray-400">{label}</span>
       </div>
     </div>
   );
@@ -251,9 +247,9 @@ export default function Dashboard() {
       </div>
 
       {/* SECTION 2: Charts (2 Columns) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="flex flex-col gap-4 md:flex-row">
         {/* Card 5: Total Proyek Riset Aktif */}
-        <Card className="shadow-sm border-gray-100">
+        <Card className="shadow-sm border-gray-100 w-full">
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-[#27A376] rounded-lg text-white">
@@ -277,7 +273,7 @@ export default function Dashboard() {
             >
               <AreaChart
                 data={researchData}
-                margin={{ top: 0, right: 0, left: 0, bottom: 0 }}
+                margin={{ top: 0, right: 8, left: 0, bottom: 0 }}
               >
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
@@ -290,6 +286,23 @@ export default function Dashboard() {
                   strokeDasharray="3 3"
                   stroke="#F1F5F9"
                 />
+                <YAxis
+                  domain={[0, 1500]}
+                  ticks={[0, 500, 1000, 1500]}
+                  axisLine={false}
+                  tickLine={false}
+                  tickMargin={10}
+                  width={44}
+                  tick={{ fontSize: 11, fill: "#9CA3AF", fontWeight: 500 }}
+                  tickFormatter={(value) => value.toLocaleString("id-ID")}
+                />
+                <XAxis
+                  dataKey="month"
+                  axisLine={false}
+                  tickLine={false}
+                  tickMargin={12}
+                  tick={{ fontSize: 11, fill: "#9CA3AF", fontWeight: 500 }}
+                />
                 <ChartTooltip content={<ChartTooltipContent />} />
                 <Area
                   type="monotone"
@@ -301,18 +314,11 @@ export default function Dashboard() {
                 />
               </AreaChart>
             </ChartContainer>
-            <div className="flex items-center justify-between mb-8">
-              {["Jan", "Feb", "Mar", "Apr", "May", "Jun"].map((m) => (
-                <span key={m} className="text-[11px] text-gray-400 font-medium">
-                  {m}
-                </span>
-              ))}
-            </div>
           </CardContent>
         </Card>
 
         {/* Card 6: Sustainability Index */}
-        <Card className="shadow-sm border-gray-100">
+        <Card className="shadow-sm border-gray-100 w-full md:w-100 md:max-w-107.5 md:justify-self-end">
           <CardHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-[#27A376] rounded-lg text-white">
