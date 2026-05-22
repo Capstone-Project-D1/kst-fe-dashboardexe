@@ -6,6 +6,7 @@ import {
   ChevronsRight,
   Search,
   Trash2,
+  UserRound,
 } from "lucide-react";
 import {
   Select,
@@ -149,6 +150,7 @@ export default function KelolaAkun() {
   }, [searchQuery, selectedStatus, users]);
 
   const rowsPerPageNumber = Number(rowsPerPage);
+
   const totalPages = Math.max(
     1,
     Math.ceil(filteredData.length / rowsPerPageNumber)
@@ -182,6 +184,7 @@ export default function KelolaAkun() {
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+
             <input
               value={searchQuery}
               onChange={(event) => {
@@ -252,12 +255,8 @@ export default function KelolaAkun() {
 
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-full bg-gray-900 overflow-hidden ring-2 ring-gray-100 shrink-0">
-                          <img
-                            src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=80&h=80&fit=crop"
-                            alt={user.name}
-                            className="size-full object-cover"
-                          />
+                        <div className="size-9 rounded-full bg-gray-100 border border-gray-200 ring-2 ring-gray-50 shrink-0 flex items-center justify-center">
+                          <UserRound className="size-5 text-gray-400" />
                         </div>
 
                         <div className="flex flex-col">
@@ -290,7 +289,10 @@ export default function KelolaAkun() {
                       <Select
                         value={user.hakAkses}
                         onValueChange={(value) =>
-                          handleChangeAccess(user.no, value as UserRow["hakAkses"])
+                          handleChangeAccess(
+                            user.no,
+                            value as UserRow["hakAkses"]
+                          )
                         }
                       >
                         <SelectTrigger className="h-8 w-[130px] mx-auto border-gray-200 bg-white text-[12px] font-semibold">
