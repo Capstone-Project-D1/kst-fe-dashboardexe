@@ -7,6 +7,7 @@ import {
   Search,
   Trash2,
   UserRound,
+  X,
 } from "lucide-react";
 import {
   Select,
@@ -23,6 +24,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 interface UserRow {
@@ -130,6 +132,7 @@ export default function KelolaAkun() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("5");
   const [users, setUsers] = useState<UserRow[]>(userData);
+  const [userToDelete, setUserToDelete] = useState<UserRow | null>(null);
 
   const filteredData = useMemo(() => {
     return users.filter((user) => {
@@ -167,245 +170,327 @@ export default function KelolaAkun() {
     );
   };
 
-  const handleDeleteUser = (userNo: number) => {
-    setUsers((prev) => prev.filter((user) => user.no !== userNo));
+  const openDeleteModal = (user: UserRow) => {
+    setUserToDelete(user);
+  };
+
+  const closeDeleteModal = () => {
+    setUserToDelete(null);
+  };
+
+  const confirmDeleteUser = () => {
+    if (!userToDelete) return;
+
+    setUsers((prev) => prev.filter((user) => user.no !== userToDelete.no));
     setCurrentPage(1);
+    setUserToDelete(null);
   };
 
   return (
-    <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <button className="h-9 px-4 rounded-lg border border-gray-200 bg-white text-[13px] font-semibold text-gray-700 shadow-sm">
-          List Pengguna
-        </button>
+    <>
+      <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <button className="h-9 px-4 rounded-lg border border-gray-200 bg-white text-[13px] font-semibold text-gray-700 shadow-sm">
+            List Pengguna
+          </button>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
 
-            <input
-              value={searchQuery}
-              onChange={(event) => {
-                setSearchQuery(event.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Cari nama atau email..."
-              className="h-9 w-[260px] rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[13px] font-medium outline-none placeholder:text-gray-400 focus:border-gray-300 focus:ring-2 focus:ring-gray-100"
-            />
-          </div>
-
-          <Select
-            value={selectedStatus}
-            onValueChange={(value) => {
-              setSelectedStatus(value);
-              setCurrentPage(1);
-            }}
-          >
-            <SelectTrigger className="h-9 w-[150px] border-gray-200 bg-white text-[13px] font-medium">
-              <SelectValue />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem value="semua">Semua Status</SelectItem>
-              <SelectItem value="aktif">Aktif</SelectItem>
-              <SelectItem value="nonaktif">Nonaktif</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table className="min-w-[1050px]">
-            <TableHeader>
-              <TableRow className="bg-gray-50/80 hover:bg-gray-50/80">
-                <TableHead className="font-bold text-gray-500 text-[12px] w-[55px] text-center">
-                  No.
-                </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[300px]">
-                  Nama Pengguna
-                </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[160px] text-center">
-                  Role
-                </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[150px] text-center">
-                  Tanggal daftar
-                </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[180px] text-center">
-                  Hak akses
-                </TableHead>
-
-                <TableHead className="w-[60px]" />
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {paginatedData.length > 0 ? (
-                paginatedData.map((user, index) => (
-                  <TableRow key={user.no} className="hover:bg-gray-50/50 group">
-                    <TableCell className="text-[13px] text-gray-500 font-medium text-center">
-                      {(currentPage - 1) * rowsPerPageNumber + index + 1}.
-                    </TableCell>
-
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="size-9 rounded-full bg-gray-100 border border-gray-200 ring-2 ring-gray-50 shrink-0 flex items-center justify-center">
-                          <UserRound className="size-5 text-gray-400" />
-                        </div>
-
-                        <div className="flex flex-col">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[13px] font-bold text-gray-900 leading-tight">
-                              {user.name}
-                            </span>
-
-                            {user.isCurrentUser && (
-                              <span className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white px-2.5 py-0.5 text-[10px] font-bold text-gray-700">
-                                Anda
-                              </span>
-                            )}
-                          </div>
-
-                          <span className="text-[11px] text-gray-400 font-medium">
-                            {user.email}
-                          </span>
-                        </div>
-                      </div>
-                    </TableCell>
-
-                    <TableCell className="text-center">
-                      <span
-                        className={cn(
-                          "inline-flex items-center justify-center rounded-md border px-2.5 py-1 text-[11px] font-bold",
-                          getRoleBadgeClass(user.role)
-                        )}
-                      >
-                        {user.role}
-                      </span>
-                    </TableCell>
-
-                    <TableCell className="text-[13px] text-gray-600 font-medium text-center whitespace-nowrap">
-                      {user.tanggalDaftar}
-                    </TableCell>
-
-                    <TableCell className="text-center">
-                      <Select
-                        value={user.hakAkses}
-                        onValueChange={(value) =>
-                          handleChangeAccess(
-                            user.no,
-                            value as UserRow["hakAkses"]
-                          )
-                        }
-                      >
-                        <SelectTrigger className="h-8 w-[130px] mx-auto border-gray-200 bg-white text-[12px] font-semibold">
-                          <SelectValue />
-                        </SelectTrigger>
-
-                        <SelectContent>
-                          <SelectItem value="Administrator">
-                            Administrator
-                          </SelectItem>
-                          <SelectItem value="Editor">Editor</SelectItem>
-                          <SelectItem value="Viewer">Viewer</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </TableCell>
-
-                    <TableCell className="text-center">
-                      <button
-                        onClick={() => handleDeleteUser(user.no)}
-                        className="p-1.5 rounded-md text-red-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={6}
-                    className="h-32 text-center text-[13px] text-gray-400 font-medium"
-                  >
-                    Data pengguna tidak ditemukan.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-5 py-3 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
-            <span className="whitespace-nowrap">Baris per Page</span>
+              <input
+                value={searchQuery}
+                onChange={(event) => {
+                  setSearchQuery(event.target.value);
+                  setCurrentPage(1);
+                }}
+                placeholder="Cari nama atau email..."
+                className="h-9 w-[260px] rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-[13px] font-medium outline-none placeholder:text-gray-400 focus:border-gray-300 focus:ring-2 focus:ring-gray-100"
+              />
+            </div>
 
             <Select
-              value={rowsPerPage}
+              value={selectedStatus}
               onValueChange={(value) => {
-                setRowsPerPage(value);
+                setSelectedStatus(value);
                 setCurrentPage(1);
               }}
             >
-              <SelectTrigger className="h-8 w-[70px] border-gray-200 bg-white text-[13px]">
+              <SelectTrigger className="h-9 w-[150px] border-gray-200 bg-white text-[13px] font-medium">
                 <SelectValue />
               </SelectTrigger>
 
               <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="semua">Semua Status</SelectItem>
+                <SelectItem value="aktif">Aktif</SelectItem>
+                <SelectItem value="nonaktif">Nonaktif</SelectItem>
               </SelectContent>
             </Select>
           </div>
+        </div>
 
-          <div className="flex items-center gap-3">
-            <span className="text-[13px] text-gray-500 font-medium whitespace-nowrap">
-              Page {currentPage} dari {totalPages}
-            </span>
+        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table className="min-w-[1050px]">
+              <TableHeader>
+                <TableRow className="bg-gray-50/80 hover:bg-gray-50/80">
+                  <TableHead className="font-bold text-gray-500 text-[12px] w-[55px] text-center">
+                    No.
+                  </TableHead>
 
-            <div className="flex items-center gap-1">
-              {[
-                {
-                  icon: ChevronsLeft,
-                  action: () => setCurrentPage(1),
-                  disabled: currentPage === 1,
-                },
-                {
-                  icon: ChevronLeft,
-                  action: () =>
-                    setCurrentPage(Math.max(1, currentPage - 1)),
-                  disabled: currentPage === 1,
-                },
-                {
-                  icon: ChevronRight,
-                  action: () =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1)),
-                  disabled: currentPage === totalPages,
-                },
-                {
-                  icon: ChevronsRight,
-                  action: () => setCurrentPage(totalPages),
-                  disabled: currentPage === totalPages,
-                },
-              ].map((button, index) => (
-                <button
-                  key={index}
-                  onClick={button.action}
-                  disabled={button.disabled}
-                  className="p-1.5 rounded-md border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  <button.icon className="size-4" />
-                </button>
-              ))}
+                  <TableHead className="font-bold text-gray-500 text-[12px] min-w-[300px]">
+                    Nama Pengguna
+                  </TableHead>
+
+                  <TableHead className="font-bold text-gray-500 text-[12px] min-w-[160px] text-center">
+                    Role
+                  </TableHead>
+
+                  <TableHead className="font-bold text-gray-500 text-[12px] min-w-[150px] text-center">
+                    Tanggal daftar
+                  </TableHead>
+
+                  <TableHead className="font-bold text-gray-500 text-[12px] min-w-[180px] text-center">
+                    Hak akses
+                  </TableHead>
+
+                  <TableHead className="w-[60px]" />
+                </TableRow>
+              </TableHeader>
+
+              <TableBody>
+                {paginatedData.length > 0 ? (
+                  paginatedData.map((user, index) => (
+                    <TableRow
+                      key={user.no}
+                      className="hover:bg-gray-50/50 group"
+                    >
+                      <TableCell className="text-[13px] text-gray-500 font-medium text-center">
+                        {(currentPage - 1) * rowsPerPageNumber + index + 1}.
+                      </TableCell>
+
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div className="size-9 rounded-full bg-gray-100 border border-gray-200 ring-2 ring-gray-50 shrink-0 flex items-center justify-center">
+                            <UserRound className="size-5 text-gray-400" />
+                          </div>
+
+                          <div className="flex flex-col">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[13px] font-bold text-gray-900 leading-tight">
+                                {user.name}
+                              </span>
+
+                              {user.isCurrentUser && (
+                                <span className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white px-2.5 py-0.5 text-[10px] font-bold text-gray-700">
+                                  Anda
+                                </span>
+                              )}
+                            </div>
+
+                            <span className="text-[11px] text-gray-400 font-medium">
+                              {user.email}
+                            </span>
+                          </div>
+                        </div>
+                      </TableCell>
+
+                      <TableCell className="text-center">
+                        <span
+                          className={cn(
+                            "inline-flex items-center justify-center rounded-md border px-2.5 py-1 text-[11px] font-bold",
+                            getRoleBadgeClass(user.role)
+                          )}
+                        >
+                          {user.role}
+                        </span>
+                      </TableCell>
+
+                      <TableCell className="text-[13px] text-gray-600 font-medium text-center whitespace-nowrap">
+                        {user.tanggalDaftar}
+                      </TableCell>
+
+                      <TableCell className="text-center">
+                        <Select
+                          value={user.hakAkses}
+                          onValueChange={(value) =>
+                            handleChangeAccess(
+                              user.no,
+                              value as UserRow["hakAkses"]
+                            )
+                          }
+                        >
+                          <SelectTrigger className="h-8 w-[130px] mx-auto border-gray-200 bg-white text-[12px] font-semibold">
+                            <SelectValue />
+                          </SelectTrigger>
+
+                          <SelectContent>
+                            <SelectItem value="Administrator">
+                              Administrator
+                            </SelectItem>
+                            <SelectItem value="Editor">Editor</SelectItem>
+                            <SelectItem value="Viewer">Viewer</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
+
+                      <TableCell className="text-center">
+                        <button
+                          onClick={() => openDeleteModal(user)}
+                          disabled={user.isCurrentUser}
+                          className="p-1.5 rounded-md text-red-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          <Trash2 className="size-4" />
+                        </button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="h-32 text-center text-[13px] text-gray-400 font-medium"
+                    >
+                      Data pengguna tidak ditemukan.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-5 py-3 border-t border-gray-100">
+            <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
+              <span className="whitespace-nowrap">Baris per Page</span>
+
+              <Select
+                value={rowsPerPage}
+                onValueChange={(value) => {
+                  setRowsPerPage(value);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="h-8 w-[70px] border-gray-200 bg-white text-[13px]">
+                  <SelectValue />
+                </SelectTrigger>
+
+                <SelectContent>
+                  <SelectItem value="5">5</SelectItem>
+                  <SelectItem value="10">10</SelectItem>
+                  <SelectItem value="25">25</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-[13px] text-gray-500 font-medium whitespace-nowrap">
+                Page {currentPage} dari {totalPages}
+              </span>
+
+              <div className="flex items-center gap-1">
+                {[
+                  {
+                    icon: ChevronsLeft,
+                    action: () => setCurrentPage(1),
+                    disabled: currentPage === 1,
+                  },
+                  {
+                    icon: ChevronLeft,
+                    action: () =>
+                      setCurrentPage(Math.max(1, currentPage - 1)),
+                    disabled: currentPage === 1,
+                  },
+                  {
+                    icon: ChevronRight,
+                    action: () =>
+                      setCurrentPage(Math.min(totalPages, currentPage + 1)),
+                    disabled: currentPage === totalPages,
+                  },
+                  {
+                    icon: ChevronsRight,
+                    action: () => setCurrentPage(totalPages),
+                    disabled: currentPage === totalPages,
+                  },
+                ].map((button, index) => (
+                  <button
+                    key={index}
+                    onClick={button.action}
+                    disabled={button.disabled}
+                    className="p-1.5 rounded-md border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <button.icon className="size-4" />
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {userToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4 backdrop-blur-[2px]">
+          <div className="w-full max-w-[420px] rounded-2xl border border-gray-200 bg-white shadow-2xl animate-in fade-in-0 zoom-in-95 duration-150">
+            <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-4">
+              <div>
+                <h2 className="text-[16px] font-bold text-gray-900">
+                  Hapus Pengelola?
+                </h2>
+                <p className="mt-1 text-[13px] text-gray-500">
+                  Tindakan ini akan menghapus akses pengguna dari dashboard.
+                </p>
+              </div>
+
+              <button
+                onClick={closeDeleteModal}
+                className="rounded-lg p-1.5 hover:bg-gray-100 transition-colors"
+              >
+                <X className="size-4 text-gray-500" />
+              </button>
+            </div>
+
+            <div className="px-5 py-4">
+              <div className="rounded-xl border border-gray-100 bg-gray-50 px-4 py-3">
+                <div className="flex items-center gap-3">
+                  <div className="size-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
+                    <UserRound className="size-5 text-gray-400" />
+                  </div>
+
+                  <div className="flex flex-col">
+                    <span className="text-[13px] font-bold text-gray-900">
+                      {userToDelete.name}
+                    </span>
+                    <span className="text-[11px] text-gray-400 font-medium">
+                      {userToDelete.email}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <p className="mt-3 text-[12px] text-gray-500 leading-relaxed">
+                Apakah kamu yakin ingin menghapus pengelola ini? Data yang
+                sudah dihapus tidak bisa dikembalikan dari tampilan ini.
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 border-t border-gray-100 px-5 py-4">
+              <Button
+                variant="outline"
+                onClick={closeDeleteModal}
+                className="h-9 px-4 text-[13px]"
+              >
+                Batal
+              </Button>
+
+              <Button
+                onClick={confirmDeleteUser}
+                className="h-9 px-4 bg-red-500 text-white hover:bg-red-600 text-[13px]"
+              >
+                Hapus
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
