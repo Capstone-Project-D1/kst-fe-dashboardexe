@@ -8,6 +8,7 @@ export const ROUTES = {
   CHANGE_PASSWORD: '/change-password',
 
   DASHBOARD: '/dashboard',
+  KELOLA_AKUN: '/kelola-akun',
   TRACKER_INOVASI: '/tracker-inovasi',
   KEBERLANJUTAN: '/keberlanjutan',
   PRODUKSI: '/produksi',

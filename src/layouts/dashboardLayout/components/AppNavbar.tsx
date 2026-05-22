@@ -15,6 +15,8 @@ export function AppNavbar() {
     switch (path) {
       case ROUTES.DASHBOARD:
         return { title: "Beranda" };
+      case ROUTES.KELOLA_AKUN:
+        return { title: "Kelola Akun" };
       case ROUTES.TRACKER_INOVASI:
         return { parent: "KST Ngijo", title: "Tracker Inovasi" };
       case ROUTES.KEBERLANJUTAN:

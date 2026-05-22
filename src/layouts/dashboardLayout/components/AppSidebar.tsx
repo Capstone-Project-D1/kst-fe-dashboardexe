@@ -17,6 +17,7 @@ import {
   X,
   FileText,
   FileSpreadsheet,
+  Settings,
 } from "lucide-react";
 
 import {
@@ -51,6 +52,12 @@ const NAV_ITEMS = [
         title: "Beranda",
         url: ROUTES.DASHBOARD,
         icon: Home,
+      },
+
+      {
+        title: "Kelola Akun",
+        url: ROUTES.KELOLA_AKUN,
+        icon: Settings,
       },
     ],
   },
