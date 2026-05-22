@@ -29,7 +29,8 @@ interface UserRow {
   no: number;
   name: string;
   email: string;
-  role: "Anda" | "Administrator" | "Manajer" | "Staff";
+  role: "Administrator" | "Manajer" | "Staff";
+  isCurrentUser?: boolean;
   tanggalDaftar: string;
   hakAkses: "Administrator" | "Editor" | "Viewer";
   status: "Aktif" | "Nonaktif";
@@ -40,7 +41,8 @@ const userData: UserRow[] = [
     no: 1,
     name: "Admin Pusat",
     email: "admin@admin.com",
-    role: "Anda",
+    role: "Administrator",
+    isCurrentUser: true,
     tanggalDaftar: "3/5/2026",
     hakAkses: "Administrator",
     status: "Aktif",
@@ -111,10 +113,6 @@ const userData: UserRow[] = [
 ];
 
 function getRoleBadgeClass(role: UserRow["role"]) {
-  if (role === "Anda") {
-    return "bg-white text-gray-700 border-gray-200";
-  }
-
   if (role === "Administrator") {
     return "bg-[#E6F6EB] text-[#30A46C] border-[#CDEFD8]";
   }
@@ -225,11 +223,11 @@ export default function KelolaAkun() {
                   No.
                 </TableHead>
 
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[260px]">
+                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[300px]">
                   Nama Pengguna
                 </TableHead>
 
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[140px] text-center">
+                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[160px] text-center">
                   Role
                 </TableHead>
 
@@ -260,9 +258,18 @@ export default function KelolaAkun() {
                         </div>
 
                         <div className="flex flex-col">
-                          <span className="text-[13px] font-bold text-gray-900 leading-tight">
-                            {user.name}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[13px] font-bold text-gray-900 leading-tight">
+                              {user.name}
+                            </span>
+
+                            {user.isCurrentUser && (
+                              <span className="inline-flex items-center justify-center rounded-full border border-gray-200 bg-white px-2.5 py-0.5 text-[10px] font-bold text-gray-700">
+                                Anda
+                              </span>
+                            )}
+                          </div>
+
                           <span className="text-[11px] text-gray-400 font-medium">
                             {user.email}
                           </span>
