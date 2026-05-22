@@ -11,6 +11,8 @@ import Login from "@/pages/login/Login";
 import Register from "@/pages/register/Register";
 import Dashboard from "@/pages/dashboard/Dashboard";
 import DashboardLayout from "@/layouts/dashboardLayout/DashboardLayout";
+import KelolaAkun from "@/pages/dashboard/KelolaAkun";
+
 // KST CANGAR
 import BooklistAtp from "@/pages/kst-cangar/booklistAtp/BooklistAtp";
 import StokOpname from "@/pages/kst-cangar/stopOpname/StokOpname";
@@ -55,6 +57,7 @@ export const AppRoutes = () => {
           >
             <Route index element={<Navigate to={ROUTES.DASHBOARD} replace />} />
             <Route path={ROUTES.DASHBOARD.substring(1)} element={<Dashboard />} />
+            <Route path={ROUTES.KELOLA_AKUN.substring(1)} element={<KelolaAkun />} />
 
             {/* KST CANGAR */}
             <Route path={ROUTES.BOOKLIST_ATP.substring(1)} element={<BooklistAtp />} />
