@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Check,
   Search,
   Trash2,
   UserRound,
@@ -26,6 +27,8 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { apiClient } from "@/api/config";
+import { useApiData } from "@/api/hooks";
 
 interface UserRow {
   no: number;
@@ -36,9 +39,39 @@ interface UserRow {
   tanggalDaftar: string;
   hakAkses: "Administrator" | "Editor" | "Viewer";
   status: "Aktif" | "Nonaktif";
+  userId?: string;
+  kstIdentifier?: string | null;
 }
 
-const userData: UserRow[] = [
+interface BackendUser {
+  id: string;
+  name: string;
+  email: string;
+  createdAt: string;
+  status: "pending_approval" | "active" | "rejected" | "inactive";
+  roles: Array<{
+    role: "super_admin" | "manajemen" | "operator";
+    kstIdentifier: string | null;
+    isActive: boolean;
+  }>;
+}
+
+interface RegistrationRequest {
+  id: string;
+  requestedRole: "manajemen" | "operator";
+  requestedKstIdentifier: "ngijo" | "cangar" | "jatikerto" | null;
+  status: "pending" | "approved" | "rejected" | "cancelled";
+  createdAt: string;
+  user: {
+    id: string;
+    username: string;
+    name: string;
+    email: string;
+    status: string;
+  };
+}
+
+export const userData: UserRow[] = [
   {
     no: 1,
     name: "Admin Pusat",
@@ -127,12 +160,65 @@ function getRoleBadgeClass(role: UserRow["role"]) {
 }
 
 export default function KelolaAkun() {
+  const [activeView, setActiveView] = useState<"users" | "registrations">(
+    "users",
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("semua");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("5");
-  const [users, setUsers] = useState<UserRow[]>(userData);
+  const [users, setUsers] = useState<UserRow[]>([]);
   const [userToDelete, setUserToDelete] = useState<UserRow | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [actionMessage, setActionMessage] = useState<string | null>(null);
+  const { data: backendUsers } = useApiData<{
+    items: BackendUser[];
+  }>("/users", { limit: 50, refreshKey });
+  const { data: registrationApprovals } = useApiData<{
+    items: RegistrationRequest[];
+  }>("/approvals/registrations", {
+    status: "pending",
+    limit: 50,
+    refreshKey,
+  });
+
+  useEffect(() => {
+    if (!backendUsers?.items) return;
+
+    const approvedUsers = backendUsers.items.filter(
+      (user) => user.status === "active" || user.status === "inactive",
+    );
+
+    setUsers(
+      approvedUsers.map((user, index) => {
+        const primaryRole = user.roles.find((role) => role.isActive) ?? user.roles[0];
+        const role =
+          primaryRole?.role === "super_admin"
+            ? "Administrator"
+            : primaryRole?.role === "manajemen"
+              ? "Manajer"
+              : "Staff";
+        const hakAkses =
+          primaryRole?.role === "super_admin"
+            ? "Administrator"
+            : primaryRole?.role === "operator"
+              ? "Editor"
+              : "Viewer";
+
+        return {
+          no: index + 1,
+          userId: user.id,
+          name: user.name,
+          email: user.email,
+          role,
+          tanggalDaftar: new Date(user.createdAt).toLocaleDateString("id-ID"),
+          hakAkses,
+          status: user.status === "active" ? "Aktif" : "Nonaktif",
+          kstIdentifier: primaryRole?.kstIdentifier,
+        };
+      }),
+    );
+  }, [backendUsers]);
 
   const filteredData = useMemo(() => {
     return users.filter((user) => {
@@ -162,7 +248,26 @@ export default function KelolaAkun() {
     currentPage * rowsPerPageNumber
   );
 
-  const handleChangeAccess = (userNo: number, value: UserRow["hakAkses"]) => {
+  const handleChangeAccess = async (userNo: number, value: UserRow["hakAkses"]) => {
+    const target = users.find((user) => user.no === userNo);
+    if (!target?.userId) return;
+
+    const role =
+      value === "Administrator"
+        ? "super_admin"
+        : value === "Editor"
+          ? "operator"
+          : "manajemen";
+
+    await apiClient.patch(`/users/${target.userId}/roles`, {
+      roles: [
+        {
+          role,
+          kstIdentifier: role === "operator" ? target.kstIdentifier ?? "ngijo" : null,
+          isActive: true,
+        },
+      ],
+    });
     setUsers((prev) =>
       prev.map((user) =>
         user.no === userNo ? { ...user, hakAkses: value } : user
@@ -178,23 +283,71 @@ export default function KelolaAkun() {
     setUserToDelete(null);
   };
 
-  const confirmDeleteUser = () => {
+  const confirmDeleteUser = async () => {
     if (!userToDelete) return;
 
+    if (!userToDelete.userId) return;
+    await apiClient.delete(`/users/${userToDelete.userId}`);
     setUsers((prev) => prev.filter((user) => user.no !== userToDelete.no));
     setCurrentPage(1);
     setUserToDelete(null);
   };
 
+  const refreshData = () => {
+    setRefreshKey((value) => value + 1);
+  };
+
+  const approveRegistration = async (request: RegistrationRequest) => {
+    await apiClient.post(`/approvals/registrations/${request.id}/approve`);
+    setActionMessage(`Akun ${request.user.email} berhasil disetujui.`);
+    refreshData();
+  };
+
+  const rejectRegistration = async (request: RegistrationRequest) => {
+    const reason =
+      window.prompt(`Alasan menolak registrasi ${request.user.email}:`) ??
+      "Ditolak oleh super admin.";
+    if (!reason.trim()) return;
+    await apiClient.post(`/approvals/registrations/${request.id}/reject`, {
+      reason,
+    });
+    setActionMessage(`Registrasi ${request.user.email} ditolak.`);
+    refreshData();
+  };
+
+  const pendingRegistrations = registrationApprovals?.items ?? [];
+
   return (
     <>
       <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <button className="h-9 px-4 rounded-lg border border-gray-200 bg-white text-[13px] font-semibold text-gray-700 shadow-sm">
-            List Pengguna
-          </button>
+          <div className="flex items-center gap-2 rounded-xl border border-gray-200 bg-white p-1 shadow-sm">
+            {[
+              { key: "users", label: "List Pengguna" },
+              {
+                key: "registrations",
+                label: `Approval Registrasi (${pendingRegistrations.length})`,
+              },
+            ].map((item) => (
+              <button
+                key={item.key}
+                onClick={() =>
+                  setActiveView(item.key as "users" | "registrations")
+                }
+                className={cn(
+                  "h-8 px-3 rounded-lg text-[13px] font-semibold transition-colors",
+                  activeView === item.key
+                    ? "bg-gray-900 text-white"
+                    : "text-gray-600 hover:bg-gray-50",
+                )}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
 
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          {activeView === "users" && (
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
 
@@ -227,9 +380,115 @@ export default function KelolaAkun() {
               </SelectContent>
             </Select>
           </div>
+          )}
         </div>
 
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+        {actionMessage && (
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[13px] font-semibold text-emerald-700">
+            {actionMessage}
+          </div>
+        )}
+
+        {activeView === "registrations" ? (
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table className="min-w-[950px]">
+                <TableHeader>
+                  <TableRow className="bg-gray-50/80 hover:bg-gray-50/80">
+                    <TableHead className="font-bold text-gray-500 text-[12px] w-[55px] text-center">
+                      No.
+                    </TableHead>
+                    <TableHead className="font-bold text-gray-500 text-[12px] min-w-[260px]">
+                      Pengguna
+                    </TableHead>
+                    <TableHead className="font-bold text-gray-500 text-[12px] min-w-[160px]">
+                      Role Diajukan
+                    </TableHead>
+                    <TableHead className="font-bold text-gray-500 text-[12px] min-w-[140px]">
+                      KST
+                    </TableHead>
+                    <TableHead className="font-bold text-gray-500 text-[12px] min-w-[150px]">
+                      Tanggal
+                    </TableHead>
+                    <TableHead className="font-bold text-gray-500 text-[12px] min-w-[180px] text-center">
+                      Aksi
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {pendingRegistrations.length > 0 ? (
+                    pendingRegistrations.map((request, index) => (
+                      <TableRow key={request.id} className="hover:bg-gray-50/50">
+                        <TableCell className="text-[13px] text-gray-500 font-medium text-center">
+                          {index + 1}.
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="size-9 rounded-full bg-gray-100 border border-gray-200 flex items-center justify-center">
+                              <UserRound className="size-5 text-gray-400" />
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-[13px] font-bold text-gray-900">
+                                {request.user.name}
+                              </span>
+                              <span className="text-[11px] text-gray-400 font-medium">
+                                {request.user.email}
+                              </span>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-[13px] font-semibold text-gray-700">
+                          {request.requestedRole === "manajemen"
+                            ? "Manajemen"
+                            : "Operator"}
+                        </TableCell>
+                        <TableCell className="text-[13px] text-gray-600">
+                          {request.requestedKstIdentifier
+                            ? `KST ${request.requestedKstIdentifier}`
+                            : "-"}
+                        </TableCell>
+                        <TableCell className="text-[13px] text-gray-600">
+                          {new Date(request.createdAt).toLocaleDateString(
+                            "id-ID",
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-center gap-2">
+                            <Button
+                              onClick={() => approveRegistration(request)}
+                              className="h-8 gap-1.5 bg-[#27A376] px-3 text-[12px] text-white hover:bg-[#1f8a63]"
+                            >
+                              <Check className="size-3.5" />
+                              Approve
+                            </Button>
+                            <Button
+                              variant="outline"
+                              onClick={() => rejectRegistration(request)}
+                              className="h-8 gap-1.5 border-red-200 px-3 text-[12px] text-red-500 hover:bg-red-50"
+                            >
+                              <X className="size-3.5" />
+                              Reject
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="h-32 text-center text-[13px] text-gray-400 font-medium"
+                      >
+                        Tidak ada registrasi yang menunggu approval.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <Table className="min-w-[1050px]">
               <TableHeader>
@@ -425,6 +684,7 @@ export default function KelolaAkun() {
             </div>
           </div>
         </div>
+        )}
       </div>
 
       {userToDelete && (

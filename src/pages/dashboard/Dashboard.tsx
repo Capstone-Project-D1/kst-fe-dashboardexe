@@ -26,6 +26,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
+import { useApiData } from "@/api/hooks";
 
 // Mock data for collaboration chart
 const collaborationData = [
@@ -123,6 +124,18 @@ function TrendBadge({ value }: { value: string }) {
 }
 
 export default function Dashboard() {
+  const { data: summary } = useApiData<Record<string, number>>("/dashboard/summary");
+  const { data: collaboration } = useApiData<{ value: typeof collaborationData }>(
+    "/dashboard/collaboration",
+    { period: "6months" },
+  );
+  const { data: research } = useApiData<{ value: typeof researchData }>(
+    "/dashboard/research-projects",
+    { period: "6months" },
+  );
+  const liveCollaborationData = collaboration?.value ?? [];
+  const liveResearchData = research?.value ?? [];
+
   return (
     <div className="flex flex-col gap-4 p-4 md:p-6 bg-gray-50/50 min-h-screen">
       {/* SECTION 1: Top Dashboard */}
@@ -172,7 +185,7 @@ export default function Dashboard() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-2xl font-extrabold text-gray-900">
-                    10
+                    {summary?.totalVisitors ?? 0}
                   </span>
                   <TrendBadge value="+12.5%" />
                 </div>
@@ -186,7 +199,7 @@ export default function Dashboard() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-2xl font-extrabold text-gray-900">
-                    10
+                    {summary?.todayVisitors ?? 0}
                   </span>
                   <TrendBadge value="+12.5%" />
                 </div>
@@ -200,7 +213,7 @@ export default function Dashboard() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-2xl font-extrabold text-gray-900">
-                    10
+                    {summary?.weekVisitors ?? 0}
                   </span>
                   <TrendBadge value="+12.5%" />
                 </div>
@@ -214,7 +227,7 @@ export default function Dashboard() {
                 </p>
                 <p className="text-[13px] text-gray-500">
                   <span className="text-xl font-extrabold text-gray-900">
-                    10
+                    {summary?.totalVisitors ?? 0}
                   </span>{" "}
                   Pengunjung
                 </p>
@@ -227,7 +240,7 @@ export default function Dashboard() {
                 <p className="text-[14px] font-extrabold text-gray-900">
                   Minggu, 10 Mei{" "}
                   <span className="text-[12px] font-medium text-gray-400">
-                    (10)
+                  ({summary?.todayVisitors ?? 0})
                   </span>
                 </p>
               </div>
@@ -249,7 +262,7 @@ export default function Dashboard() {
 
           <CardContent className="space-y-4 pt-2">
             <div className="text-3xl font-extrabold text-gray-900 tracking-tight">
-              3 dari 5 KST
+              {summary?.activeKst ?? 0} dari {summary?.totalKst ?? 0} KST
             </div>
 
             <div className="flex flex-wrap gap-1.5">
@@ -314,7 +327,7 @@ export default function Dashboard() {
           <CardContent className="space-y-4 pt-2">
             <div className="flex items-center justify-between">
               <div className="text-3xl font-extrabold text-gray-900 tracking-tight">
-                1.500
+                {(summary?.totalProduction ?? 0).toLocaleString("id-ID")}
               </div>
               <TrendBadge value="+15%" />
             </div>
@@ -354,7 +367,7 @@ export default function Dashboard() {
           <CardContent className="space-y-4 pt-2">
             <div className="flex items-center justify-between">
               <div className="text-3xl font-extrabold text-gray-900 tracking-tight">
-                1.500
+                {(summary?.activeOperations ?? 0).toLocaleString("id-ID")}
               </div>
               <TrendBadge value="+5%" />
             </div>
@@ -400,7 +413,7 @@ export default function Dashboard() {
               className="h-50 w-full mb-4"
             >
               <AreaChart
-                data={researchData}
+                data={liveResearchData}
                 margin={{ top: 0, right: 8, left: 0, bottom: 0 }}
               >
                 <defs>
@@ -473,7 +486,7 @@ export default function Dashboard() {
 
           <CardContent className="pt-6">
             <div className="flex flex-col items-center justify-center gap-4">
-              <CircularProgress value={94} label="Excellent" />
+              <CircularProgress value={summary?.greenPerformance ?? 0} label="Excellent" />
 
               <p className="text-[12px] text-gray-700 font-semibold text-center">
                 Kinerja 12% lebih tinggi dibandingkan kuartal lalu.
@@ -525,7 +538,7 @@ export default function Dashboard() {
                 className="h-50 w-full"
               >
                 <BarChart
-                  data={collaborationData}
+                  data={liveCollaborationData}
                   margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
                 >
                   <CartesianGrid

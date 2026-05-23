@@ -22,6 +22,7 @@ import {
   CommandList,
   CommandSeparator,
 } from "@/components/ui/command";
+import { getDownloadUrl } from "@/api/config";
 
 interface ReportDownloadCommandProps {
   open: boolean;
@@ -94,39 +95,33 @@ const reports: ReportItem[] = [
   },
 ];
 
-function downloadDummyCsv(report: ReportItem) {
-  const fileName = `laporan-${report.title
-    .toLowerCase()
-    .replaceAll(" ", "-")}.csv`;
+async function downloadReport(report: ReportItem) {
+  const token = localStorage.getItem("access_token");
+  const kst = report.kst.includes("Ngijo")
+    ? "ngijo"
+    : report.kst.includes("Cangar")
+      ? "cangar"
+      : "jatikerto";
+  const response = await fetch(
+    getDownloadUrl("/reports/download", {
+      kst,
+      report: report.title.toLowerCase().replaceAll(" ", "-"),
+      year: "2026",
+      month: "Semua Bulan",
+      format: report.format,
+    }),
+    {
+      credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    },
+  );
 
-  const headers = ["No", "KST", "Laporan", "Format", "Keterangan"];
-
-  const rows = [
-    [
-      "1",
-      report.kst,
-      report.title,
-      report.format.toUpperCase(),
-      "Data dummy dari frontend",
-    ],
-    [
-      "2",
-      report.kst,
-      report.title,
-      report.format.toUpperCase(),
-      "Nanti disambungkan ke backend",
-    ],
-  ];
-
-  const csvContent = [
-    headers.join(","),
-    ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
-  ].join("\n");
-
-  const blob = new Blob([csvContent], {
-    type: "text/csv;charset=utf-8;",
-  });
-
+  if (!response.ok) throw new Error("Gagal mengunduh laporan");
+  const blob = await response.blob();
+  const disposition = response.headers.get("content-disposition") ?? "";
+  const fileName =
+    disposition.match(/filename="([^"]+)"/)?.[1] ??
+    `laporan-${report.title.toLowerCase().replaceAll(" ", "-")}.csv`;
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
@@ -156,7 +151,7 @@ export function ReportDownloadCommand({
   const runDownload = React.useCallback(
     (report: ReportItem) => {
       setOpen(false);
-      downloadDummyCsv(report);
+      void downloadReport(report);
     },
     [setOpen]
   );
