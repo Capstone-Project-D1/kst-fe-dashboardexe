@@ -45,6 +45,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { useApiData, usePageData } from "@/api/hooks";
 
 const waterData = [
   { name: "Daur Ulang", value: 14200, fill: "#27A376" },
@@ -88,6 +89,7 @@ const energyConfig = {
 const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
 
 interface SensorRow {
+  id?: string;
   no: number;
   lokasi: string;
   tipe: string;
@@ -96,7 +98,7 @@ interface SensorRow {
   tren: "up" | "down" | "stable";
 }
 
-const sensorData: SensorRow[] = [
+export const sensorData: SensorRow[] = [
   {
     no: 1,
     lokasi: "North Solar Grid A-12",
@@ -215,9 +217,36 @@ export default function Keberlanjutan() {
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
+  const { data: greenPerformance } = useApiData<{ value: number; label: string }>(
+    "/kst/ngijo/keberlanjutan/green-performance",
+  );
+  const { data: waterLifecycle } = useApiData<{ items: typeof waterData }>(
+    "/kst/ngijo/keberlanjutan/water-lifecycle",
+  );
+  const { data: wasteMetrics } = useApiData<{ value: typeof wasteData }>(
+    "/kst/ngijo/keberlanjutan/waste-metrics",
+  );
+  const { data: energyDynamics } = useApiData<{ value: typeof energyData }>(
+    "/kst/ngijo/keberlanjutan/energy-dynamics",
+  );
+  const { data: renewableEnergy } = useApiData<{
+    total: number;
+    unit: string;
+    items: Array<{ label: string; value: number }>;
+  }>("/kst/ngijo/keberlanjutan/renewable-energy");
+  const { items: sensorRows } = usePageData<SensorRow>(
+    "/kst/ngijo/keberlanjutan/sensors",
+    { year: selectedYear, month: selectedMonth, limit: 50 },
+  );
+  const waterRows = waterLifecycle?.items ?? [];
+  const wasteRows = wasteMetrics?.value ?? [];
+  const energyRows = energyDynamics?.value ?? [];
+  const sensorData = sensorRows;
 
-  const totalWater = 14200 + 6700;
-  const pct = Math.round((14200 / totalWater) * 100);
+  const recycledWater = waterRows.find((item) => item.name === "Daur Ulang")?.value ?? 0;
+  const freshWater = waterRows.find((item) => item.name === "Sumber Segar")?.value ?? 0;
+  const totalWater = recycledWater + freshWater;
+  const pct = totalWater > 0 ? Math.round((recycledWater / totalWater) * 100) : 0;
 
   const rowsPerPageNumber = Number(rowsPerPage);
   const totalPages = Math.max(
@@ -249,7 +278,11 @@ export default function Keberlanjutan() {
           </div>
 
           <div className="flex justify-center py-2">
-            <CircularProgress value={94} label="Excellent" color="#27A376" />
+            <CircularProgress
+              value={greenPerformance?.value ?? 0}
+              label={greenPerformance?.label ?? "-"}
+              color="#27A376"
+            />
           </div>
 
           <p className="text-[12px] text-gray-500 font-medium text-center">
@@ -276,7 +309,7 @@ export default function Keberlanjutan() {
             <ChartContainer config={waterConfig} className="h-[120px] w-[120px]">
               <PieChart>
                 <Pie
-                  data={waterData}
+                  data={waterRows}
                   dataKey="value"
                   nameKey="name"
                   cx="50%"
@@ -285,7 +318,7 @@ export default function Keberlanjutan() {
                   outerRadius={55}
                   strokeWidth={2}
                 >
-                  {waterData.map((entry, index) => (
+                  {waterRows.map((entry, index) => (
                     <Cell key={index} fill={entry.fill} />
                   ))}
                 </Pie>
@@ -302,11 +335,11 @@ export default function Keberlanjutan() {
             <div className="flex items-center gap-4 text-[10px] text-gray-500 font-medium">
               <span className="flex items-center gap-1">
                 <span className="size-2 rounded-full bg-emerald-500 inline-block" />
-                Daur ulang - 14.2k Gal
+              Daur ulang - {recycledWater.toLocaleString("id-ID")} Gal
               </span>
               <span className="flex items-center gap-1">
                 <span className="size-2 rounded-full bg-blue-500 inline-block" />
-                Sumber Segar - 6.7k Gal
+              Sumber Segar - {freshWater.toLocaleString("id-ID")} Gal
               </span>
             </div>
           </div>
@@ -339,7 +372,7 @@ export default function Keberlanjutan() {
 
           <ChartContainer config={wasteConfig} className="h-[140px] w-full">
             <BarChart
-              data={wasteData}
+              data={wasteRows}
               margin={{ top: 5, right: 0, left: -20, bottom: 0 }}
             >
               <CartesianGrid
@@ -407,7 +440,7 @@ export default function Keberlanjutan() {
 
           <ChartContainer config={energyConfig} className="h-[200px] w-full">
             <AreaChart
-              data={energyData}
+              data={energyRows}
               margin={{ top: 5, right: 10, left: -20, bottom: 0 }}
             >
               <defs>
@@ -480,31 +513,31 @@ export default function Keberlanjutan() {
 
           <div className="flex items-baseline gap-2 mt-2">
             <span className="text-4xl font-extrabold text-gray-900 tracking-tight">
-              1,284.5
+              {(renewableEnergy?.total ?? 0).toLocaleString("id-ID")}
             </span>
             <span className="text-[14px] font-semibold text-gray-500">
-              MWh
+              {renewableEnergy?.unit ?? "MWh"}
             </span>
           </div>
 
           <div className="flex flex-col gap-3 mt-2">
-            {[
-              { label: "Solar Array", value: "742 MWh", color: "bg-blue-500" },
-              {
-                label: "Wind Turbines",
-                value: "310 MWh",
-                color: "bg-emerald-500",
-              },
-              { label: "Biomass", value: "232 MWh", color: "bg-amber-500" },
-            ].map((item) => (
+            {(renewableEnergy?.items ?? []).map((item, index) => (
               <div
                 key={item.label}
                 className="flex items-center gap-2 text-[12px] text-gray-600 font-medium"
               >
-                <span className={cn("size-2.5 rounded-full shrink-0", item.color)} />
+                <span
+                  className={cn(
+                    "size-2.5 rounded-full shrink-0",
+                    ["bg-blue-500", "bg-emerald-500", "bg-amber-500"][index] ??
+                      "bg-gray-400",
+                  )}
+                />
                 <span>{item.label}</span>
                 <span className="text-gray-400 mx-1">-</span>
-                <span className="font-bold text-gray-800">{item.value}</span>
+                <span className="font-bold text-gray-800">
+                  {item.value} {renewableEnergy?.unit ?? "MWh"}
+                </span>
               </div>
             ))}
           </div>
@@ -578,7 +611,7 @@ export default function Keberlanjutan() {
 
             <TableBody>
               {paginatedSensorData.map((row, index) => (
-                <TableRow key={row.no} className="hover:bg-gray-50/50 group">
+                <TableRow key={row.id ?? row.no} className="hover:bg-gray-50/50 group">
                   <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
                     {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                   </TableCell>

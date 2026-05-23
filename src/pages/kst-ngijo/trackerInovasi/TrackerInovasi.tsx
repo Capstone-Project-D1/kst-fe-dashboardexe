@@ -28,6 +28,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { useApiData, usePageData } from "@/api/hooks";
 
 interface SummaryCardData {
   icon: React.ElementType;
@@ -40,6 +41,7 @@ interface SummaryCardData {
 }
 
 interface InovasiRow {
+  id?: string;
   no: number;
   namaProyek: string;
   idProyek: string;
@@ -90,7 +92,7 @@ const summaryCards: SummaryCardData[] = [
 
 const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
 
-const tableData: InovasiRow[] = [
+export const tableData: InovasiRow[] = [
   {
     no: 1,
     namaProyek: "Biomass Circular Recovery Circular Recovery",
@@ -271,6 +273,34 @@ export default function TrackerInovasi() {
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
+  const { data: summary } = useApiData<Record<string, number>>(
+    "/kst/ngijo/tracker-inovasi/summary",
+    { year: selectedYear, month: selectedMonth },
+  );
+  const { items: backendRows } = usePageData<InovasiRow>(
+    "/kst/ngijo/tracker-inovasi",
+    { year: selectedYear, month: selectedMonth, limit: 50 },
+  );
+  const tableData = backendRows;
+  const liveSummaryCards = summaryCards.map((card, index) => {
+    const values = [
+      summary?.total_aktif,
+      summary?.rata_rata_trl,
+      summary?.paten_tertunda,
+      summary?.kolaborasi,
+    ];
+    const trends = [
+      summary?.total_aktif_trend,
+      summary?.rata_rata_trl_trend,
+      summary?.paten_tertunda_trend,
+      summary?.kolaborasi_trend,
+    ];
+    return {
+      ...card,
+      value: values[index] !== undefined ? String(values[index]) : "0",
+      trend: trends[index] ?? 0,
+    };
+  });
 
   const rowsPerPageNumber = Number(rowsPerPage);
   const totalPages = Math.max(
@@ -286,7 +316,7 @@ export default function TrackerInovasi() {
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {summaryCards.map((card) => (
+        {liveSummaryCards.map((card) => (
           <SummaryCard key={card.title} data={card} />
         ))}
       </div>
@@ -354,7 +384,7 @@ export default function TrackerInovasi() {
             <TableBody>
               {paginatedData.map((row, index) => (
                 <TableRow
-                  key={row.idProyek}
+                  key={row.id ?? row.idProyek}
                   className="hover:bg-gray-50/50 group"
                 >
                   <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
