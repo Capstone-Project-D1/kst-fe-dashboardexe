@@ -29,20 +29,17 @@ import {
 
 // Mock data for collaboration chart
 const collaborationData = [
-  { month: "Januari", ngijo: 400, jatikerto: 600 },
-  { month: "Februari", ngijo: 550, jatikerto: 350 },
-  { month: "Maret", ngijo: 450, jatikerto: 550 },
-  { month: "April", ngijo: 580, jatikerto: 420 },
-  { month: "Mei", ngijo: 480, jatikerto: 400 },
-  { month: "Juni", ngijo: 500, jatikerto: 600 },
-  { month: "Juli", ngijo: 550, jatikerto: 500 },
+  { month: "Januari", jatikerto: 600 },
+  { month: "Februari", jatikerto: 350 },
+  { month: "Maret", jatikerto: 550 },
+  { month: "April", jatikerto: 420 },
+  { month: "Mei", jatikerto: 400 },
+  { month: "Juni", jatikerto: 600 },
+  { month: "Juli", jatikerto: 500 },
 ];
 
 const collaborationConfig = {
-  ngijo: {
-    label: "Mitra KST Ngijo",
-    color: "#3B82F6",
-  },
+
   jatikerto: {
     label: "Mitra KST Jatikerto",
     color: "#27A376",
@@ -499,12 +496,7 @@ export default function Dashboard() {
             </div>
 
             <div className="flex gap-2">
-              <Badge
-                variant="outline"
-                className="bg-white text-gray-900 border-gray-200 text-[10px] font-bold h-6 px-2.5 rounded-full"
-              >
-                KST Ngijo
-              </Badge>
+
               <Badge
                 variant="outline"
                 className="bg-white text-gray-900 border-gray-200 text-[10px] font-bold h-6 px-2.5 rounded-full"
@@ -546,12 +538,6 @@ export default function Dashboard() {
                   <ChartTooltip content={<ChartTooltipContent />} />
 
                   <Bar
-                    dataKey="ngijo"
-                    fill="#3B82F6"
-                    radius={[4, 4, 0, 0]}
-                    barSize={28}
-                  />
-                  <Bar
                     dataKey="jatikerto"
                     fill="#27A376"
                     radius={[4, 4, 0, 0]}
@@ -561,55 +547,32 @@ export default function Dashboard() {
               </ChartContainer>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-[#F8F9FA] p-5 rounded-2xl space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="size-2.5 rounded-full bg-blue-500" />
-                  <span className="text-[12px] font-bold text-gray-700">
-                    Mitra KST Ngijo
-                  </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
-                    500
-                  </span>
-
-                  <TrendBadge value="+12.5%" />
-                </div>
-
-                <p className="text-[11px] text-gray-400 font-medium">
-                  Peningkatan 12.5% dari 6 bulan lalu
-                </p>
+            <div className="bg-[#F8F9FA] p-5 rounded-2xl space-y-3">
+              <div className="flex items-center gap-2">
+                <div className="size-2.5 rounded-full bg-[#27A376]" />
+                <span className="text-[12px] font-bold text-gray-700">
+                  Mitra KST Jatikerto
+                </span>
               </div>
 
-              <div className="bg-[#F8F9FA] p-5 rounded-2xl space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="size-2.5 rounded-full bg-[#27A376]" />
-                  <span className="text-[12px] font-bold text-gray-700">
-                    Mitra KST Jatikerto
-                  </span>
-                </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                  200
+                </span>
 
-                <div className="flex items-center justify-between">
-                  <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
-                    200
-                  </span>
-
-                  <Badge className="text-[#E5484D] border-[#F8D7DA] bg-[#FFF5F5] text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
-                    <TrendingDown className="size-4 text-[#E5484D]" />
-                    -20%
-                  </Badge>
-                </div>
-
-                <p className="text-[11px] text-gray-400 font-medium">
-                  Penurunan 20% dari 6 bulan lalu
-                </p>
+                <Badge className="text-[#E5484D] border-[#F8D7DA] bg-[#FFF5F5] text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
+                  <TrendingDown className="size-4 text-[#E5484D]" />
+                  -20%
+                </Badge>
               </div>
+
+              <p className="text-[11px] text-gray-400 font-medium">
+                Penurunan 20% dari 6 bulan lalu
+              </p>
             </div>
           </CardContent>
         </Card>
       </div>
-    </div>
+    </div >
   );
 }
