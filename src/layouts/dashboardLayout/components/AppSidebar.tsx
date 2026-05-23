@@ -43,6 +43,7 @@ import {
 import { cn } from "@/lib/utils";
 import { ROUTES } from "@/routes/routes";
 import { useAuth } from "@/hooks/useAuth";
+import { getDownloadUrl } from "@/api/config";
 
 const NAV_ITEMS = [
   {
@@ -156,7 +157,7 @@ const MONTH_OPTIONS = [
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
 
   const [openGroups, setOpenGroups] = React.useState<Record<string, boolean>>({
     Home: true,
@@ -185,52 +186,30 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     setSelectedReport(REPORT_OPTIONS[value][0]);
   };
 
-  const handleDownloadReport = () => {
+  const handleDownloadReport = async () => {
     const reportName = selectedReport.toLowerCase().replaceAll(" ", "-");
-    const monthName = selectedMonth.toLowerCase().replaceAll(" ", "-");
+    const token = localStorage.getItem("access_token");
+    const response = await fetch(
+      getDownloadUrl("/reports/download", {
+        kst: selectedKst,
+        report: reportName,
+        year: selectedYear,
+        month: selectedMonth,
+        format: selectedFormat,
+      }),
+      {
+        credentials: "include",
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      },
+    );
 
-    const fileName = `laporan-${reportName}-${selectedYear}-${monthName}.csv`;
+    if (!response.ok) {
+      throw new Error("Gagal mengunduh laporan");
+    }
 
-    const headers = [
-      "No",
-      "KST",
-      "Cabang",
-      "Tahun",
-      "Bulan",
-      "Format",
-      "Keterangan",
-    ];
-
-    const rows = [
-      [
-        "1",
-        selectedKst.toUpperCase(),
-        selectedReport,
-        selectedYear,
-        selectedMonth,
-        selectedFormat.toUpperCase(),
-        "Data dummy dari frontend",
-      ],
-      [
-        "2",
-        selectedKst.toUpperCase(),
-        selectedReport,
-        selectedYear,
-        selectedMonth,
-        selectedFormat.toUpperCase(),
-        "Nanti disambungkan ke backend",
-      ],
-    ];
-
-    const csvContent = [
-      headers.join(","),
-      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
-    ].join("\n");
-
-    const blob = new Blob([csvContent], {
-      type: "text/csv;charset=utf-8;",
-    });
-
+    const blob = await response.blob();
+    const disposition = response.headers.get("content-disposition") ?? "";
+    const fileName = disposition.match(/filename="([^"]+)"/)?.[1] ?? `laporan-${reportName}.csv`;
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
 
@@ -241,6 +220,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     URL.revokeObjectURL(url);
     setIsReportModalOpen(false);
   };
+
+  const allowedNavItems = NAV_ITEMS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => {
+      if (item.url === ROUTES.KELOLA_AKUN) {
+        return user?.activeRole === "super_admin";
+      }
+      if (group.title === "KST Ngijo") return user?.kstAccess.includes("ngijo");
+      if (group.title === "KST Cangar") return user?.kstAccess.includes("cangar");
+      if (group.title === "KST Jatikerto") return user?.kstAccess.includes("jatikerto");
+      return true;
+    }),
+  })).filter((group) => group.items.length > 0);
+
+  const roleLabel =
+    user?.activeRole === "super_admin"
+      ? "Super Admin"
+      : user?.activeRole === "manajemen"
+        ? "Manajemen"
+        : "Operator";
+
+  const initials =
+    user?.name
+      ?.split(" ")
+      .map((part) => part[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() ?? "U";
 
   const selectedKstLabel =
     selectedKst === "ngijo"
@@ -301,7 +308,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </Button>
           </div>
 
-          {NAV_ITEMS.map((group) => {
+          {allowedNavItems.map((group) => {
             const isOpen = openGroups[group.title];
 
             return (
@@ -371,23 +378,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <div className="flex items-center gap-2.5 mb-3 group-data-[collapsible=icon]:justify-center">
             <div className="size-8 rounded-full bg-gray-200 overflow-hidden ring-2 ring-gray-100 shrink-0">
               <div className="w-full h-full flex items-center justify-center bg-gray-800 text-white font-bold text-[10px]">
-                AP
+                {initials}
               </div>
             </div>
 
             <div className="flex flex-col group-data-[collapsible=icon]:hidden">
               <span className="font-bold text-[12px] text-[#151515]">
-                Admin Pusat
+                {user?.name ?? "User"}
               </span>
               <span className="text-[10px] text-gray-500 font-medium">
-                Administrator
+                {roleLabel}
               </span>
             </div>
           </div>
 
           <Button
             variant="outline"
-            onClick={logout}
+            onClick={() => void logout()}
             className="w-full justify-between gap-2 border-gray-200 text-gray-700 font-semibold hover:bg-red-500 hover:text-white rounded-lg h-8 text-[12px] group-data-[collapsible=icon]:px-0 group-data-[collapsible=icon]:justify-center"
           >
             <span className="group-data-[collapsible=icon]:hidden">

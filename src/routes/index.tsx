@@ -57,7 +57,14 @@ export const AppRoutes = () => {
           >
             <Route index element={<Navigate to={ROUTES.DASHBOARD} replace />} />
             <Route path={ROUTES.DASHBOARD.substring(1)} element={<Dashboard />} />
-            <Route path={ROUTES.KELOLA_AKUN.substring(1)} element={<KelolaAkun />} />
+            <Route
+              path={ROUTES.KELOLA_AKUN.substring(1)}
+              element={
+                <ProtectedRoute allowedRoles={["super_admin"]}>
+                  <KelolaAkun />
+                </ProtectedRoute>
+              }
+            />
 
             {/* KST CANGAR */}
             <Route path={ROUTES.BOOKLIST_ATP.substring(1)} element={<BooklistAtp />} />
