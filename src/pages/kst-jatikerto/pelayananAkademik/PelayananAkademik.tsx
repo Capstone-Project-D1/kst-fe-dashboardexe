@@ -23,8 +23,10 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { usePageData } from "@/api/hooks";
 
 interface MahasiswaRow {
+  id?: string;
   no: number;
   namaMahasiswa: string;
   dosenPembimbing: string;
@@ -48,7 +50,7 @@ const programStudiStyles = {
   "Pendidikan Teknologi Informasi": "bg-rose-400 border-rose-500 text-white",
 };
 
-const tableData: MahasiswaRow[] = [
+export const tableData: MahasiswaRow[] = [
   {
     no: 1,
     namaMahasiswa: "Mahasiswa 1 bin fulan marfuah",
@@ -159,6 +161,10 @@ export default function PelayananAkademik() {
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
+  const { items: tableData } = usePageData<MahasiswaRow>(
+    "/kst/jatikerto/pelayanan-akademik",
+    { year: selectedYear, month: selectedMonth, limit: 50 },
+  );
 
   const rowsPerPageNumber = Number(rowsPerPage);
   const totalPages = Math.max(1, Math.ceil(tableData.length / rowsPerPageNumber));
@@ -246,7 +252,7 @@ export default function PelayananAkademik() {
 
             <TableBody>
               {paginatedData.map((row, index) => (
-                <TableRow key={row.no} className="hover:bg-gray-50/50 group">
+                <TableRow key={row.id ?? row.no} className="hover:bg-gray-50/50 group">
                   <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
                     {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                   </TableCell>

@@ -22,8 +22,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { usePageData } from "@/api/hooks";
 
 interface MitraRow {
+  id?: string;
   no: number;
   mitra: string;
   bidangKerjasama: string;
@@ -31,7 +33,7 @@ interface MitraRow {
   keterangan: string;
 }
 
-const tableData: MitraRow[] = [
+export const tableData: MitraRow[] = [
   {
     no: 1,
     mitra: "PT Teknologi Informasi dan Inovasi Digital Nusantara Indonesia",
@@ -111,6 +113,11 @@ export default function Kemitraan() {
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
+  const { items: tableData } = usePageData<MitraRow>("/kst/jatikerto/kemitraan", {
+    year: selectedYear,
+    month: selectedMonth,
+    limit: 50,
+  });
 
   const rowsPerPageNumber = Number(rowsPerPage);
   const totalPages = Math.max(1, Math.ceil(tableData.length / rowsPerPageNumber));
@@ -186,7 +193,7 @@ export default function Kemitraan() {
 
             <TableBody>
               {paginatedData.map((row, index) => (
-                <TableRow key={row.no} className="hover:bg-gray-50/50 group">
+                <TableRow key={row.id ?? row.no} className="hover:bg-gray-50/50 group">
                   <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
                     {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                   </TableCell>

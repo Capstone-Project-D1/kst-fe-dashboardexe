@@ -23,8 +23,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { usePageData } from "@/api/hooks";
 
 interface KonservasiRow {
+  id?: string;
   no: number;
   namaKomoditas: string;
   foto: string;
@@ -35,7 +37,7 @@ interface KonservasiRow {
 
 type KonservasiCategory = "konservasi-hewan" | "konservasi-tumbuhan";
 
-const hewanData: KonservasiRow[] = [
+export const hewanData: KonservasiRow[] = [
   {
     no: 1,
     namaKomoditas: "Rusa Totol",
@@ -93,7 +95,7 @@ const hewanData: KonservasiRow[] = [
   },
 ];
 
-const tumbuhanData: KonservasiRow[] = [
+export const tumbuhanData: KonservasiRow[] = [
   {
     no: 1,
     namaKomoditas: "Anggrek Bulan",
@@ -160,9 +162,12 @@ export default function Konservasi() {
   const [rowsPerPage, setRowsPerPage] = useState("5");
   const [selectedCategory, setSelectedCategory] =
     useState<KonservasiCategory>("konservasi-hewan");
-
-  const activeData =
-    selectedCategory === "konservasi-hewan" ? hewanData : tumbuhanData;
+  const { items: activeData } = usePageData<KonservasiRow>("/kst/jatikerto/konservasi", {
+    year: selectedYear,
+    month: selectedMonth,
+    view: selectedCategory,
+    limit: 50,
+  });
 
   const rowsPerPageNumber = Number(rowsPerPage);
 
@@ -278,7 +283,7 @@ export default function Konservasi() {
             <TableBody>
               {paginatedData.map((row, index) => (
                 <TableRow
-                  key={`${selectedCategory}-${row.no}`}
+                  key={row.id ?? `${selectedCategory}-${row.no}`}
                   className="hover:bg-gray-50/50 group"
                 >
                   <TableCell className="text-[13px] text-gray-500 font-medium pl-5">

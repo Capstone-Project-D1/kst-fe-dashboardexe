@@ -22,8 +22,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { usePageData } from "@/api/hooks";
 
 interface PeternakanRow {
+  id?: string;
   no: number;
   namaKomoditas: string;
   jumlah: number;
@@ -34,7 +36,7 @@ interface PeternakanRow {
   keterangan: string;
 }
 
-const tableData: PeternakanRow[] = [
+export const tableData: PeternakanRow[] = [
   {
     no: 1,
     namaKomoditas: "Sapi",
@@ -144,6 +146,11 @@ export default function Peternakan() {
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
+  const { items: tableData } = usePageData<PeternakanRow>("/kst/jatikerto/peternakan", {
+    year: selectedYear,
+    month: selectedMonth,
+    limit: 50,
+  });
 
   const rowsPerPageNumber = Number(rowsPerPage);
   const totalPages = Math.max(
@@ -260,7 +267,7 @@ export default function Peternakan() {
 
             <TableBody>
               {paginatedData.map((row, index) => (
-                <TableRow key={row.no} className="hover:bg-gray-50/50 group">
+                <TableRow key={row.id ?? row.no} className="hover:bg-gray-50/50 group">
                   <TableCell className="text-[13px] text-gray-500 font-medium text-center px-0">
                     {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                   </TableCell>
