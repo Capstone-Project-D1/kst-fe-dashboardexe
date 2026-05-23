@@ -1,19 +1,35 @@
-import React, { createContext, useState, useCallback } from "react";
-import type { User } from "@/data/mockUsers";
-import {
-  validateCredentials,
-  addRegisteredUser,
-  findUserByEmail,
-} from "@/data/mockUsers";
+import React, { createContext, useCallback, useEffect, useState } from "react";
+import { apiClient } from "@/api/config";
+
+export type Role = "super_admin" | "manajemen" | "operator";
+export type KstIdentifier = "ngijo" | "cangar" | "jatikerto";
+
+export interface User {
+  userid: string;
+  username: string;
+  email: string;
+  name: string;
+  activeRole: Role;
+  kstAccess: KstIdentifier[];
+  permissions: string[];
+  pictureUri: string | null;
+}
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
-  logout: () => void;
+  login: (usernameOrEmail: string, password: string, activeRole?: Role) => Promise<void>;
+  register: (payload: {
+    username: string;
+    email: string;
+    password: string;
+    name: string;
+    requestedRole: Exclude<Role, "super_admin">;
+    requestedKstIdentifier?: KstIdentifier | null;
+  }) => Promise<void>;
+  logout: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -24,29 +40,64 @@ export { AuthContext };
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    const stored = localStorage.getItem("currentUser");
-    return stored ? JSON.parse(stored) : null;
-  });
-  const [isLoading, setIsLoading] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const login = useCallback(async (email: string, password: string) => {
+  useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    const stored = localStorage.getItem("currentUser");
+
+    if (stored) {
+      setUser(JSON.parse(stored));
+    }
+
+    if (!token) {
+      setIsLoading(false);
+      return;
+    }
+
+    apiClient
+      .get<{ user: User }>("/auth/me")
+      .then(({ user }) => {
+        setUser(user);
+        localStorage.setItem("currentUser", JSON.stringify(user));
+      })
+      .catch(() => {
+        setUser(null);
+        localStorage.removeItem("currentUser");
+        localStorage.removeItem("access_token");
+      })
+      .finally(() => setIsLoading(false));
+  }, []);
+
+  const login = useCallback(async (usernameOrEmail: string, password: string, activeRole?: Role) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // Simulasi delay network
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const response = await apiClient.post<{
+        accessToken: string | null;
+        requiresRoleSelection: boolean;
+        availableRoles: Array<{ role: Role; kstIdentifier: KstIdentifier | null }>;
+        user: User | null;
+      }>("/auth/login", { usernameOrEmail, password, activeRole });
 
-      const validatedUser = validateCredentials(email, password);
-
-      if (!validatedUser) {
-        throw new Error("Email atau password tidak sesuai");
+      if (response.requiresRoleSelection) {
+        throw new Error(
+          `Pilih role aktif: ${response.availableRoles
+            .map((item) => item.role)
+            .join(", ")}`,
+        );
       }
 
-      setUser(validatedUser);
-      localStorage.setItem("currentUser", JSON.stringify(validatedUser));
+      if (!response.accessToken || !response.user) {
+        throw new Error("Response login tidak lengkap");
+      }
+
+      localStorage.setItem("access_token", response.accessToken);
+      localStorage.setItem("currentUser", JSON.stringify(response.user));
+      setUser(response.user);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Login gagal";
       setError(message);
@@ -57,38 +108,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   const register = useCallback(
-    async (email: string, password: string, name: string) => {
+    async (payload: {
+      username: string;
+      email: string;
+      password: string;
+      name: string;
+      requestedRole: Exclude<Role, "super_admin">;
+      requestedKstIdentifier?: KstIdentifier | null;
+    }) => {
       setIsLoading(true);
       setError(null);
 
       try {
-        // Validasi
-        if (!email || !password || !name) {
+        if (!payload.email || !payload.password || !payload.name || !payload.username) {
           throw new Error("Semua field harus diisi");
         }
 
-        if (password.length < 6) {
-          throw new Error("Password minimal 6 karakter");
+        if (payload.password.length < 8) {
+          throw new Error("Password minimal 8 karakter");
         }
 
-        if (findUserByEmail(email)) {
-          throw new Error("Email sudah terdaftar");
-        }
-
-        // Simulasi delay network
-        await new Promise((resolve) => setTimeout(resolve, 500));
-
-        const newUser: User = {
-          id: Date.now().toString(),
-          email,
-          password,
-          name,
-          createdAt: new Date(),
-        };
-
-        addRegisteredUser(newUser);
-        setUser(newUser);
-        localStorage.setItem("currentUser", JSON.stringify(newUser));
+        await apiClient.post("/auth/register", payload);
       } catch (err) {
         const message = err instanceof Error ? err.message : "Registrasi gagal";
         setError(message);
@@ -100,9 +140,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
     [],
   );
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    await apiClient.post("/auth/logout").catch(() => undefined);
     setUser(null);
     setError(null);
+    localStorage.removeItem("access_token");
     localStorage.removeItem("currentUser");
   }, []);
 

@@ -3,6 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 export default function Register() {
@@ -12,10 +19,14 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
+    requestedRole: "manajemen",
+    requestedKstIdentifier: "ngijo",
   });
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<
     Record<string, string>
   >({});
@@ -41,6 +52,9 @@ export default function Register() {
     if (!formData.name.trim()) {
       errors.name = "Nama harus diisi";
     }
+    if (!formData.username.trim()) {
+      errors.username = "Username harus diisi";
+    }
 
     if (!formData.email.trim()) {
       errors.email = "Email harus diisi";
@@ -50,8 +64,15 @@ export default function Register() {
 
     if (!formData.password) {
       errors.password = "Password harus diisi";
-    } else if (formData.password.length < 6) {
-      errors.password = "Password minimal 6 karakter";
+    } else if (formData.password.length < 8) {
+      errors.password = "Password minimal 8 karakter";
+    }
+
+    if (
+      formData.requestedRole === "operator" &&
+      !formData.requestedKstIdentifier
+    ) {
+      errors.requestedKstIdentifier = "Operator wajib memilih satu KST";
     }
 
     if (formData.password !== formData.confirmPassword) {
@@ -70,8 +91,21 @@ export default function Register() {
     }
 
     try {
-      await register(formData.email, formData.password, formData.name);
-      navigate("/dashboard");
+      await register({
+        username: formData.username,
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
+        requestedRole: formData.requestedRole as "manajemen" | "operator",
+        requestedKstIdentifier:
+          formData.requestedRole === "operator"
+            ? (formData.requestedKstIdentifier as "ngijo" | "cangar" | "jatikerto")
+            : null,
+      });
+      setSuccessMessage(
+        "Registrasi berhasil dikirim. Akun menunggu approval super admin.",
+      );
+      setTimeout(() => navigate("/login"), 1200);
     } catch (err) {
       // Error sudah di-set di context
       console.error("Registration failed:", err);
@@ -121,6 +155,11 @@ export default function Register() {
                 <p className="text-sm text-red-700">{error}</p>
               </div>
             )}
+            {successMessage && (
+              <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-md">
+                <p className="text-sm text-emerald-700">{successMessage}</p>
+              </div>
+            )}
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -145,6 +184,26 @@ export default function Register() {
                 )}
               </div>
 
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Username*
+                </label>
+                <Input
+                  type="text"
+                  name="username"
+                  placeholder="Masukkan username"
+                  value={formData.username}
+                  onChange={handleChange}
+                  className="w-full"
+                  disabled={isLoading}
+                />
+                {validationErrors.username && (
+                  <p className="text-xs text-red-600 mt-1">
+                    {validationErrors.username}
+                  </p>
+                )}
+              </div>
+
               {/* Email Input */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -165,6 +224,59 @@ export default function Register() {
                   </p>
                 )}
               </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Role yang diajukan*
+                </label>
+                <Select
+                  value={formData.requestedRole}
+                  onValueChange={(value) =>
+                    setFormData((prev) => ({ ...prev, requestedRole: value }))
+                  }
+                  disabled={isLoading}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="manajemen">Manajemen</SelectItem>
+                    <SelectItem value="operator">Operator</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {formData.requestedRole === "operator" && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    KST yang ditugaskan*
+                  </label>
+                  <Select
+                    value={formData.requestedKstIdentifier}
+                    onValueChange={(value) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        requestedKstIdentifier: value,
+                      }))
+                    }
+                    disabled={isLoading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ngijo">KST Ngijo</SelectItem>
+                      <SelectItem value="cangar">KST Cangar</SelectItem>
+                      <SelectItem value="jatikerto">KST Jatikerto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {validationErrors.requestedKstIdentifier && (
+                    <p className="text-xs text-red-600 mt-1">
+                      {validationErrors.requestedKstIdentifier}
+                    </p>
+                  )}
+                </div>
+              )}
 
               {/* Password Input */}
               <div>
