@@ -24,11 +24,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { usePageData } from "@/api/hooks";
 
 type DisplayType = "jumlah-stok" | "barang-masuk" | "barang-keluar";
 
 interface StockRow {
-  id: number;
+  id: number | string;
   name: string;
   satuan: string;
   stockAwal: number;
@@ -45,7 +46,7 @@ interface StockRow {
   total: number;
 }
 
-const dummyData: StockRow[] = [
+export const dummyData: StockRow[] = [
   {
     id: 1,
     name: "Kentang Granola",
@@ -246,10 +247,17 @@ function MonthTab({
 }
 
 export default function DataTable() {
+  const [selectedYear, setSelectedYear] = useState("2026");
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
   const [displayType, setDisplayType] = useState<DisplayType>("barang-masuk");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
+  const { items: stockRows } = usePageData<StockRow>("/kst/cangar/stok-opname", {
+    year: selectedYear,
+    month: selectedMonth,
+    limit: 50,
+  });
+  const dummyData = stockRows;
 
   const isJumlahStok = displayType === "jumlah-stok";
   const isBarangMasuk = displayType === "barang-masuk";
@@ -272,7 +280,7 @@ export default function DataTable() {
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-2">
         <div className="flex items-center gap-2 overflow-x-auto pb-2 md:pb-0">
-          <Select defaultValue="2026">
+          <Select value={selectedYear} onValueChange={setSelectedYear}>
             <SelectTrigger className="w-[100px] h-10 border-gray-200 rounded-lg bg-white">
               <SelectValue placeholder="Tahun" />
             </SelectTrigger>

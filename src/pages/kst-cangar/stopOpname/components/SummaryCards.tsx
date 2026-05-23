@@ -7,6 +7,7 @@ import {
   PackageSearch,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useApiData } from "@/api/hooks";
 
 interface SummaryCardProps {
   title: string;
@@ -79,11 +80,14 @@ const SummaryCard = ({
 };
 
 export default function SummaryCards() {
+  const { data: summary } = useApiData<Record<string, number>>(
+    "/kst/cangar/stok-opname/summary",
+  );
   const data: SummaryCardProps[] = [
     {
       iconType: "package",
       title: "Total Barang",
-      value: "500",
+      value: String(summary?.total_barang ?? 0),
       trend: "+12.5%",
       trendType: "up",
       description: "Peningkatan 12.5% dari bulan lalu",
@@ -92,7 +96,7 @@ export default function SummaryCards() {
     {
       iconType: "package-plus",
       title: "Total Barang Masuk",
-      value: "350",
+      value: String(summary?.stok_masuk ?? 0),
       trend: "-20%",
       trendType: "down",
       description: "Penurunan 20% dari bulan lalu",
@@ -101,7 +105,7 @@ export default function SummaryCards() {
     {
       iconType: "package-x",
       title: "Total Barang Keluar",
-      value: "350",
+      value: String(summary?.stok_keluar ?? 0),
       trend: "+12.5%",
       trendType: "up",
       description: "Peningkatan 12.5% dari bulan lalu",
@@ -110,7 +114,7 @@ export default function SummaryCards() {
     {
       iconType: "package-search",
       title: "Total Retur",
-      value: "10",
+      value: String(summary?.selisih ?? 0),
       trend: "+12.5%",
       trendType: "up",
       description: "Peningkatan 12.5% dari bulan lalu",

@@ -27,10 +27,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { useApiData, usePageData } from "@/api/hooks";
 
 type DisplayType = "reservasi" | "pelanggan";
 
 interface BookingRow {
+  id?: string;
   no: number;
   nama: string;
   checkIn: string;
@@ -43,6 +45,7 @@ interface BookingRow {
 }
 
 interface CustomerRow {
+  id?: string;
   no: number;
   nama: string;
   domisili: string;
@@ -53,7 +56,7 @@ interface CustomerRow {
   keterangan: string;
 }
 
-const bookingData: BookingRow[] = [
+export const bookingData: BookingRow[] = [
   {
     no: 1,
     nama: "Ahmad Rizki Alsena Airlangga",
@@ -166,7 +169,7 @@ const bookingData: BookingRow[] = [
   },
 ];
 
-const customerData: CustomerRow[] = [
+export const customerData: CustomerRow[] = [
   {
     no: 1,
     nama: "Ahmad Rizki",
@@ -301,7 +304,28 @@ export default function BooklistAtp() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
   const [displayType, setDisplayType] = useState<DisplayType>("reservasi");
+  const { data: summary } = useApiData<{
+    total_booking: number;
+    total_booking_trend: number;
+    total_pendapatan: number;
+    total_pendapatan_trend: number;
+    lunas: number;
+    belum_lunas: number;
+  }>("/kst/cangar/booklist-atp/summary", {
+    year: selectedYear,
+    month: selectedMonth,
+  });
+  const { items: bookingRows } = usePageData<BookingRow>(
+    "/kst/cangar/booklist-atp/reservasi",
+    { year: selectedYear, month: selectedMonth, limit: 50 },
+  );
+  const { items: customerRows } = usePageData<CustomerRow>(
+    "/kst/cangar/booklist-atp/pelanggan",
+    { year: selectedYear, month: selectedMonth, limit: 50 },
+  );
 
+  const bookingData = bookingRows;
+  const customerData = customerRows;
   const activeData = displayType === "reservasi" ? bookingData : customerData;
   const rowsPerPageNumber = Number(rowsPerPage);
   const totalPages = Math.max(1, Math.ceil(activeData.length / rowsPerPageNumber));
@@ -311,10 +335,11 @@ export default function BooklistAtp() {
     currentPage * rowsPerPageNumber
   );
 
-  const lunasCount = bookingData.filter((row) => row.status === "Lunas").length;
-  const belumLunasCount = bookingData.filter(
-    (row) => row.status === "Belum Lunas"
-  ).length;
+  const lunasCount =
+    summary?.lunas ?? bookingData.filter((row) => row.status === "Lunas").length;
+  const belumLunasCount =
+    summary?.belum_lunas ??
+    bookingData.filter((row) => row.status === "Belum Lunas").length;
 
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
@@ -329,11 +354,13 @@ export default function BooklistAtp() {
 
           <div className="flex items-center justify-between">
             <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
-              1
+              {summary?.total_booking ?? 0}
             </span>
             <div className="flex h-6 py-0.5 px-2 justify-center items-center gap-1 rounded-md border border-[#B2DDB5] bg-[#F5FBF5]">
               <TrendingUp className="size-4 text-[#46A758]" />
-              <p className="text-xs font-bold text-[#46A758]">+12.5%</p>
+              <p className="text-xs font-bold text-[#46A758]">
+                +{summary?.total_booking_trend ?? 0}%
+              </p>
             </div>
           </div>
 
@@ -357,11 +384,13 @@ export default function BooklistAtp() {
 
           <div className="flex items-center justify-between gap-3">
             <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
-              Rp 1.800.000
+              Rp {(summary?.total_pendapatan ?? 0).toLocaleString("id-ID")}
             </span>
             <div className="flex h-6 py-0.5 px-2 justify-center items-center gap-1 rounded-md border border-[#F8D7DA] bg-[#FFF5F5]">
               <TrendingDown className="size-4 text-[#E5484D]" />
-              <p className="text-xs font-bold text-[#E5484D]">-20%</p>
+              <p className="text-xs font-bold text-[#E5484D]">
+                {summary?.total_pendapatan_trend ?? 0}%
+              </p>
             </div>
           </div>
 
@@ -482,7 +511,7 @@ export default function BooklistAtp() {
 
               <TableBody>
                 {(paginatedData as BookingRow[]).map((row, index) => (
-                  <TableRow key={row.no} className="hover:bg-gray-50/50 group">
+                  <TableRow key={row.id ?? row.no} className="hover:bg-gray-50/50 group">
                     <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
                       {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                     </TableCell>
@@ -579,7 +608,7 @@ export default function BooklistAtp() {
 
               <TableBody>
                 {(paginatedData as CustomerRow[]).map((row, index) => (
-                  <TableRow key={row.no} className="hover:bg-gray-50/50 group">
+                  <TableRow key={row.id ?? row.no} className="hover:bg-gray-50/50 group">
                     <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
                       {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                     </TableCell>
