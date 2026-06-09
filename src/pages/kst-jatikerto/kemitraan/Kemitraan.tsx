@@ -24,10 +24,11 @@ import {
 import { cn } from "@/lib/utils";
 import { usePageData } from "@/api/hooks";
 import { getJatikertoDataMessage } from "../dataState";
+import { rowIdentity, textValue, type JatikertoApiRow } from "../rowMappers";
 
-interface MitraRow {
+interface MitraRow extends JatikertoApiRow {
   id?: string;
-  no: number;
+  no?: number;
   mitra: string;
   bidangKerjasama: string;
   jangkaWaktuKontrak: string;
@@ -109,6 +110,26 @@ export const tableData: MitraRow[] = [
 
 const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
 
+function getRowKey(row: MitraRow, index: number) {
+  return rowIdentity(row) ?? `${row.mitra}-${row.jangkaWaktuKontrak}-${index}`;
+}
+
+function mapMitraRow(row: MitraRow): MitraRow {
+  if (!row.colValues) return row;
+
+  const mulai = textValue(row, 2);
+  const selesai = textValue(row, 3);
+
+  return {
+    ...row,
+    id: row.rowId ?? row.id,
+    mitra: textValue(row, 0),
+    bidangKerjasama: textValue(row, 1),
+    jangkaWaktuKontrak: [mulai, selesai].filter(Boolean).join(" - "),
+    keterangan: textValue(row, 4, "-"),
+  };
+}
+
 export default function Kemitraan() {
   const [selectedYear, setSelectedYear] = useState("2026");
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
@@ -131,7 +152,7 @@ export default function Kemitraan() {
   const paginatedData = tableData.slice(
     (currentPage - 1) * rowsPerPageNumber,
     currentPage * rowsPerPageNumber
-  );
+  ).map(mapMitraRow);
   const tableMessage = getJatikertoDataMessage({
     isLoading,
     error,
@@ -215,7 +236,7 @@ export default function Kemitraan() {
                 </TableRow>
               ) : (
                 paginatedData.map((row, index) => (
-                <TableRow key={row.id ?? row.no} className="hover:bg-gray-50/50 group">
+                <TableRow key={getRowKey(row, index)} className="hover:bg-gray-50/50 group">
                   <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
                     {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                   </TableCell>

@@ -25,10 +25,11 @@ import {
 import { cn } from "@/lib/utils";
 import { usePageData } from "@/api/hooks";
 import { getJatikertoDataMessage } from "../dataState";
+import { numberValue, rowIdentity, textValue, type JatikertoApiRow } from "../rowMappers";
 
-interface KonservasiRow {
+interface KonservasiRow extends JatikertoApiRow {
   id?: string;
-  no: number;
+  no?: number;
   namaKomoditas: string;
   foto: string;
   jumlah: number;
@@ -156,6 +157,36 @@ export const tumbuhanData: KonservasiRow[] = [
 
 const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
 
+function getRowKey(row: KonservasiRow, category: KonservasiCategory, index: number) {
+  return rowIdentity(row) ?? `${category}-${row.namaKomoditas}-${index}`;
+}
+
+function mapKonservasiRow(row: KonservasiRow, category: KonservasiCategory): KonservasiRow {
+  if (!row.colValues) return row;
+
+  if (category === "konservasi-hewan") {
+    return {
+      ...row,
+      id: row.rowId ?? row.id,
+      namaKomoditas: textValue(row, 0),
+      foto: textValue(row, 1),
+      jumlah: numberValue(row, 2),
+      satuan: textValue(row, 3),
+      keterangan: textValue(row, 4, "-"),
+    };
+  }
+
+  return {
+    ...row,
+    id: row.rowId ?? row.id,
+    namaKomoditas: textValue(row, 0),
+    foto: row.foto ?? "",
+    jumlah: numberValue(row, 4),
+    satuan: textValue(row, 5),
+    keterangan: textValue(row, 6, "-"),
+  };
+}
+
 export default function Konservasi() {
   const [selectedYear, setSelectedYear] = useState("2026");
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
@@ -188,7 +219,7 @@ export default function Konservasi() {
   const paginatedData = activeData.slice(
     (currentPage - 1) * rowsPerPageNumber,
     currentPage * rowsPerPageNumber
-  );
+  ).map((row) => mapKonservasiRow(row, selectedCategory));
   const tableMessage = getJatikertoDataMessage({
     isLoading,
     error,
@@ -308,7 +339,7 @@ export default function Konservasi() {
               ) : (
                 paginatedData.map((row, index) => (
                 <TableRow
-                  key={row.id ?? `${selectedCategory}-${row.no}`}
+                  key={getRowKey(row, selectedCategory, index)}
                   className="hover:bg-gray-50/50 group"
                 >
                   <TableCell className="text-[13px] text-gray-500 font-medium pl-5">

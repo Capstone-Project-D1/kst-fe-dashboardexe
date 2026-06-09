@@ -24,10 +24,11 @@ import {
 import { cn } from "@/lib/utils";
 import { usePageData } from "@/api/hooks";
 import { getJatikertoDataMessage } from "../dataState";
+import { numberValue, rowIdentity, textValue, type JatikertoApiRow } from "../rowMappers";
 
-interface PeternakanRow {
+interface PeternakanRow extends JatikertoApiRow {
   id?: string;
-  no: number;
+  no?: number;
   namaKomoditas: string;
   jumlah: number;
   satuan: string;
@@ -142,6 +143,26 @@ export const tableData: PeternakanRow[] = [
 
 const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
 
+function getRowKey(row: PeternakanRow, index: number) {
+  return rowIdentity(row) ?? `${row.namaKomoditas}-${index}`;
+}
+
+function mapPeternakanRow(row: PeternakanRow): PeternakanRow {
+  if (!row.colValues) return row;
+
+  return {
+    ...row,
+    id: row.rowId ?? row.id,
+    namaKomoditas: textValue(row, 0),
+    luasUsaha: `${numberValue(row, 1).toLocaleString("id-ID")} m2`,
+    ketersediaanBulan: numberValue(row, 2),
+    ketersediaanTahun: `${numberValue(row, 3)} Kali`,
+    jumlah: numberValue(row, 4),
+    satuan: textValue(row, 5),
+    keterangan: textValue(row, 6, "-"),
+  };
+}
+
 export default function Peternakan() {
   const [selectedYear, setSelectedYear] = useState("2026");
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
@@ -167,7 +188,7 @@ export default function Peternakan() {
   const paginatedData = tableData.slice(
     (currentPage - 1) * rowsPerPageNumber,
     currentPage * rowsPerPageNumber
-  );
+  ).map(mapPeternakanRow);
   const tableMessage = getJatikertoDataMessage({
     isLoading,
     error,
@@ -289,7 +310,7 @@ export default function Peternakan() {
                 </TableRow>
               ) : (
                 paginatedData.map((row, index) => (
-                <TableRow key={row.id ?? row.no} className="hover:bg-gray-50/50 group">
+                <TableRow key={getRowKey(row, index)} className="hover:bg-gray-50/50 group">
                   <TableCell className="text-[13px] text-gray-500 font-medium text-center px-0">
                     {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                   </TableCell>
