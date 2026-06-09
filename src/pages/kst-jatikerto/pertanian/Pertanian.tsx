@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { usePageData } from "@/api/hooks";
+import { getJatikertoDataMessage } from "../dataState";
 
 interface KomoditasRow {
   id?: string;
@@ -146,7 +147,12 @@ export default function Pertanian() {
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
-  const { items: tableData } = usePageData<KomoditasRow>("/kst/jatikerto/pertanian", {
+  const {
+    items: tableData,
+    isLoading,
+    error,
+    errorStatus,
+  } = usePageData<KomoditasRow>("/kst/jatikerto/data/pertanian/items", {
     year: selectedYear,
     month: selectedMonth,
     limit: 50,
@@ -162,6 +168,12 @@ export default function Pertanian() {
     (currentPage - 1) * rowsPerPageNumber,
     currentPage * rowsPerPageNumber
   );
+  const tableMessage = getJatikertoDataMessage({
+    isLoading,
+    error,
+    errorStatus,
+    hasItems: tableData.length > 0,
+  });
 
   return (
     <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
@@ -266,7 +278,17 @@ export default function Pertanian() {
             </TableHeader>
 
             <TableBody>
-              {paginatedData.map((row, index) => (
+              {tableMessage ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={9}
+                    className="h-32 text-center text-[13px] text-gray-400 font-medium"
+                  >
+                    {tableMessage}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginatedData.map((row, index) => (
                 <TableRow key={row.id ?? row.no} className="hover:bg-gray-50/50 group">
                   <TableCell className="text-[13px] text-gray-500 font-medium text-center px-0">
                     {(currentPage - 1) * rowsPerPageNumber + index + 1}.
@@ -306,7 +328,8 @@ export default function Pertanian() {
                     </button>
                   </TableCell>
                 </TableRow>
-              ))}
+                ))
+              )}
             </TableBody>
           </Table>
         </div>

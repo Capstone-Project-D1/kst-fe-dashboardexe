@@ -24,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { usePageData } from "@/api/hooks";
+import { getJatikertoDataMessage } from "../dataState";
 
 interface MahasiswaRow {
   id?: string;
@@ -161,8 +162,13 @@ export default function PelayananAkademik() {
   const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
-  const { items: tableData } = usePageData<MahasiswaRow>(
-    "/kst/jatikerto/pelayanan-akademik",
+  const {
+    items: tableData,
+    isLoading,
+    error,
+    errorStatus,
+  } = usePageData<MahasiswaRow>(
+    "/kst/jatikerto/data/akademik/items",
     { year: selectedYear, month: selectedMonth, limit: 50 },
   );
 
@@ -173,6 +179,12 @@ export default function PelayananAkademik() {
     (currentPage - 1) * rowsPerPageNumber,
     currentPage * rowsPerPageNumber
   );
+  const tableMessage = getJatikertoDataMessage({
+    isLoading,
+    error,
+    errorStatus,
+    hasItems: tableData.length > 0,
+  });
 
 
   return (
@@ -251,7 +263,17 @@ export default function PelayananAkademik() {
             </TableHeader>
 
             <TableBody>
-              {paginatedData.map((row, index) => (
+              {tableMessage ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={9}
+                    className="h-32 text-center text-[13px] text-gray-400 font-medium"
+                  >
+                    {tableMessage}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginatedData.map((row, index) => (
                 <TableRow key={row.id ?? row.no} className="hover:bg-gray-50/50 group">
                   <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
                     {(currentPage - 1) * rowsPerPageNumber + index + 1}.
@@ -297,7 +319,8 @@ export default function PelayananAkademik() {
                     </button>
                   </TableCell>
                 </TableRow>
-              ))}
+                ))
+              )}
             </TableBody>
           </Table>
         </div>

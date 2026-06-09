@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { usePageData } from "@/api/hooks";
+import { getJatikertoDataMessage } from "../dataState";
 
 interface KonservasiRow {
   id?: string;
@@ -162,10 +163,18 @@ export default function Konservasi() {
   const [rowsPerPage, setRowsPerPage] = useState("5");
   const [selectedCategory, setSelectedCategory] =
     useState<KonservasiCategory>("konservasi-hewan");
-  const { items: activeData } = usePageData<KonservasiRow>("/kst/jatikerto/konservasi", {
+  const konservasiEndpoint =
+    selectedCategory === "konservasi-hewan"
+      ? "/kst/jatikerto/data/konservasi/hewan"
+      : "/kst/jatikerto/data/konservasi/tanaman";
+  const {
+    items: activeData,
+    isLoading,
+    error,
+    errorStatus,
+  } = usePageData<KonservasiRow>(konservasiEndpoint, {
     year: selectedYear,
     month: selectedMonth,
-    view: selectedCategory,
     limit: 50,
   });
 
@@ -180,6 +189,12 @@ export default function Konservasi() {
     (currentPage - 1) * rowsPerPageNumber,
     currentPage * rowsPerPageNumber
   );
+  const tableMessage = getJatikertoDataMessage({
+    isLoading,
+    error,
+    errorStatus,
+    hasItems: activeData.length > 0,
+  });
 
   const handleChangeCategory = (value: KonservasiCategory) => {
     setSelectedCategory(value);
@@ -281,7 +296,17 @@ export default function Konservasi() {
             </TableHeader>
 
             <TableBody>
-              {paginatedData.map((row, index) => (
+              {tableMessage ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="h-32 text-center text-[13px] text-gray-400 font-medium"
+                  >
+                    {tableMessage}
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginatedData.map((row, index) => (
                 <TableRow
                   key={row.id ?? `${selectedCategory}-${row.no}`}
                   className="hover:bg-gray-50/50 group"
@@ -322,7 +347,8 @@ export default function Konservasi() {
                     </button>
                   </TableCell>
                 </TableRow>
-              ))}
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
