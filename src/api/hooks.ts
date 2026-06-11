@@ -24,6 +24,16 @@ function hasItems<T>(payload: unknown): payload is PageContainer<T> {
 }
 
 export function parsePageContainer<T>(payload: PagePayload<T> | null): PageContainer<T> | null {
+  if (Array.isArray(payload)) {
+    return {
+      offset: 0,
+      limit: payload.length,
+      hasNext: false,
+      total: payload.length,
+      items: payload,
+    };
+  }
+
   const nestedData =
     payload && typeof payload === "object" && "data" in payload ? payload.data : null;
 

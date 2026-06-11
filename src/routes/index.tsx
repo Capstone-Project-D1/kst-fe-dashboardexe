@@ -15,6 +15,7 @@ import KelolaAkun from "@/pages/dashboard/KelolaAkun";
 
 // KST CANGAR
 import BooklistAtp from "@/pages/kst-cangar/booklistAtp/BooklistAtp";
+import KeuanganCangar from "@/pages/kst-cangar/keuangan/KeuanganCangar";
 import StokOpname from "@/pages/kst-cangar/stopOpname/StokOpname";
 
 // KST JATIKERTO
@@ -80,6 +81,14 @@ export const AppRoutes = () => {
               element={
                 <ProtectedRoute allowedKst="cangar">
                   <StokOpname />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path={ROUTES.KEUANGAN_CANGAR.substring(1)}
+              element={
+                <ProtectedRoute allowedKst="cangar">
+                  <KeuanganCangar />
                 </ProtectedRoute>
               }
             />

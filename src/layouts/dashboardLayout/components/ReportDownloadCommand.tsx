@@ -11,6 +11,7 @@ import {
   PawPrint,
   GraduationCap,
   Handshake,
+  Banknote,
 } from "lucide-react";
 
 import {
@@ -59,10 +60,16 @@ const reports: ReportItem[] = [
     icon: ClipboardList,
   },
   {
-    title: "Booklist ATP",
+    title: "Manajemen Booking",
     kst: "KST Cangar",
     format: "csv",
     icon: Book,
+  },
+  {
+    title: "Keuangan",
+    kst: "KST Cangar",
+    format: "csv",
+    icon: Banknote,
   },
   {
     title: "Pertanian",
