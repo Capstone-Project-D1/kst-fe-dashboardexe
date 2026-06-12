@@ -3,7 +3,6 @@ import { CalendarCheck, CheckCircle2, Clock3, RotateCcw, Search } from "lucide-r
 import { useApiData } from "@/api/hooks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -20,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { adaptBookingRows, adaptBookingSummary } from "../adapters";
 
@@ -61,6 +60,7 @@ function serviceInfo(layanan: string) {
 }
 
 export default function BooklistAtp() {
+  const [activeTab, setActiveTab] = useState("Daftar Booking");
   const [draftFilters, setDraftFilters] = useState<BookingFilters>(initialFilters);
   const [appliedFilters, setAppliedFilters] = useState<BookingFilters>(initialFilters);
 
@@ -140,59 +140,63 @@ export default function BooklistAtp() {
 
   return (
     <div className="flex min-h-screen flex-col gap-5 bg-gray-50/50 p-4 md:p-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-bold text-gray-900">Manajemen Booking</h1>
-        <p className="text-sm font-medium text-gray-500">KST Cangar</p>
-      </div>
-
       {bookingError || summaryError ? (
         <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
           Sebagian data booking Cangar belum bisa dimuat. Nilai kosong memakai fallback.
         </div>
       ) : null}
 
-      <Tabs defaultValue="Daftar Booking" className="gap-4">
-        <div className="overflow-x-auto pb-1">
-          <TabsList className="h-10 w-max bg-white shadow-sm">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-4">
+        <div className="w-full sm:w-auto overflow-x-auto scrollbar-none pb-1">
+          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-sm w-max">
             {BOOKING_TABS.map((tab) => (
-              <TabsTrigger key={tab} value={tab} className="px-4 text-[13px]">
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  "px-4 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-150 whitespace-nowrap",
+                  activeTab === tab
+                    ? "bg-gray-900 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                )}
+              >
                 {tab}
-              </TabsTrigger>
+              </button>
             ))}
-          </TabsList>
+          </div>
         </div>
 
         <TabsContent value="Daftar Booking" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Menunggu Konfirmasi</CardTitle>
-                <Clock3 className="size-4 text-amber-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{summary.pending}</div>
-              </CardContent>
-            </Card>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <Clock3 className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">Menunggu Konfirmasi</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-gray-900 tracking-tight">{summary.pending}</span>
+              </div>
+            </div>
 
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Confirmed Bulan Ini</CardTitle>
-                <CheckCircle2 className="size-4 text-emerald-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{summary.confirmedMonth}</div>
-              </CardContent>
-            </Card>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">Confirmed Bulan Ini</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-gray-900 tracking-tight">{summary.confirmedMonth}</span>
+              </div>
+            </div>
 
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Booking Hari Ini</CardTitle>
-                <CalendarCheck className="size-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{summary.today}</div>
-              </CardContent>
-            </Card>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <CalendarCheck className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">Booking Hari Ini</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-gray-900 tracking-tight">{summary.today}</span>
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm xl:flex-row xl:items-end xl:justify-between">
@@ -339,34 +343,37 @@ export default function BooklistAtp() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Total Jadwal</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{scheduleRows.length}</div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Qty Confirmed</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-amber-700">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <CalendarCheck className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">Total Jadwal</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-gray-900 tracking-tight">{scheduleRows.length}</span>
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">Qty Confirmed</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-amber-700 tracking-tight">
                   {scheduleRows.reduce((total, row) => total + row.confirmedQty, 0)}
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Sisa Kapasitas</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-emerald-700">
+                </span>
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <Clock3 className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">Sisa Kapasitas</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-emerald-700 tracking-tight">
                   {scheduleRows.reduce((total, row) => total + Math.max(0, row.capacity - row.confirmedQty), 0)}
-                </div>
-              </CardContent>
-            </Card>
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">

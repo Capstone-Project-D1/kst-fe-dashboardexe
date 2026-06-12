@@ -1,17 +1,10 @@
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
+import { cn } from "@/lib/utils";
 import { ClipboardList, Package, RotateCcw, TrendingDown, TrendingUp } from "lucide-react";
 import { useApiData, parsePageContainer } from "@/api/hooks";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { adaptStockRows, adaptStockSummary, type StockItemRow } from "../adapters";
 
 const STOK_TABS = [
@@ -26,6 +19,7 @@ function signedValue(value: number, prefix: "+" | "-") {
 }
 
 export default function StokOpname() {
+  const [activeTab, setActiveTab] = useState("Data Barang");
   const {
     data: stokPayload,
     isLoading: isStokLoading,
@@ -121,11 +115,6 @@ export default function StokOpname() {
 
   return (
     <div className="flex min-h-screen flex-col gap-5 bg-gray-50/50 p-4 md:p-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-bold text-gray-900">Stok Opname</h1>
-        <p className="text-sm font-medium text-gray-500">KST Cangar</p>
-      </div>
-
       {hasError ? (
         <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
           Sebagian data stok Cangar belum bisa dimuat. Nilai kosong memakai fallback.
@@ -133,60 +122,69 @@ export default function StokOpname() {
       ) : null}
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="rounded-lg border-gray-200 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-600">Total Barang</CardTitle>
-            <Package className="size-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{summary.totalBarang}</div>
-          </CardContent>
-        </Card>
+        <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <div className="flex items-center gap-2.5">
+            <Package className="size-5 text-gray-500" />
+            <span className="text-[12px] font-semibold text-gray-600 leading-tight">Total Barang</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-3xl font-extrabold text-gray-900 tracking-tight">{summary.totalBarang}</span>
+          </div>
+        </div>
 
-        <Card className="rounded-lg border-gray-200 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-600">Total Masuk</CardTitle>
-            <TrendingUp className="size-4 text-emerald-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-emerald-700">
+        <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <div className="flex items-center gap-2.5">
+            <TrendingUp className="size-5 text-gray-500" />
+            <span className="text-[12px] font-semibold text-gray-600 leading-tight">Total Masuk</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-3xl font-extrabold text-emerald-700 tracking-tight">
               {signedValue(summary.totalMasuk, "+")}
-            </div>
-          </CardContent>
-        </Card>
+            </span>
+          </div>
+        </div>
 
-        <Card className="rounded-lg border-gray-200 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-600">Total Keluar</CardTitle>
-            <TrendingDown className="size-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-700">
+        <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <div className="flex items-center gap-2.5">
+            <TrendingDown className="size-5 text-gray-500" />
+            <span className="text-[12px] font-semibold text-gray-600 leading-tight">Total Keluar</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-3xl font-extrabold text-red-700 tracking-tight">
               {signedValue(summary.totalKeluar, "-")}
-            </div>
-          </CardContent>
-        </Card>
+            </span>
+          </div>
+        </div>
 
-        <Card className="rounded-lg border-gray-200 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-600">Total Retur</CardTitle>
-            <RotateCcw className="size-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{summary.totalRetur}</div>
-          </CardContent>
-        </Card>
+        <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <div className="flex items-center gap-2.5">
+            <RotateCcw className="size-5 text-gray-500" />
+            <span className="text-[12px] font-semibold text-gray-600 leading-tight">Total Retur</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-3xl font-extrabold text-gray-900 tracking-tight">{summary.totalRetur}</span>
+          </div>
+        </div>
       </div>
 
-      <Tabs defaultValue="Data Barang" className="gap-4">
-        <div className="overflow-x-auto pb-1">
-          <TabsList className="h-10 w-max bg-white shadow-sm">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-4">
+        <div className="w-full sm:w-auto overflow-x-auto scrollbar-none pb-1">
+          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-sm w-max">
             {STOK_TABS.map((tab) => (
-              <TabsTrigger key={tab} value={tab} className="px-4 text-[13px]">
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  "px-4 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-150 whitespace-nowrap",
+                  activeTab === tab
+                    ? "bg-gray-900 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                )}
+              >
                 {tab}
-              </TabsTrigger>
+              </button>
             ))}
-          </TabsList>
+          </div>
         </div>
 
         <TabsContent value="Data Barang">
@@ -247,41 +245,41 @@ export default function StokOpname() {
 
         <TabsContent value="Stok Harian">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Total Masuk Hari Ini</CardTitle>
-                <TrendingUp className="size-4 text-emerald-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-emerald-700">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <TrendingUp className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">Total Masuk Hari Ini</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-emerald-700 tracking-tight">
                   {signedValue(summary.totalMasuk, "+")}
-                </div>
-              </CardContent>
-            </Card>
+                </span>
+              </div>
+            </div>
 
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Total Keluar Hari Ini</CardTitle>
-                <TrendingDown className="size-4 text-red-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-700">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <TrendingDown className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">Total Keluar Hari Ini</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-red-700 tracking-tight">
                   {signedValue(summary.totalKeluar, "-")}
-                </div>
-              </CardContent>
-            </Card>
+                </span>
+              </div>
+            </div>
 
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Total Retur Hari Ini</CardTitle>
-                <RotateCcw className="size-4 text-gray-500" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <RotateCcw className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">Total Retur Hari Ini</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
                   {summary.totalRetur.toLocaleString("id-ID")}
-                </div>
-              </CardContent>
-            </Card>
+                </span>
+              </div>
+            </div>
           </div>
         </TabsContent>
 
@@ -326,30 +324,39 @@ export default function StokOpname() {
 
         <TabsContent value="Laporan Mingguan">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Total Masuk Mingguan</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-emerald-700">{signedValue(summary.totalMasuk, "+")}</div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Total Keluar Mingguan</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-700">{signedValue(summary.totalKeluar, "-")}</div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Total Retur Mingguan</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{summary.totalRetur.toLocaleString("id-ID")}</div>
-              </CardContent>
-            </Card>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <TrendingUp className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">Total Masuk Mingguan</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-emerald-700 tracking-tight">
+                  {signedValue(summary.totalMasuk, "+")}
+                </span>
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <TrendingDown className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">Total Keluar Mingguan</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-red-700 tracking-tight">
+                  {signedValue(summary.totalKeluar, "-")}
+                </span>
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <RotateCcw className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">Total Retur Mingguan</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                  {summary.totalRetur.toLocaleString("id-ID")}
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="mt-4 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">

@@ -3,7 +3,6 @@ import { Banknote, RotateCcw, Search, TrendingDown, TrendingUp } from "lucide-re
 import { useApiData } from "@/api/hooks";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -20,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { adaptFinanceRows, adaptFinanceSummary, formatRupiah } from "../adapters";
 
@@ -101,6 +100,7 @@ function financeStatusClass(status: string) {
 }
 
 export default function KeuanganCangar() {
+  const [activeTab, setActiveTab] = useState("Input Transaksi");
   // --- Input Transaksi tab state ---
   const [draftFilters, setDraftFilters] = useState<FinanceFilters>(initialFilters);
   const [appliedFilters, setAppliedFilters] = useState<FinanceFilters>(initialFilters);
@@ -240,64 +240,76 @@ export default function KeuanganCangar() {
 
   return (
     <div className="flex min-h-screen flex-col gap-5 bg-gray-50/50 p-4 md:p-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-bold text-gray-900">💰 Manajemen Keuangan</h1>
-        <p className="text-sm font-medium text-gray-500">KST Cangar</p>
-      </div>
-
       {hasAnyError ? (
         <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
           Sebagian data keuangan Cangar belum bisa dimuat. Nilai kosong memakai fallback.
         </div>
       ) : null}
 
-      <Tabs defaultValue="Input Transaksi" className="gap-4">
-        <div className="overflow-x-auto pb-1">
-          <TabsList className="h-10 w-max bg-white shadow-sm">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="gap-4">
+        <div className="w-full sm:w-auto overflow-x-auto scrollbar-none pb-1">
+          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-sm w-max">
             {FINANCE_TABS.map((tab) => (
-              <TabsTrigger key={tab} value={tab} className="px-4 text-[13px]">
+              <button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={cn(
+                  "px-4 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-150 whitespace-nowrap",
+                  activeTab === tab
+                    ? "bg-gray-900 text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
+                )}
+              >
                 {tab}
-              </TabsTrigger>
+              </button>
             ))}
-          </TabsList>
+          </div>
         </div>
 
         {/* ==================== INPUT TRANSAKSI ==================== */}
         <TabsContent value="Input Transaksi" className="space-y-4">
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Pemasukan Hari Ini</CardTitle>
-                <TrendingUp className="size-4 text-emerald-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-emerald-700">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <TrendingUp className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">
+                  Pemasukan Hari Ini
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-emerald-700 tracking-tight">
                   {formatRupiah(summary.pemasukanHariIni)}
-                </div>
-              </CardContent>
-            </Card>
+                </span>
+              </div>
+            </div>
 
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Pengeluaran Hari Ini</CardTitle>
-                <TrendingDown className="size-4 text-red-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-700">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <TrendingDown className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">
+                  Pengeluaran Hari Ini
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-red-700 tracking-tight">
                   {formatRupiah(summary.pengeluaranHariIni)}
-                </div>
-              </CardContent>
-            </Card>
+                </span>
+              </div>
+            </div>
 
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Saldo Hari Ini</CardTitle>
-                <Banknote className="size-4 text-gray-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{formatRupiah(summary.saldoHariIni)}</div>
-              </CardContent>
-            </Card>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <Banknote className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">
+                  Saldo Hari Ini
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                  {formatRupiah(summary.saldoHariIni)}
+                </span>
+              </div>
+            </div>
           </div>
 
           <div className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm xl:flex-row xl:items-end xl:justify-between">
@@ -435,33 +447,39 @@ export default function KeuanganCangar() {
 
           {/* Summary cards */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Total Pemasukan</CardTitle>
-                <TrendingUp className="size-4 text-emerald-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-emerald-700">{formatRupiah(harianSummary.pemasukan)}</div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Total Pengeluaran</CardTitle>
-                <TrendingDown className="size-4 text-red-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-700">{formatRupiah(harianSummary.pengeluaran)}</div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Saldo Bersih</CardTitle>
-                <Banknote className="size-4 text-gray-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{formatRupiah(harianSummary.saldo)}</div>
-              </CardContent>
-            </Card>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <TrendingUp className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">
+                  Total Pemasukan
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-emerald-700 tracking-tight">{formatRupiah(harianSummary.pemasukan)}</span>
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <TrendingDown className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">
+                  Total Pengeluaran
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-red-700 tracking-tight">{formatRupiah(harianSummary.pengeluaran)}</span>
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <Banknote className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">
+                  Saldo Bersih
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-gray-900 tracking-tight">{formatRupiah(harianSummary.saldo)}</span>
+              </div>
+            </div>
           </div>
 
           {/* Transaction detail table */}
@@ -552,33 +570,39 @@ export default function KeuanganCangar() {
 
           {/* Summary cards */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Total Pemasukan Minggu Ini</CardTitle>
-                <TrendingUp className="size-4 text-emerald-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-emerald-700">{formatRupiah(mingguanSummary.pemasukan)}</div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Total Pengeluaran Minggu Ini</CardTitle>
-                <TrendingDown className="size-4 text-red-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-700">{formatRupiah(mingguanSummary.pengeluaran)}</div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Saldo Bersih</CardTitle>
-                <Banknote className="size-4 text-gray-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{formatRupiah(mingguanSummary.saldo)}</div>
-              </CardContent>
-            </Card>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <TrendingUp className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">
+                  Total Pemasukan Minggu Ini
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-emerald-700 tracking-tight">{formatRupiah(mingguanSummary.pemasukan)}</span>
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <TrendingDown className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">
+                  Total Pengeluaran Minggu Ini
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-red-700 tracking-tight">{formatRupiah(mingguanSummary.pengeluaran)}</span>
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <Banknote className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">
+                  Saldo Bersih
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-gray-900 tracking-tight">{formatRupiah(mingguanSummary.saldo)}</span>
+              </div>
+            </div>
           </div>
 
           {/* Weekly data or empty state */}
@@ -671,33 +695,39 @@ export default function KeuanganCangar() {
 
           {/* Summary cards */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Total Pemasukan Bulan Ini</CardTitle>
-                <TrendingUp className="size-4 text-emerald-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-emerald-700">{formatRupiah(bulananSummary.pemasukan)}</div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Total Pengeluaran Bulan Ini</CardTitle>
-                <TrendingDown className="size-4 text-red-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-700">{formatRupiah(bulananSummary.pengeluaran)}</div>
-              </CardContent>
-            </Card>
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Saldo Bersih Bulan Ini</CardTitle>
-                <Banknote className="size-4 text-gray-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{formatRupiah(bulananSummary.saldo)}</div>
-              </CardContent>
-            </Card>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <TrendingUp className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">
+                  Total Pemasukan Bulan Ini
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-emerald-700 tracking-tight">{formatRupiah(bulananSummary.pemasukan)}</span>
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <TrendingDown className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">
+                  Total Pengeluaran Bulan Ini
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-red-700 tracking-tight">{formatRupiah(bulananSummary.pengeluaran)}</span>
+              </div>
+            </div>
+            <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
+              <div className="flex items-center gap-2.5">
+                <Banknote className="size-5 text-gray-500" />
+                <span className="text-[12px] font-semibold text-gray-600 leading-tight">
+                  Saldo Bersih Bulan Ini
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-3xl font-extrabold text-gray-900 tracking-tight">{formatRupiah(bulananSummary.saldo)}</span>
+              </div>
+            </div>
           </div>
 
           {/* Monthly data or empty state */}
