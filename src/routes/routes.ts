@@ -14,6 +14,7 @@ export const ROUTES = {
   PRODUKSI: '/produksi',
   STOK_OPNAME: '/stok-opname',
   BOOKLIST_ATP: '/booklist-atp',
+  KEUANGAN_CANGAR: '/keuangan-cangar',
   PERTANIAN: '/pertanian',
   PETERNAKAN: '/peternakan',
   KONSERVASI: '/konservasi',

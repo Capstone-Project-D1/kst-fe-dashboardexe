@@ -28,17 +28,6 @@ import {
 } from "@/components/ui/chart";
 import { useApiData } from "@/api/hooks";
 
-// Mock data for collaboration chart
-const collaborationData = [
-  { month: "Januari", jatikerto: 600 },
-  { month: "Februari", jatikerto: 350 },
-  { month: "Maret", jatikerto: 550 },
-  { month: "April", jatikerto: 420 },
-  { month: "Mei", jatikerto: 400 },
-  { month: "Juni", jatikerto: 600 },
-  { month: "Juli", jatikerto: 500 },
-];
-
 const collaborationConfig = {
 
   jatikerto: {
@@ -47,22 +36,85 @@ const collaborationConfig = {
   },
 } satisfies ChartConfig;
 
-// Mock data for research projects chart
-const researchData = [
-  { month: "Jan", value: 1000 },
-  { month: "Feb", value: 1400 },
-  { month: "Mar", value: 1200 },
-  { month: "Apr", value: 800 },
-  { month: "May", value: 1100 },
-  { month: "Jun", value: 1500 },
-];
-
 const researchConfig = {
   value: {
     label: "Proyek Riset",
     color: "#3B82F6",
   },
 } satisfies ChartConfig;
+
+type DashboardSource = {
+  kstIdentifier?: string;
+  data?: Record<string, unknown> | null;
+  warning?: string;
+};
+
+type DashboardSummary = {
+  totalVisitors?: number;
+  todayVisitors?: number;
+  weekVisitors?: number;
+  activeKst?: number;
+  totalKst?: number;
+  totalProduction?: number;
+  activeOperations?: number;
+  greenPerformance?: number;
+  sources?: DashboardSource[] | Record<string, DashboardSource | Record<string, unknown>>;
+  warnings?: string[];
+};
+
+function numberValue(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function sourceData(summary: DashboardSummary | null, kstIdentifier: string) {
+  const sources = summary?.sources;
+  if (Array.isArray(sources)) {
+    const source = sources.find((item) => item.kstIdentifier === kstIdentifier);
+    return {
+      data: source?.data ?? null,
+      warning: source?.warning,
+    };
+  }
+
+  if (sources && typeof sources === "object") {
+    const source = sources[kstIdentifier];
+    if (source && typeof source === "object" && "data" in source) {
+      const typedSource = source as DashboardSource;
+      return {
+        data: typedSource.data ?? null,
+        warning: typedSource.warning,
+      };
+    }
+    return {
+      data: (source as Record<string, unknown>) ?? null,
+      warning: undefined,
+    };
+  }
+
+  return { data: null, warning: undefined };
+}
+
+function normalizeCollaborationRows(payload: unknown) {
+  const rows = Array.isArray(payload) ? payload : [];
+  return rows.map((item, index) => {
+    const record = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
+    return {
+      month: String(record.month ?? record.label ?? record.name ?? `Data ${index + 1}`),
+      jatikerto: numberValue(record.jatikerto ?? record.value ?? record.total),
+    };
+  });
+}
+
+function normalizeResearchRows(payload: unknown) {
+  const rows = Array.isArray(payload) ? payload : [];
+  return rows.map((item, index) => {
+    const record = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
+    return {
+      month: String(record.month ?? record.label ?? record.name ?? `Data ${index + 1}`),
+      value: numberValue(record.value ?? record.total ?? record.count),
+    };
+  });
+}
 
 function CircularProgress({
   value,
@@ -121,17 +173,20 @@ function TrendBadge({ value }: { value: string }) {
 }
 
 export default function Dashboard() {
-  const { data: summary } = useApiData<Record<string, number>>("/dashboard/summary");
-  const { data: collaboration } = useApiData<{ value: typeof collaborationData }>(
+  const { data: summary } = useApiData<DashboardSummary>("/dashboard/summary");
+  const { data: collaboration } = useApiData<{ value?: unknown }>(
     "/dashboard/collaboration",
     { period: "6months" },
   );
-  const { data: research } = useApiData<{ value: typeof researchData }>(
+  const { data: research } = useApiData<{ value?: unknown }>(
     "/dashboard/research-projects",
     { period: "6months" },
   );
-  const liveCollaborationData = collaboration?.value ?? [];
-  const liveResearchData = research?.value ?? [];
+  const liveCollaborationData = normalizeCollaborationRows(collaboration?.value);
+  const liveResearchData = normalizeResearchRows(research?.value);
+  const cangarSource = sourceData(summary, "cangar");
+  const cangarData = cangarSource.data;
+  const isCangarActive = Boolean(cangarData);
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-6 bg-gray-50/50 min-h-screen">
@@ -299,7 +354,7 @@ export default function Dashboard() {
       </div>
 
       {/* SECTION 2: Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {/* Total Produksi */}
         <Card className="shadow-sm border-gray-100">
           <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
@@ -379,6 +434,68 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Status KST Cangar */}
+        <Card className="shadow-sm border-gray-100">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-[#27A376] rounded-lg text-white">
+                <Activity className="size-5" />
+              </div>
+
+              <CardTitle className="text-sm font-semibold text-gray-700">
+                Status KST Cangar
+              </CardTitle>
+            </div>
+
+            <Badge
+              variant="outline"
+              className={`bg-white border-gray-200 text-[10px] font-bold h-6 px-2.5 rounded-full ${
+                isCangarActive ? "text-[#27A376]" : "text-gray-400"
+              }`}
+            >
+              {isCangarActive ? "Aktif" : "Kosong"}
+            </Badge>
+          </CardHeader>
+
+          <CardContent className="space-y-4 pt-2">
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <p className="text-[11px] font-semibold text-gray-500">
+                  Reservasi
+                </p>
+                <p className="text-xl font-extrabold text-gray-900">
+                  {numberValue(cangarData?.totalVisitors).toLocaleString("id-ID")}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-semibold text-gray-500">
+                  Operasi
+                </p>
+                <p className="text-xl font-extrabold text-gray-900">
+                  {numberValue(cangarData?.activeOperations).toLocaleString("id-ID")}
+                </p>
+              </div>
+
+              <div>
+                <p className="text-[11px] font-semibold text-gray-500">
+                  Stok
+                </p>
+                <p className="text-xl font-extrabold text-gray-900">
+                  {numberValue(cangarData?.totalProduction).toLocaleString("id-ID")}
+                </p>
+              </div>
+            </div>
+
+            <p className="text-[12px] text-gray-400 font-medium">
+              {cangarSource.warning ??
+                (isCangarActive
+                  ? "Data Cangar tersedia dari backend gateway."
+                  : "Data Cangar belum tersedia dari backend gateway.")}
+            </p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* SECTION 3: Charts */}
@@ -405,14 +522,19 @@ export default function Dashboard() {
           </CardHeader>
 
           <CardContent className="pt-6">
-            <ChartContainer
-              config={researchConfig}
-              className="h-50 w-full mb-4"
-            >
-              <AreaChart
-                data={liveResearchData}
-                margin={{ top: 0, right: 8, left: 0, bottom: 0 }}
+            {liveResearchData.length === 0 ? (
+              <div className="h-50 w-full flex items-center justify-center rounded-xl bg-gray-50 text-sm font-medium text-gray-500">
+                Data proyek riset belum tersedia.
+              </div>
+            ) : (
+              <ChartContainer
+                config={researchConfig}
+                className="h-50 w-full mb-4"
               >
+                <AreaChart
+                  data={liveResearchData}
+                  margin={{ top: 0, right: 8, left: 0, bottom: 0 }}
+                >
                 <defs>
                   <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.15} />
@@ -455,8 +577,9 @@ export default function Dashboard() {
                   fill="url(#colorValue)"
                   strokeWidth={2.5}
                 />
-              </AreaChart>
-            </ChartContainer>
+                </AreaChart>
+              </ChartContainer>
+            )}
           </CardContent>
         </Card>
 
@@ -525,14 +648,19 @@ export default function Dashboard() {
                 Selama 6 Bulan terakhir
               </p>
 
-              <ChartContainer
-                config={collaborationConfig}
-                className="h-50 w-full"
-              >
-                <BarChart
-                  data={liveCollaborationData}
-                  margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+              {liveCollaborationData.length === 0 ? (
+                <div className="h-50 w-full flex items-center justify-center text-sm font-medium text-gray-500">
+                  Data kolaborasi belum tersedia.
+                </div>
+              ) : (
+                <ChartContainer
+                  config={collaborationConfig}
+                  className="h-50 w-full"
                 >
+                  <BarChart
+                    data={liveCollaborationData}
+                    margin={{ top: 0, right: 0, left: -20, bottom: 0 }}
+                  >
                   <CartesianGrid
                     vertical={false}
                     strokeDasharray="3 3"
@@ -556,8 +684,9 @@ export default function Dashboard() {
                     radius={[4, 4, 0, 0]}
                     barSize={28}
                   />
-                </BarChart>
-              </ChartContainer>
+                  </BarChart>
+                </ChartContainer>
+              )}
             </div>
 
             <div className="bg-[#F8F9FA] p-5 rounded-2xl space-y-3">

@@ -18,6 +18,7 @@ import {
   FileText,
   FileSpreadsheet,
   Settings,
+  Banknote,
 } from "lucide-react";
 
 import {
@@ -86,9 +87,14 @@ const NAV_ITEMS = [
         icon: ClipboardList,
       },
       {
-        title: "Booklist ATP",
+        title: "Manajemen Booking",
         url: ROUTES.BOOKLIST_ATP,
         icon: Book,
+      },
+      {
+        title: "Keuangan",
+        url: ROUTES.KEUANGAN_CANGAR,
+        icon: Banknote,
       },
     ],
   },
@@ -129,7 +135,7 @@ type ReportFormat = "csv" | "xlsx" | "pdf";
 
 const REPORT_OPTIONS: Record<ReportKst, string[]> = {
   ngijo: ["Tracker Inovasi", "Keberlanjutan"],
-  cangar: ["Stok Opname", "Booklist ATP"],
+  cangar: ["Stok Opname", "Manajemen Booking", "Keuangan"],
   jatikerto: [
     "Pertanian",
     "Peternakan",

@@ -26,7 +26,9 @@ export function AppNavbar() {
       case ROUTES.STOK_OPNAME:
         return { parent: "KST Cangar", title: "Stok Opname" };
       case ROUTES.BOOKLIST_ATP:
-        return { parent: "KST Cangar", title: "Booklist ATP" };
+        return { parent: "KST Cangar", title: "Manajemen Booking" };
+      case ROUTES.KEUANGAN_CANGAR:
+        return { parent: "KST Cangar", title: "Manajemen Keuangan" };
       case ROUTES.PERTANIAN:
         return { parent: "KST Jatikerto", title: "Pertanian" };
       case ROUTES.PETERNAKAN:
