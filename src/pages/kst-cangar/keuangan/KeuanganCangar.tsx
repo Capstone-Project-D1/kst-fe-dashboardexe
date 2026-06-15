@@ -145,9 +145,7 @@ export default function KeuanganCangar() {
     error: mingguanError,
   } = useApiData<unknown>(
     "/api/kst/cangar/data/keuangan",
-    mingguanRange
-      ? { start_date: mingguanRange.start, end_date: mingguanRange.end }
-      : { week: appliedMingguanWeek },
+    { week: appliedMingguanWeek },
   );
 
   // --- Rekap Bulanan data ---
@@ -199,8 +197,11 @@ export default function KeuanganCangar() {
   const mingguanRows = useMemo(() => adaptFinanceRows(rekapMingguanPayload), [rekapMingguanPayload]);
   const mingguanFilteredRows = useMemo(() => {
     if (!mingguanRange) return mingguanRows;
-    return mingguanRows.length > 0
-      ? mingguanRows
+    const rowsInSelectedWeek = mingguanRows.filter(
+      (r) => r.tanggalRaw >= mingguanRange.start && r.tanggalRaw <= mingguanRange.end,
+    );
+    return rowsInSelectedWeek.length > 0
+      ? rowsInSelectedWeek
       : rows.filter((r) => r.tanggalRaw >= mingguanRange.start && r.tanggalRaw <= mingguanRange.end);
   }, [mingguanRows, rows, mingguanRange]);
   const mingguanSummary = useMemo(() => {

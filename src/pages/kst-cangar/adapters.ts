@@ -37,7 +37,6 @@ export interface BookingRow {
   jumlah: number;
   kapasitas: number | null;
   status: string;
-  catatan: string;
 }
 
 export interface FinanceSummary {
@@ -401,7 +400,6 @@ export function adaptBookingRows(payload: unknown): BookingRow[] {
         return Number.isFinite(parsed) ? parsed : null;
       })(),
       status: normalizeBookingStatus(valueOf(item, ["status", "booking_status", "payment_status"]) ?? colValue(item, 5)),
-      catatan: toText(valueOf(item, ["catatan", "note", "notes", "keterangan", "description"]) ?? colValue(item, 6), "-"),
     };
   });
 }

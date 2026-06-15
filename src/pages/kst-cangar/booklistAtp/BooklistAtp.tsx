@@ -50,14 +50,39 @@ function bookingStatusMatches(rowStatus: string, selectedStatus: string) {
 }
 
 const SERVICE_CAPACITY: Record<string, { label: string; capacity: number }> = {
-  glamping: { label: "🏕️ Glamping", capacity: 10 },
-  cafe: { label: "☕ Café Eduwisata", capacity: 50 },
-  camping: { label: "⛺ Camping", capacity: 20 },
+  glamping: { label: "Glamping", capacity: 10 },
+  cafe: { label: "Caf\u00e9 Eduwisata", capacity: 50 },
+  camping: { label: "Camping Ground", capacity: 20 },
 };
 
+const SERVICE_ORDER: Record<string, number> = {
+  glamping: 0,
+  camping: 1,
+  cafe: 2,
+};
+
+function serviceKey(layanan: string) {
+  const normalized = layanan.toLowerCase().trim();
+  if (["cafe", "caf\u00e9", "cafe eduwisata", "caf\u00e9 eduwisata"].includes(normalized)) return "cafe";
+  if (["camping", "camping ground"].includes(normalized)) return "camping";
+  if (normalized === "glamping") return "glamping";
+  return normalized;
+}
+
 function serviceInfo(layanan: string) {
-  const key = layanan.toLowerCase();
-  return SERVICE_CAPACITY[key] ?? { label: layanan === "-" ? "-" : layanan, capacity: 0 };
+  const key = serviceKey(layanan);
+  if (key === "glamping") return { label: "Glamping", capacity: SERVICE_CAPACITY.glamping.capacity };
+  if (key === "cafe") return { label: "Caf\u00e9 Eduwisata", capacity: SERVICE_CAPACITY.cafe.capacity };
+  if (key === "camping") return { label: "Camping Ground", capacity: SERVICE_CAPACITY.camping.capacity };
+  return { label: layanan === "-" ? "-" : layanan, capacity: 0 };
+}
+
+function serviceIcon(layanan: string) {
+  const key = serviceKey(layanan);
+  if (key === "glamping") return "\u{1f3d5}\ufe0f";
+  if (key === "cafe") return "\u2615";
+  if (key === "camping") return "\u26fa";
+  return "";
 }
 
 export default function BooklistAtp() {
@@ -101,12 +126,13 @@ export default function BooklistAtp() {
         confirmedQty: number;
         pending: number;
         capacity: number;
+        serviceOrder: number;
       }
     >();
 
-    rows.forEach((row) => {
+    rows.filter((row) => row.status !== "Dibatalkan").forEach((row) => {
       const info = serviceInfo(row.layanan);
-      const key = `${row.tanggalRaw}-${row.layanan.toLowerCase()}`;
+      const key = `${row.tanggalRaw}-${serviceKey(row.layanan)}`;
       const existing = grouped.get(key) ?? {
         key,
         tanggal: row.tanggal,
@@ -115,7 +141,8 @@ export default function BooklistAtp() {
         totalBooking: 0,
         confirmedQty: 0,
         pending: 0,
-        capacity: info.capacity,
+        capacity: row.kapasitas ?? info.capacity,
+        serviceOrder: SERVICE_ORDER[serviceKey(row.layanan)] ?? 99,
       };
 
       existing.totalBooking += 1;
@@ -124,8 +151,8 @@ export default function BooklistAtp() {
       grouped.set(key, existing);
     });
 
-    return Array.from(grouped.values()).sort((left, right) =>
-      `${left.tanggalRaw}-${left.layanan}`.localeCompare(`${right.tanggalRaw}-${right.layanan}`),
+    return Array.from(grouped.values()).sort(
+      (left, right) => left.tanggalRaw.localeCompare(right.tanggalRaw) || left.serviceOrder - right.serviceOrder,
     );
   }, [rows]);
   const layananOptions = useMemo(() => {
@@ -266,7 +293,7 @@ export default function BooklistAtp() {
 
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
-              <Table className="min-w-[1000px]">
+              <Table className="min-w-[820px]">
                 <TableHeader>
                   <TableRow className="bg-gray-50 hover:bg-gray-50">
                     <TableHead className="min-w-[80px] font-bold text-gray-600">ID</TableHead>
@@ -276,13 +303,12 @@ export default function BooklistAtp() {
                     <TableHead className="min-w-[150px] font-bold text-gray-600">Tanggal</TableHead>
                     <TableHead className="min-w-[90px] text-right font-bold text-gray-600">Jumlah</TableHead>
                     <TableHead className="min-w-[130px] font-bold text-gray-600">Status</TableHead>
-                    <TableHead className="min-w-[180px] font-bold text-gray-600">Catatan</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredRows.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={8} className="h-28 text-center text-sm font-medium text-gray-500">
+                      <TableCell colSpan={7} className="h-28 text-center text-sm font-medium text-gray-500">
                         {isLoading ? "Memuat data booking Cangar..." : "Tidak ada data booking sesuai filter."}
                       </TableCell>
                     </TableRow>
@@ -306,13 +332,10 @@ export default function BooklistAtp() {
                                   ? "border-red-200 bg-red-50 text-red-700"
                                   : "border-amber-200 bg-amber-50 text-amber-700",
                             )}
-                          >
-                            {row.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="max-w-[220px] whitespace-normal break-words text-gray-600">
-                          {row.catatan}
-                        </TableCell>
+                        >
+                          {row.status}
+                        </Badge>
+                      </TableCell>
                       </TableRow>
                     ))
                   )}
@@ -327,13 +350,13 @@ export default function BooklistAtp() {
             <p className="text-sm font-semibold text-gray-700">Kapasitas per Hari</p>
             <div className="mt-2 flex flex-wrap gap-2 text-sm font-medium text-gray-600">
               <Badge variant="outline" className="rounded-md border-gray-200 bg-gray-50 text-gray-700">
-                🏕️ Glamping: 10 orang
+                {"\u{1f3d5}\ufe0f Glamping: 10 orang"}
               </Badge>
               <Badge variant="outline" className="rounded-md border-gray-200 bg-gray-50 text-gray-700">
-                ☕ Café: 50 orang
+                {"\u2615 Caf\u00e9 Eduwisata: 50 orang"}
               </Badge>
               <Badge variant="outline" className="rounded-md border-gray-200 bg-gray-50 text-gray-700">
-                ⛺ Camping: 20 orang
+                {"\u26fa Camping Ground: 20 orang"}
               </Badge>
             </div>
           </div>
@@ -371,14 +394,14 @@ export default function BooklistAtp() {
 
           <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
-              <Table className="min-w-[920px]">
+              <Table className="min-w-[720px]">
                 <TableHeader>
                   <TableRow className="bg-gray-50 hover:bg-gray-50">
                     <TableHead className="min-w-[150px] font-bold text-gray-600">Tanggal</TableHead>
                     <TableHead className="min-w-[170px] font-bold text-gray-600">Layanan</TableHead>
-                    <TableHead className="min-w-[130px] text-right font-bold text-gray-600">Total Booking</TableHead>
-                    <TableHead className="min-w-[140px] text-right font-bold text-gray-600">Qty Confirmed</TableHead>
-                    <TableHead className="min-w-[110px] text-right font-bold text-gray-600">Pending</TableHead>
+                    <TableHead className="min-w-[130px] text-center font-bold text-gray-600">Total Booking</TableHead>
+                    <TableHead className="min-w-[140px] text-center font-bold text-gray-600">Qty Confirmed</TableHead>
+                    <TableHead className="min-w-[110px] text-center font-bold text-gray-600">Pending</TableHead>
                     <TableHead className="min-w-[140px] font-bold text-gray-600">Ketersediaan</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -390,22 +413,49 @@ export default function BooklistAtp() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    scheduleRows.map((row) => (
-                      <TableRow key={row.key} className="hover:bg-gray-50/60">
-                        <TableCell className="text-gray-600">{row.tanggal}</TableCell>
-                        <TableCell className="font-medium text-gray-900">{row.layanan}</TableCell>
-                        <TableCell className="text-right tabular-nums">{row.totalBooking}</TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          {row.confirmedQty} / {row.capacity}
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums">{row.pending}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="rounded-md border-emerald-200 bg-emerald-50 text-emerald-700">
-                            Sisa {Math.max(0, row.capacity - row.confirmedQty)}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    scheduleRows.map((row) => {
+                      const usedPercent =
+                        row.capacity > 0 ? Math.min(100, Math.round((row.confirmedQty / row.capacity) * 100)) : 0;
+                      const remainingCapacity = Math.max(0, row.capacity - row.confirmedQty);
+
+                      return (
+                        <TableRow key={row.key} className="hover:bg-gray-50/60">
+                          <TableCell className="text-gray-600">{row.tanggal}</TableCell>
+                          <TableCell className="font-medium text-gray-900">
+                            <span className="inline-flex items-center gap-2">
+                              <span aria-hidden="true">{serviceIcon(row.layanan)}</span>
+                              <span>{row.layanan}</span>
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center tabular-nums">{row.totalBooking}</TableCell>
+                          <TableCell className="text-center tabular-nums">
+                            {row.confirmedQty} / {row.capacity}
+                          </TableCell>
+                          <TableCell className="text-center tabular-nums">{row.pending}</TableCell>
+                          <TableCell>
+                            <div className="flex min-w-[160px] flex-col gap-2">
+                              <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+                                <div
+                                  className="h-full rounded-full bg-emerald-500"
+                                  style={{ width: `${usedPercent}%` }}
+                                />
+                              </div>
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-xs font-medium text-gray-500">
+                                  {row.confirmedQty} / {row.capacity}
+                                </span>
+                                <Badge
+                                  variant="outline"
+                                  className="rounded-md border-emerald-200 bg-emerald-50 text-emerald-700"
+                                >
+                                  Sisa {remainingCapacity}
+                                </Badge>
+                              </div>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   )}
                 </TableBody>
               </Table>
@@ -416,3 +466,4 @@ export default function BooklistAtp() {
     </div>
   );
 }
+
