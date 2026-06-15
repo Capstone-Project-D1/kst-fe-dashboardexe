@@ -24,6 +24,7 @@ import { Badge } from "@/components/ui/badge";
 import { usePageData } from "@/api/hooks";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
+import { getProgramStudiBadgeClass, normalizeProgramStudi } from "../programStudi";
 import { fieldAliases, getDateValue, getNumberValue, getTextValue, rowIdentity, type JatikertoApiRow } from "../rowMappers";
 import { JatikertoTableLayout, rowMatchesSearch } from "../JatikertoTableLayout";
 
@@ -32,25 +33,12 @@ interface MahasiswaRow extends JatikertoApiRow {
   no?: number;
   namaMahasiswa: string;
   dosenPembimbing: string;
-  programStudi:
-    | "Teknik Informatika"
-    | "Sistem Informasi"
-    | "Teknik Komputer"
-    | "Pendidikan Teknologi Informasi"
-    | "Teknologi Informasi";
+  programStudi: string;
   mulai: string;
   selesai: string;
   luasan: string;
   judulPenelitian: string;
 }
-
-const programStudiStyles = {
-  "Teknik Informatika": "bg-sky-400 border-sky-500 text-white",
-  "Teknik Komputer": "bg-amber-400 border-amber-500 text-white",
-  "Teknologi Informasi": "bg-emerald-400 border-emerald-500 text-white",
-  "Sistem Informasi": "bg-orange-400 border-orange-500 text-white",
-  "Pendidikan Teknologi Informasi": "bg-rose-400 border-rose-500 text-white",
-};
 
 function getRowKey(row: MahasiswaRow, index: number) {
   return rowIdentity(row) ?? `${row.namaMahasiswa}-${row.judulPenelitian}-${index}`;
@@ -64,7 +52,7 @@ function mapMahasiswaRow(row: MahasiswaRow): MahasiswaRow {
     id: row.rowId ?? row.id,
     namaMahasiswa: getTextValue(row, 0, ["namaMahasiswa", "nama_mahasiswa", "mahasiswa", ...fieldAliases.nama], row.namaMahasiswa),
     dosenPembimbing: getTextValue(row, 1, ["dosenPembimbing", "dosen_pembimbing", "dosen", "pembimbing"], row.dosenPembimbing),
-    programStudi: getTextValue(row, 2, ["programStudi", "program_studi", "prodi"], row.programStudi) as MahasiswaRow["programStudi"],
+    programStudi: getTextValue(row, 2, ["programStudi", "program_studi", "prodi"], row.programStudi),
     mulai: getDateValue(row, 3, ["mulai", "tanggalMulai", "tanggal_mulai", "startDate", "start_date"], row.mulai),
     selesai: getDateValue(row, 4, ["selesai", "tanggalSelesai", "tanggal_selesai", "endDate", "end_date"], row.selesai),
     luasan: Number.isFinite(luasan) ? `${luasan.toLocaleString("id-ID")} m2` : row.luasan,
@@ -180,11 +168,11 @@ export default function PelayananAkademik() {
                   </TableCell>
 
                   <TableCell className="text-[13px] text-gray-600 whitespace-normal break-words leading-relaxed">
-                    {programStudiStyles[row.programStudi] ? (
+                    {normalizeProgramStudi(row.programStudi) ? (
                       <Badge
-                        className={`${programStudiStyles[row.programStudi]} border`}
+                        className={`${getProgramStudiBadgeClass(row.programStudi)} border`}
                       >
-                        {row.programStudi}
+                        {normalizeProgramStudi(row.programStudi)}
                       </Badge>
                     ) : null}
                   </TableCell>
