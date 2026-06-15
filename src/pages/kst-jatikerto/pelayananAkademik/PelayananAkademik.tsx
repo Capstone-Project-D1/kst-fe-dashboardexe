@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  MoreVertical,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -21,12 +20,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { usePageData } from "@/api/hooks";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
 import { fieldAliases, getDateValue, getNumberValue, getTextValue, rowIdentity, type JatikertoApiRow } from "../rowMappers";
+import { JatikertoTableLayout } from "../JatikertoTableLayout";
 
 interface MahasiswaRow extends JatikertoApiRow {
   id?: string;
@@ -53,8 +52,6 @@ const programStudiStyles = {
   "Pendidikan Teknologi Informasi": "bg-rose-400 border-rose-500 text-white",
 };
 
-const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
-
 function getRowKey(row: MahasiswaRow, index: number) {
   return rowIdentity(row) ?? `${row.namaMahasiswa}-${row.judulPenelitian}-${index}`;
 }
@@ -76,8 +73,8 @@ function mapMahasiswaRow(row: MahasiswaRow): MahasiswaRow {
 }
 
 export default function PelayananAkademik() {
-  const [selectedYear, setSelectedYear] = useState("2026");
-  const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
+  const [selectedYear] = useState("2026");
+  const [selectedMonth] = useState("Semua Bulan");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
   const {
@@ -106,40 +103,11 @@ export default function PelayananAkademik() {
 
 
   return (
-    <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-        <Select value={selectedYear} onValueChange={setSelectedYear}>
-          <SelectTrigger className="h-9 border-gray-200 bg-white text-[13px] font-medium">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="2024">2024</SelectItem>
-            <SelectItem value="2025">2025</SelectItem>
-            <SelectItem value="2026">2026</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <div className="w-full sm:w-auto overflow-x-auto scrollbar-none">
-          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-sm w-max">
-            {months.map((month) => (
-              <button
-                key={month}
-                onClick={() => setSelectedMonth(month)}
-                className={cn(
-                  "px-4 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-150 whitespace-nowrap",
-                  selectedMonth === month
-                    ? "bg-gray-900 text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-100",
-                )}
-              >
-                {month}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    <JatikertoTableLayout
+      categoryName="Pelayanan Akademik"
+      subtitle="Kegiatan Riset Mahasiswa Universitas Brawijaya di KST Jatikerto"
+    >
+      <>
         <div className="overflow-x-auto">
           <Table className="min-w-[1450px]">
             <TableHeader>
@@ -176,7 +144,6 @@ export default function PelayananAkademik() {
                   Judul Penelitian
                 </TableHead>
 
-                <TableHead className="w-[48px]" />
               </TableRow>
             </TableHeader>
 
@@ -184,7 +151,7 @@ export default function PelayananAkademik() {
               {tableMessage ? (
                 <TableRow>
                   <TableCell
-                    colSpan={9}
+                    colSpan={8}
                     className="h-32 text-center text-[13px] text-gray-400 font-medium"
                   >
                     {tableMessage}
@@ -231,11 +198,6 @@ export default function PelayananAkademik() {
                     {row.judulPenelitian}
                   </TableCell>
 
-                  <TableCell>
-                    <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-gray-100">
-                      <MoreVertical className="size-4 text-gray-400" />
-                    </button>
-                  </TableCell>
                 </TableRow>
                 ))
               )}
@@ -306,7 +268,7 @@ export default function PelayananAkademik() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </>
+    </JatikertoTableLayout>
   );
 }

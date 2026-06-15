@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  MoreVertical,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -21,11 +20,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
 import { usePageData } from "@/api/hooks";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
 import { fieldAliases, getDateValue, getTextValue, rowIdentity, type JatikertoApiRow } from "../rowMappers";
+import { JatikertoTableLayout } from "../JatikertoTableLayout";
 
 interface MitraRow extends JatikertoApiRow {
   id?: string;
@@ -35,8 +34,6 @@ interface MitraRow extends JatikertoApiRow {
   jangkaWaktuKontrak: string;
   keterangan: string;
 }
-
-const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
 
 function getRowKey(row: MitraRow, index: number) {
   return rowIdentity(row) ?? `${row.mitra}-${row.jangkaWaktuKontrak}-${index}`;
@@ -60,8 +57,8 @@ function mapMitraRow(row: MitraRow): MitraRow {
 }
 
 export default function Kemitraan() {
-  const [selectedYear, setSelectedYear] = useState("2026");
-  const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
+  const [selectedYear] = useState("2026");
+  const [selectedMonth] = useState("Semua Bulan");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
   const {
@@ -91,40 +88,11 @@ export default function Kemitraan() {
 
 
   return (
-    <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-        <Select value={selectedYear} onValueChange={setSelectedYear}>
-          <SelectTrigger className="h-9 border-gray-200 bg-white text-[13px] font-medium">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="2024">2024</SelectItem>
-            <SelectItem value="2025">2025</SelectItem>
-            <SelectItem value="2026">2026</SelectItem>
-          </SelectContent>
-        </Select>
-
-        <div className="w-full sm:w-auto overflow-x-auto scrollbar-none">
-          <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-sm w-max">
-            {months.map((month) => (
-              <button
-                key={month}
-                onClick={() => setSelectedMonth(month)}
-                className={cn(
-                  "px-4 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-150 whitespace-nowrap",
-                  selectedMonth === month
-                    ? "bg-gray-900 text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-                )}
-              >
-                {month}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    <JatikertoTableLayout
+      categoryName="Kemitraan"
+      subtitle="Kegiatan Kerjasama KST Jatikerto dengan Berbagai Mitra"
+    >
+      <>
         <div className="overflow-x-auto">
           <Table className="min-w-[1200px]">
             <TableHeader>
@@ -149,7 +117,6 @@ export default function Kemitraan() {
                   Keterangan
                 </TableHead>
 
-                <TableHead className="w-[48px]" />
               </TableRow>
             </TableHeader>
 
@@ -157,7 +124,7 @@ export default function Kemitraan() {
               {tableMessage ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={5}
                     className="h-32 text-center text-[13px] text-gray-400 font-medium"
                   >
                     {tableMessage}
@@ -186,11 +153,6 @@ export default function Kemitraan() {
                     {row.keterangan}
                   </TableCell>
 
-                  <TableCell>
-                    <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-gray-100">
-                      <MoreVertical className="size-4 text-gray-400" />
-                    </button>
-                  </TableCell>
                 </TableRow>
                 ))
               )}
@@ -264,7 +226,7 @@ export default function Kemitraan() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </>
+    </JatikertoTableLayout>
   );
 }

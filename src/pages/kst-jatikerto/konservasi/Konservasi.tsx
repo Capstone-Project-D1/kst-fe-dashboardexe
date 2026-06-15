@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  MoreVertical,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -22,11 +21,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
 import { usePageData } from "@/api/hooks";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
 import { fieldAliases, getNumberValue, getTextValue, rowIdentity, type JatikertoApiRow } from "../rowMappers";
+import { JatikertoTableLayout, rowMatchesSearch } from "../JatikertoTableLayout";
 
 interface KonservasiRow extends JatikertoApiRow {
   id?: string;
@@ -39,8 +38,6 @@ interface KonservasiRow extends JatikertoApiRow {
 }
 
 type KonservasiCategory = "konservasi-hewan" | "konservasi-tumbuhan";
-
-const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
 
 function getRowKey(row: KonservasiRow, category: KonservasiCategory, index: number) {
   return rowIdentity(row) ?? `${category}-${row.namaKomoditas}-${index}`;
@@ -71,8 +68,9 @@ function mapKonservasiRow(row: KonservasiRow, category: KonservasiCategory): Kon
 }
 
 export default function Konservasi() {
-  const [selectedYear, setSelectedYear] = useState("2026");
-  const [selectedMonth, setSelectedMonth] = useState("Semua Bulan");
+  const [selectedYear] = useState("2026");
+  const [selectedMonth] = useState("Semua Bulan");
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("5");
   const [selectedCategory, setSelectedCategory] =
@@ -92,22 +90,25 @@ export default function Konservasi() {
     limit: 50,
   });
 
+  const displayData = activeData
+    .map((row) => mapKonservasiRow(row, selectedCategory))
+    .filter((row) => rowMatchesSearch(row, searchQuery));
   const rowsPerPageNumber = Number(rowsPerPage);
 
   const totalPages = Math.max(
     1,
-    Math.ceil(activeData.length / rowsPerPageNumber)
+    Math.ceil(displayData.length / rowsPerPageNumber)
   );
 
-  const paginatedData = activeData.slice(
+  const paginatedData = displayData.slice(
     (currentPage - 1) * rowsPerPageNumber,
     currentPage * rowsPerPageNumber
-  ).map((row) => mapKonservasiRow(row, selectedCategory));
+  );
   const tableMessage = getJatikertoDataMessage({
     isLoading,
     error,
     errorStatus,
-    hasItems: activeData.length > 0,
+    hasItems: displayData.length > 0,
   });
 
   const handleChangeCategory = (value: KonservasiCategory) => {
@@ -116,41 +117,17 @@ export default function Konservasi() {
   };
 
   return (
-    <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
-          <Select value={selectedYear} onValueChange={setSelectedYear}>
-            <SelectTrigger className="h-9 border-gray-200 bg-white text-[13px] font-medium">
-              <SelectValue />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem value="2024">2024</SelectItem>
-              <SelectItem value="2025">2025</SelectItem>
-              <SelectItem value="2026">2026</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <div className="w-full sm:w-auto overflow-x-auto scrollbar-none">
-            <div className="flex items-center gap-1 bg-white border border-gray-200 rounded-xl p-1 shadow-sm w-max">
-              {months.map((month) => (
-                <button
-                  key={month}
-                  onClick={() => setSelectedMonth(month)}
-                  className={cn(
-                    "px-4 py-1.5 text-[13px] font-medium rounded-lg transition-all duration-150 whitespace-nowrap",
-                    selectedMonth === month
-                      ? "bg-gray-900 text-white shadow-sm"
-                      : "text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-                  )}
-                >
-                  {month}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
+    <JatikertoTableLayout
+      categoryName="Konservasi"
+      subtitle="Detail Konservasi KST Jatikerto"
+      searchValue={searchQuery}
+      onSearchChange={(value) => {
+        setSearchQuery(value);
+        setCurrentPage(1);
+      }}
+    >
+      <>
+      <div className="flex justify-end px-4 pb-4 sm:px-5">
         <Select
           value={selectedCategory}
           onValueChange={(value) =>
@@ -176,7 +153,6 @@ export default function Konservasi() {
         </Select>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <Table className="min-w-[1100px]">
             <TableHeader>
@@ -205,7 +181,6 @@ export default function Konservasi() {
                   Keterangan
                 </TableHead>
 
-                <TableHead className="w-[48px]" />
               </TableRow>
             </TableHeader>
 
@@ -213,7 +188,7 @@ export default function Konservasi() {
               {tableMessage ? (
                 <TableRow>
                   <TableCell
-                    colSpan={7}
+                    colSpan={6}
                     className="h-32 text-center text-[13px] text-gray-400 font-medium"
                   >
                     {tableMessage}
@@ -261,11 +236,6 @@ export default function Konservasi() {
                     {row.keterangan}
                   </TableCell>
 
-                  <TableCell>
-                    <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-gray-100">
-                      <MoreVertical className="size-4 text-gray-400" />
-                    </button>
-                  </TableCell>
                 </TableRow>
                 ))
               )}
@@ -339,7 +309,7 @@ export default function Konservasi() {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </>
+    </JatikertoTableLayout>
   );
 }
