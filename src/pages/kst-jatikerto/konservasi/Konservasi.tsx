@@ -1,11 +1,5 @@
 import { useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  LayoutGrid,
-} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -21,11 +15,31 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ImageOff, LayoutGrid, Leaf, ShieldCheck, Sprout } from "lucide-react";
 import { usePageData } from "@/api/hooks";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
-import { fieldAliases, getNumberValue, getTextValue, rowIdentity, type JatikertoApiRow } from "../rowMappers";
-import { JatikertoTableLayout, rowMatchesSearch } from "../JatikertoTableLayout";
+import {
+  fieldAliases,
+  getNumberValue,
+  getTextValue,
+  rowIdentity,
+  type JatikertoApiRow,
+} from "../rowMappers";
+import { JatikertoTableLayout } from "../JatikertoTableLayout";
+import {
+  badgeSoftGreenClass,
+  formatNumber,
+  getLastUpdated,
+  JatikertoHero,
+  JatikertoPagination,
+  JatikertoSummaryCards,
+  matchesFields,
+  mutedBadgeClass,
+  tableHeadClass,
+  tableHeaderClass,
+  tableRowClass,
+} from "../dashboardUi";
 
 interface KonservasiRow extends JatikertoApiRow {
   id?: string;
@@ -38,6 +52,11 @@ interface KonservasiRow extends JatikertoApiRow {
 }
 
 type KonservasiCategory = "konservasi-hewan" | "konservasi-tumbuhan";
+
+const categoryLabels: Record<KonservasiCategory, string> = {
+  "konservasi-hewan": "Konservasi Hewan",
+  "konservasi-tumbuhan": "Konservasi Tumbuhan",
+};
 
 function getRowKey(row: KonservasiRow, category: KonservasiCategory, index: number) {
   return rowIdentity(row) ?? `${category}-${row.namaKomoditas}-${index}`;
@@ -67,6 +86,39 @@ function mapKonservasiRow(row: KonservasiRow, category: KonservasiCategory): Kon
   };
 }
 
+function rowMatchesKonservasiSearch(row: KonservasiRow, searchQuery: string) {
+  return matchesFields([row.namaKomoditas, row.satuan, row.keterangan], searchQuery);
+}
+
+function countProtectedSpecies(rows: KonservasiRow[]) {
+  return rows.filter((row) =>
+    /dilindungi|endemik|langka|konservasi|protected/i.test(
+      `${row.namaKomoditas} ${row.keterangan}`,
+    ),
+  ).length;
+}
+
+function ConservationImage({ src, alt }: { src?: string; alt: string }) {
+  const [failed, setFailed] = useState(false);
+
+  if (!src || failed) {
+    return (
+      <div className="flex h-[72px] w-[128px] items-center justify-center rounded-xl border border-dashed border-gray-200 bg-gray-50 text-gray-400">
+        <ImageOff className="size-5" />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt={alt}
+      onError={() => setFailed(true)}
+      className="h-[72px] w-[128px] rounded-xl object-cover shadow-sm"
+    />
+  );
+}
+
 export default function Konservasi() {
   const [selectedYear] = useState("2026");
   const [selectedMonth] = useState("Semua Bulan");
@@ -90,19 +142,23 @@ export default function Konservasi() {
     limit: 50,
   });
 
-  const displayData = activeData
-    .map((row) => mapKonservasiRow(row, selectedCategory))
-    .filter((row) => rowMatchesSearch(row, searchQuery));
+  const mappedData = activeData.map((row) => mapKonservasiRow(row, selectedCategory));
+  const displayData = mappedData.filter((row) => rowMatchesKonservasiSearch(row, searchQuery));
   const rowsPerPageNumber = Number(rowsPerPage);
-
-  const totalPages = Math.max(
-    1,
-    Math.ceil(displayData.length / rowsPerPageNumber)
-  );
+  const totalPages = Math.max(1, Math.ceil(displayData.length / rowsPerPageNumber));
+  const totalJumlah = mappedData.reduce((sum, row) => sum + Number(row.jumlah || 0), 0);
+  const protectedSpecies = countProtectedSpecies(mappedData);
+  const lastUpdated = getLastUpdated(mappedData);
+  const summaryCards = [
+    { label: "Total Item Konservasi", value: formatNumber(mappedData.length), icon: Leaf },
+    { label: "Total Populasi / Jumlah", value: formatNumber(totalJumlah), icon: Sprout },
+    { label: "Kategori Aktif", value: categoryLabels[selectedCategory], icon: LayoutGrid },
+    { label: "Spesies Dilindungi", value: formatNumber(protectedSpecies), icon: ShieldCheck },
+  ];
 
   const paginatedData = displayData.slice(
     (currentPage - 1) * rowsPerPageNumber,
-    currentPage * rowsPerPageNumber
+    currentPage * rowsPerPageNumber,
   );
   const tableMessage = getJatikertoDataMessage({
     isLoading,
@@ -121,66 +177,65 @@ export default function Konservasi() {
       categoryName="Konservasi"
       subtitle="Detail Konservasi KST Jatikerto"
       searchValue={searchQuery}
+      searchPlaceholder="Cari komoditas konservasi..."
+      headerContent={
+        <JatikertoHero
+          title="Dashboard Konservasi"
+          description="Memantau koleksi konservasi hewan dan tumbuhan KST Jatikerto, termasuk jumlah populasi, dokumentasi visual, dan catatan pemeliharaan."
+          badges={[categoryLabels[selectedCategory]]}
+          lastUpdated={lastUpdated}
+        />
+      }
+      beforeTable={<JatikertoSummaryCards items={summaryCards} />}
       onSearchChange={(value) => {
         setSearchQuery(value);
         setCurrentPage(1);
       }}
     >
       <>
-      <div className="flex justify-end px-4 pb-4 sm:px-5">
-        <Select
-          value={selectedCategory}
-          onValueChange={(value) =>
-            handleChangeCategory(value as KonservasiCategory)
-          }
-        >
-          <SelectTrigger className="h-9 w-[220px] border-gray-200 bg-white text-[13px] font-medium">
-            <div className="flex items-center gap-2">
-              <LayoutGrid className="size-4 text-gray-700" />
-              <SelectValue />
-            </div>
-          </SelectTrigger>
+        <div className="flex justify-end px-4 pb-4 sm:px-5">
+          <Select
+            value={selectedCategory}
+            onValueChange={(value) =>
+              handleChangeCategory(value as KonservasiCategory)
+            }
+          >
+            <SelectTrigger className="h-10 w-full rounded-xl border-gray-200 bg-white text-[13px] font-semibold shadow-none sm:w-[240px]">
+              <div className="flex items-center gap-2">
+                <LayoutGrid className="size-4 text-emerald-700" />
+                <SelectValue />
+              </div>
+            </SelectTrigger>
 
-          <SelectContent>
-            <SelectItem value="konservasi-hewan">
-              Konservasi Hewan
-            </SelectItem>
-
-            <SelectItem value="konservasi-tumbuhan">
-              Konservasi Tumbuhan
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
+            <SelectContent>
+              <SelectItem value="konservasi-hewan">Konservasi Hewan</SelectItem>
+              <SelectItem value="konservasi-tumbuhan">Konservasi Tumbuhan</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
 
         <div className="overflow-x-auto">
-          <Table className="min-w-[1100px]">
+          <Table className="min-w-[1080px]">
             <TableHeader>
-              <TableRow className="bg-gray-50/80 hover:bg-gray-50/80">
-                <TableHead className="font-bold text-gray-500 text-[12px] w-[50px] pl-5">
+              <TableRow className={tableHeaderClass}>
+                <TableHead className={`${tableHeadClass} w-[56px] pl-5`}>
                   No.
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[240px]">
+                <TableHead className={`${tableHeadClass} min-w-[240px]`}>
                   Nama Komoditas
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] text-center min-w-[180px]">
+                <TableHead className={`${tableHeadClass} min-w-[170px] text-center`}>
                   Foto
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] text-center min-w-[100px]">
+                <TableHead className={`${tableHeadClass} min-w-[150px] text-center`}>
                   Jumlah
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] text-center min-w-[120px]">
-                  Satuan
+                <TableHead className={`${tableHeadClass} min-w-[160px] text-center`}>
+                  Jenis Konservasi
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[260px]">
+                <TableHead className={`${tableHeadClass} min-w-[300px]`}>
                   Keterangan
                 </TableHead>
-
               </TableRow>
             </TableHeader>
 
@@ -189,126 +244,56 @@ export default function Konservasi() {
                 <TableRow>
                   <TableCell
                     colSpan={6}
-                    className="h-32 text-center text-[13px] text-gray-400 font-medium"
+                    className="h-32 text-center text-[13px] font-medium text-gray-400"
                   >
                     {tableMessage}
                   </TableCell>
                 </TableRow>
               ) : (
                 paginatedData.map((row, index) => (
-                <TableRow
-                  key={getRowKey(row, selectedCategory, index)}
-                  className="hover:bg-gray-50/50 group"
-                >
-                  <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
-                    {(currentPage - 1) * rowsPerPageNumber + index + 1}.
-                  </TableCell>
-
-                  <TableCell className="text-[13px] font-medium text-gray-900 max-w-[240px] whitespace-normal break-words leading-relaxed">
-                    {row.namaKomoditas}
-                  </TableCell>
-
-                  <TableCell className="min-w-[180px]">
-                    <div className="flex justify-center">
-                      {row.foto ? (
-                        <img
-                          src={row.foto}
-                          alt={row.namaKomoditas}
-                          className="h-[70px] w-[150px] rounded-xl object-cover"
-                        />
-                      ) : (
-                        <div className="flex h-[70px] w-[150px] items-center justify-center rounded-xl bg-gray-100 text-xs font-medium text-gray-400">
-                          Belum tersedia
-                        </div>
-                      )}
-                    </div>
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 font-medium text-center min-w-[100px] whitespace-nowrap tabular-nums">
-                    {row.jumlah}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-500 text-center min-w-[120px] whitespace-nowrap">
-                    {row.satuan}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 max-w-[260px] whitespace-normal break-words leading-relaxed">
-                    {row.keterangan}
-                  </TableCell>
-
-                </TableRow>
+                  <TableRow
+                    key={getRowKey(row, selectedCategory, index)}
+                    className={tableRowClass}
+                  >
+                    <TableCell className="pl-5 text-[13px] font-medium text-gray-500">
+                      {(currentPage - 1) * rowsPerPageNumber + index + 1}.
+                    </TableCell>
+                    <TableCell className="max-w-[240px] whitespace-normal break-words text-[13px] font-semibold leading-relaxed text-gray-900">
+                      {row.namaKomoditas || "-"}
+                    </TableCell>
+                    <TableCell className="min-w-[170px]">
+                      <div className="flex justify-center">
+                        <ConservationImage src={row.foto} alt={row.namaKomoditas} />
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center text-[13px] font-medium text-gray-700 tabular-nums">
+                      {row.jumlah ? `${formatNumber(row.jumlah)} ${row.satuan || ""}` : "-"}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <Badge className={selectedCategory === "konservasi-hewan" ? badgeSoftGreenClass : mutedBadgeClass}>
+                        {categoryLabels[selectedCategory].replace("Konservasi ", "")}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="max-w-[300px] text-[13px] leading-relaxed text-gray-600">
+                      <p className="line-clamp-2">{row.keterangan || "-"}</p>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
         </div>
 
-        {/* Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-5 py-3 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
-            <span className="whitespace-nowrap">Baris per Page</span>
-
-            <Select
-              value={rowsPerPage}
-              onValueChange={(value) => {
-                setRowsPerPage(value);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 w-[70px] border-gray-200 bg-white text-[13px]">
-                <SelectValue />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="25">25</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-[13px] text-gray-500 font-medium whitespace-nowrap">
-              Page {currentPage} dari {totalPages}
-            </span>
-
-            <div className="flex items-center gap-1">
-              {[
-                {
-                  icon: ChevronsLeft,
-                  action: () => setCurrentPage(1),
-                  disabled: currentPage === 1,
-                },
-                {
-                  icon: ChevronLeft,
-                  action: () =>
-                    setCurrentPage(Math.max(1, currentPage - 1)),
-                  disabled: currentPage === 1,
-                },
-                {
-                  icon: ChevronRight,
-                  action: () =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1)),
-                  disabled: currentPage === totalPages,
-                },
-                {
-                  icon: ChevronsRight,
-                  action: () => setCurrentPage(totalPages),
-                  disabled: currentPage === totalPages,
-                },
-              ].map((btn, i) => (
-                <button
-                  key={i}
-                  onClick={btn.action}
-                  disabled={btn.disabled}
-                  className="p-1.5 rounded-md border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  <btn.icon className="size-4" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <JatikertoPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={(value) => {
+            setRowsPerPage(value);
+            setCurrentPage(1);
+          }}
+          onPageChange={setCurrentPage}
+        />
       </>
     </JatikertoTableLayout>
   );

@@ -1,17 +1,5 @@
 import { useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -20,11 +8,35 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Clock3, Handshake, Leaf, TrendingUp } from "lucide-react";
 import { usePageData } from "@/api/hooks";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
-import { fieldAliases, getDateValue, getTextValue, rowIdentity, type JatikertoApiRow } from "../rowMappers";
-import { JatikertoTableLayout, rowMatchesSearch } from "../JatikertoTableLayout";
+import {
+  fieldAliases,
+  getDateValue,
+  getTextValue,
+  rowIdentity,
+  type JatikertoApiRow,
+} from "../rowMappers";
+import { JatikertoTableLayout } from "../JatikertoTableLayout";
+import {
+  badgeSoftGreenClass,
+  formatIndonesianDate,
+  formatNumber,
+  getLastUpdated,
+  JatikertoHero,
+  JatikertoPagination,
+  JatikertoSummaryCards,
+  matchesFields,
+  parseDate,
+  statusBadgeClass,
+  tableHeadClass,
+  tableHeaderClass,
+  tableRowClass,
+} from "../dashboardUi";
+
+type ContractStatus = "Aktif" | "Akan Berakhir" | "Selesai";
 
 interface MitraRow extends JatikertoApiRow {
   id?: string;
@@ -32,6 +44,9 @@ interface MitraRow extends JatikertoApiRow {
   mitra: string;
   bidangKerjasama: string;
   jangkaWaktuKontrak: string;
+  tanggalMulai?: string;
+  tanggalSelesai?: string;
+  updatedAt?: string;
   keterangan: string;
 }
 
@@ -39,21 +54,69 @@ function getRowKey(row: MitraRow, index: number) {
   return rowIdentity(row) ?? `${row.mitra}-${row.jangkaWaktuKontrak}-${index}`;
 }
 
+function formatContractRange(row: MitraRow) {
+  const start = formatIndonesianDate(row.tanggalMulai);
+  const end = formatIndonesianDate(row.tanggalSelesai);
+
+  if (start !== "-" && end !== "-") return `${start} - ${end}`;
+  return row.jangkaWaktuKontrak || "-";
+}
+
+function getContractStatus(row: MitraRow): ContractStatus {
+  const start = parseDate(row.tanggalMulai);
+  const end = parseDate(row.tanggalSelesai);
+
+  if (!end) return "Selesai";
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+  start?.setHours(0, 0, 0, 0);
+
+  if (end < today) return "Selesai";
+  if (start && start > today) return "Aktif";
+
+  const daysRemaining = Math.ceil((end.getTime() - today.getTime()) / 86_400_000);
+  return daysRemaining <= 30 ? "Akan Berakhir" : "Aktif";
+}
+
+function rowMatchesMitraSearch(row: MitraRow, searchQuery: string) {
+  return matchesFields([row.mitra, row.bidangKerjasama, row.keterangan], searchQuery);
+}
+
 function mapMitraRow(row: MitraRow): MitraRow {
   const mulai = getDateValue(row, 2, ["mulai", "tanggalMulai", "tanggal_mulai", "startDate", "start_date"]);
   const selesai = getDateValue(row, 3, ["selesai", "tanggalSelesai", "tanggal_selesai", "endDate", "end_date"]);
+  const jangkaWaktuKontrak =
+    getTextValue(row, -1, ["jangkaWaktuKontrak", "jangka_waktu_kontrak", "kontrak"], "") ||
+    [mulai, selesai].filter(Boolean).join(" - ") ||
+    row.jangkaWaktuKontrak;
+  const [kontrakMulai, kontrakSelesai] = String(jangkaWaktuKontrak ?? "")
+    .split(/\s+-\s+/)
+    .map((value) => value.trim());
 
   return {
     ...row,
     id: row.rowId ?? row.id,
     mitra: getTextValue(row, 0, ["mitra", "partner", ...fieldAliases.nama], row.mitra),
     bidangKerjasama: getTextValue(row, 1, ["bidangKerjasama", "bidang_kerjasama", "kerjasama", ...fieldAliases.status], row.bidangKerjasama),
-    jangkaWaktuKontrak:
-      getTextValue(row, -1, ["jangkaWaktuKontrak", "jangka_waktu_kontrak", "kontrak"], "") ||
-      [mulai, selesai].filter(Boolean).join(" - ") ||
-      row.jangkaWaktuKontrak,
+    jangkaWaktuKontrak,
+    tanggalMulai: mulai || kontrakMulai,
+    tanggalSelesai: selesai || kontrakSelesai,
+    updatedAt: getDateValue(row, -1, ["updatedAt", "updated_at", "updated", "modifiedAt", "modified_at", "createdAt", "created_at"], ""),
     keterangan: getTextValue(row, 4, ["keterangan", "description", "catatan"], row.keterangan ?? "-"),
   };
+}
+
+function getMostCommonField(rows: MitraRow[]) {
+  const counts = rows.reduce<Record<string, number>>((acc, row) => {
+    const field = row.bidangKerjasama?.trim();
+    if (!field) return acc;
+    acc[field] = (acc[field] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  return Object.entries(counts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "-";
 }
 
 export default function Kemitraan() {
@@ -73,13 +136,25 @@ export default function Kemitraan() {
     limit: 50,
   });
 
-  const displayData = tableData.map(mapMitraRow).filter((row) => rowMatchesSearch(row, searchQuery));
+  const mappedData = tableData.map(mapMitraRow);
+  const displayData = mappedData.filter((row) => rowMatchesMitraSearch(row, searchQuery));
   const rowsPerPageNumber = Number(rowsPerPage);
   const totalPages = Math.max(1, Math.ceil(displayData.length / rowsPerPageNumber));
+  const contractStatuses = mappedData.map((row) => getContractStatus(row));
+  const activeContracts = contractStatuses.filter((status) => status === "Aktif").length;
+  const expiringContracts = contractStatuses.filter((status) => status === "Akan Berakhir").length;
+  const mostCommonField = getMostCommonField(mappedData);
+  const lastUpdated = getLastUpdated(mappedData);
+  const summaryCards = [
+    { label: "Total Mitra", value: formatNumber(mappedData.length), icon: Handshake },
+    { label: "Kontrak Aktif", value: formatNumber(activeContracts), icon: Leaf },
+    { label: "Kontrak Akan Berakhir", value: formatNumber(expiringContracts), icon: Clock3 },
+    { label: "Bidang Kerja Sama Terbanyak", value: mostCommonField, icon: TrendingUp },
+  ];
 
   const paginatedData = displayData.slice(
     (currentPage - 1) * rowsPerPageNumber,
-    currentPage * rowsPerPageNumber
+    currentPage * rowsPerPageNumber,
   );
   const tableMessage = getJatikertoDataMessage({
     isLoading,
@@ -88,12 +163,21 @@ export default function Kemitraan() {
     hasItems: displayData.length > 0,
   });
 
-
   return (
     <JatikertoTableLayout
       categoryName="Kemitraan"
       subtitle="Kegiatan Kerjasama KST Jatikerto dengan Berbagai Mitra"
       searchValue={searchQuery}
+      searchPlaceholder="Cari mitra atau bidang kerja sama..."
+      headerContent={
+        <JatikertoHero
+          title="Dashboard Kemitraan"
+          description="Memantau kerja sama KST Jatikerto dengan mitra strategis dalam pengembangan agroindustri, riset terapan, dan penguatan ekosistem pertanian."
+          badges={["Kemitraan Agroindustri"]}
+          lastUpdated={lastUpdated}
+        />
+      }
+      beforeTable={<JatikertoSummaryCards items={summaryCards} />}
       onSearchChange={(value) => {
         setSearchQuery(value);
         setCurrentPage(1);
@@ -101,29 +185,27 @@ export default function Kemitraan() {
     >
       <>
         <div className="overflow-x-auto">
-          <Table className="min-w-[1200px]">
+          <Table className="min-w-[1220px]">
             <TableHeader>
-              <TableRow className="bg-gray-50/80 hover:bg-gray-50/80">
-                <TableHead className="font-bold text-gray-500 text-[12px] w-[50px] pl-5">
+              <TableRow className={tableHeaderClass}>
+                <TableHead className={`${tableHeadClass} w-[56px] pl-5`}>
                   No.
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[260px]">
+                <TableHead className={`${tableHeadClass} min-w-[260px]`}>
                   Mitra
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[220px]">
+                <TableHead className={`${tableHeadClass} min-w-[240px]`}>
                   Bidang Kerjasama
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[260px]">
+                <TableHead className={`${tableHeadClass} min-w-[270px]`}>
                   Jangka Waktu Kontrak
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[180px]">
+                <TableHead className={`${tableHeadClass} min-w-[150px]`}>
+                  Status
+                </TableHead>
+                <TableHead className={`${tableHeadClass} min-w-[260px]`}>
                   Keterangan
                 </TableHead>
-
               </TableRow>
             </TableHeader>
 
@@ -131,108 +213,58 @@ export default function Kemitraan() {
               {tableMessage ? (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
-                    className="h-32 text-center text-[13px] text-gray-400 font-medium"
+                    colSpan={6}
+                    className="h-32 text-center text-[13px] font-medium text-gray-400"
                   >
                     {tableMessage}
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedData.map((row, index) => (
-                <TableRow key={getRowKey(row, index)} className="hover:bg-gray-50/50 group">
-                  <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
-                    {(currentPage - 1) * rowsPerPageNumber + index + 1}.
-                  </TableCell>
+                paginatedData.map((row, index) => {
+                  const status = getContractStatus(row);
 
-                  <TableCell className="text-[13px] font-medium text-gray-900 max-w-[260px] whitespace-normal break-words leading-relaxed">
-                    {row.mitra}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 max-w-[220px] whitespace-normal break-words leading-relaxed">
-                    {row.bidangKerjasama}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 min-w-[260px] whitespace-nowrap">
-                    {row.jangkaWaktuKontrak}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 max-w-[180px] whitespace-normal break-words leading-relaxed">
-                    {row.keterangan}
-                  </TableCell>
-
-                </TableRow>
-                ))
+                  return (
+                    <TableRow key={getRowKey(row, index)} className={tableRowClass}>
+                      <TableCell className="pl-5 text-[13px] font-medium text-gray-500">
+                        {(currentPage - 1) * rowsPerPageNumber + index + 1}.
+                      </TableCell>
+                      <TableCell className="max-w-[260px] whitespace-normal break-words text-[13px] font-semibold leading-relaxed text-gray-900">
+                        {row.mitra || "-"}
+                      </TableCell>
+                      <TableCell className="max-w-[240px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
+                        <Badge className={badgeSoftGreenClass}>
+                          {row.bidangKerjasama || "-"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-[13px] text-gray-600">
+                        {formatContractRange(row)}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-[13px]">
+                        <Badge className={`h-auto rounded-full px-2.5 py-1 ${statusBadgeClass(status)}`}>
+                          {status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="max-w-[260px] text-[13px] leading-relaxed text-gray-600">
+                        <p className="line-clamp-2">{row.keterangan || "-"}</p>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
         </div>
 
-        {/* Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-5 py-3 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
-            <span className="whitespace-nowrap">Baris per Page</span>
-            <Select
-              value={rowsPerPage}
-              onValueChange={(value) => {
-                setRowsPerPage(value);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 w-[70px] border-gray-200 bg-white text-[13px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="25">25</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-[13px] text-gray-500 font-medium whitespace-nowrap">
-              Page {currentPage} dari {totalPages}
-            </span>
-
-            <div className="flex items-center gap-1">
-              {[
-                {
-                  icon: ChevronsLeft,
-                  action: () => setCurrentPage(1),
-                  disabled: currentPage === 1,
-                },
-                {
-                  icon: ChevronLeft,
-                  action: () =>
-                    setCurrentPage(Math.max(1, currentPage - 1)),
-                  disabled: currentPage === 1,
-                },
-                {
-                  icon: ChevronRight,
-                  action: () =>
-                    setCurrentPage(
-                      Math.min(totalPages, currentPage + 1)
-                    ),
-                  disabled: currentPage === totalPages,
-                },
-                {
-                  icon: ChevronsRight,
-                  action: () => setCurrentPage(totalPages),
-                  disabled: currentPage === totalPages,
-                },
-              ].map((btn, i) => (
-                <button
-                  key={i}
-                  onClick={btn.action}
-                  disabled={btn.disabled}
-                  className="p-1.5 rounded-md border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  <btn.icon className="size-4" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <JatikertoPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={(value) => {
+            setRowsPerPage(value);
+            setCurrentPage(1);
+          }}
+          onPageChange={setCurrentPage}
+        />
       </>
     </JatikertoTableLayout>
   );

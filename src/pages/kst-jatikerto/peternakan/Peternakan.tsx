@@ -1,17 +1,5 @@
 import { useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -20,11 +8,36 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Beef, CalendarDays, Gauge, Ruler } from "lucide-react";
 import { usePageData } from "@/api/hooks";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
-import { fieldAliases, getNumberValue, getTextValue, rowIdentity, type JatikertoApiRow } from "../rowMappers";
-import { JatikertoTableLayout, rowMatchesSearch } from "../JatikertoTableLayout";
+import {
+  fieldAliases,
+  getNumberValue,
+  getTextValue,
+  rowIdentity,
+  type JatikertoApiRow,
+} from "../rowMappers";
+import { JatikertoTableLayout } from "../JatikertoTableLayout";
+import {
+  badgeSoftGreenClass,
+  formatArea,
+  formatFrequency,
+  formatNumber,
+  formatQuantity,
+  getFrequencyValue,
+  getLastUpdated,
+  getNumericValue,
+  JatikertoHero,
+  JatikertoPagination,
+  JatikertoSummaryCards,
+  matchesFields,
+  mutedBadgeClass,
+  tableHeadClass,
+  tableHeaderClass,
+  tableRowClass,
+} from "../dashboardUi";
 
 interface PeternakanRow extends JatikertoApiRow {
   id?: string;
@@ -50,13 +63,17 @@ function mapPeternakanRow(row: PeternakanRow): PeternakanRow {
     ...row,
     id: row.rowId ?? row.id,
     namaKomoditas: getTextValue(row, 0, fieldAliases.nama, row.namaKomoditas),
-    luasUsaha: Number.isFinite(luasUsaha) ? `${luasUsaha.toLocaleString("id-ID")} m2` : row.luasUsaha,
+    luasUsaha: Number.isFinite(luasUsaha) ? `${luasUsaha} m2` : row.luasUsaha,
     ketersediaanBulan: getNumberValue(row, 2, ["ketersediaanBulan", "ketersediaan_bulan", "bulan"], row.ketersediaanBulan),
     ketersediaanTahun: Number.isFinite(ketersediaanTahun) ? `${ketersediaanTahun} Kali` : row.ketersediaanTahun,
     jumlah: getNumberValue(row, 4, fieldAliases.jumlah, row.jumlah),
     satuan: getTextValue(row, 5, ["satuan", "unit"], row.satuan),
     keterangan: getTextValue(row, 6, ["keterangan", "description", "catatan"], row.keterangan ?? "-"),
   };
+}
+
+function rowMatchesPeternakanSearch(row: PeternakanRow, searchQuery: string) {
+  return matchesFields([row.namaKomoditas, row.satuan, row.luasUsaha, row.keterangan], searchQuery);
 }
 
 export default function Peternakan() {
@@ -76,16 +93,24 @@ export default function Peternakan() {
     limit: 50,
   });
 
-  const displayData = tableData.map(mapPeternakanRow).filter((row) => rowMatchesSearch(row, searchQuery));
+  const mappedData = tableData.map(mapPeternakanRow);
+  const displayData = mappedData.filter((row) => rowMatchesPeternakanSearch(row, searchQuery));
   const rowsPerPageNumber = Number(rowsPerPage);
-  const totalPages = Math.max(
-    1,
-    Math.ceil(displayData.length / rowsPerPageNumber)
-  );
+  const totalPages = Math.max(1, Math.ceil(displayData.length / rowsPerPageNumber));
+  const totalPopulasi = mappedData.reduce((sum, row) => sum + Number(row.jumlah || 0), 0);
+  const totalLuas = mappedData.reduce((sum, row) => sum + getNumericValue(row.luasUsaha), 0);
+  const totalFrekuensi = mappedData.reduce((sum, row) => sum + getFrequencyValue(row.ketersediaanTahun), 0);
+  const lastUpdated = getLastUpdated(mappedData);
+  const summaryCards = [
+    { label: "Total Komoditas Ternak", value: formatNumber(mappedData.length), icon: Beef },
+    { label: "Total Populasi", value: formatQuantity(totalPopulasi, mappedData[0]?.satuan || "Ekor"), icon: Gauge },
+    { label: "Total Luas Usaha", value: formatArea(totalLuas), icon: Ruler },
+    { label: "Ketersediaan / Tahun", value: formatFrequency(totalFrekuensi), icon: CalendarDays },
+  ];
 
   const paginatedData = displayData.slice(
     (currentPage - 1) * rowsPerPageNumber,
-    currentPage * rowsPerPageNumber
+    currentPage * rowsPerPageNumber,
   );
   const tableMessage = getJatikertoDataMessage({
     isLoading,
@@ -99,6 +124,16 @@ export default function Peternakan() {
       categoryName="Peternakan"
       subtitle="Proyeksi Panen Komoditas Peternakan"
       searchValue={searchQuery}
+      searchPlaceholder="Cari komoditas ternak..."
+      headerContent={
+        <JatikertoHero
+          title="Dashboard Peternakan"
+          description="Memantau komoditas ternak KST Jatikerto, total populasi, luasan usaha, dan ketersediaan produksi sepanjang tahun."
+          badges={["Peternakan Agroindustri"]}
+          lastUpdated={lastUpdated}
+        />
+      }
+      beforeTable={<JatikertoSummaryCards items={summaryCards} />}
       onSearchChange={(value) => {
         setSearchQuery(value);
         setCurrentPage(1);
@@ -106,67 +141,27 @@ export default function Peternakan() {
     >
       <>
         <div className="overflow-x-auto">
-          <Table className="min-w-[1050px]">
+          <Table className="min-w-[1120px]">
             <TableHeader>
-              <TableRow className="bg-gray-50/80 hover:bg-gray-50/80">
-                <TableHead
-                  className="font-bold text-gray-500 text-[12px] w-[50px] text-center px-0"
-                  rowSpan={2}
-                >
+              <TableRow className={tableHeaderClass}>
+                <TableHead className={`${tableHeadClass} w-[56px] text-center`}>
                   No.
                 </TableHead>
-
-                <TableHead
-                  className="font-bold text-gray-500 text-[12px] min-w-[180px]"
-                  rowSpan={2}
-                >
-                  Nama Komoditas
+                <TableHead className={`${tableHeadClass} min-w-[220px]`}>
+                  Komoditas Ternak
                 </TableHead>
-
-                <TableHead
-                  className="font-bold text-gray-500 text-[12px] min-w-[100px] text-center px-0"
-                  rowSpan={2}
-                >
-                  Jumlah
+                <TableHead className={`${tableHeadClass} min-w-[150px] text-center`}>
+                  Populasi
                 </TableHead>
-
-                <TableHead
-                  className="font-bold text-gray-500 text-[12px] min-w-[90px] text-center px-0"
-                  rowSpan={2}
-                >
-                  Satuan
-                </TableHead>
-
-                <TableHead
-                  className="font-bold text-gray-500 text-[12px] min-w-[120px] text-center px-0"
-                  rowSpan={2}
-                >
+                <TableHead className={`${tableHeadClass} min-w-[130px] text-center`}>
                   Luas Usaha
                 </TableHead>
-
-                <TableHead
-                  className="font-bold text-gray-500 text-[12px] text-center border-b-0 min-w-[220px] px-0"
-                  colSpan={2}
-                >
-                  <div className="w-full text-center">Ketersediaan</div>
-
-                  <div className="grid grid-cols-2 mt-1 w-full">
-                    <span className="text-center text-[10px] font-semibold text-gray-400">
-                      Satuan Bulan
-                    </span>
-                    <span className="text-center text-[10px] font-semibold text-gray-400">
-                      Per-Tahun
-                    </span>
-                  </div>
+                <TableHead className={`${tableHeadClass} min-w-[250px] text-center`}>
+                  Ketersediaan
                 </TableHead>
-
-                <TableHead
-                  className="font-bold text-gray-500 text-[12px] min-w-[220px]"
-                  rowSpan={2}
-                >
+                <TableHead className={`${tableHeadClass} min-w-[280px]`}>
                   Keterangan
                 </TableHead>
-
               </TableRow>
             </TableHeader>
 
@@ -174,119 +169,57 @@ export default function Peternakan() {
               {tableMessage ? (
                 <TableRow>
                   <TableCell
-                    colSpan={8}
-                    className="h-32 text-center text-[13px] text-gray-400 font-medium"
+                    colSpan={6}
+                    className="h-32 text-center text-[13px] font-medium text-gray-400"
                   >
                     {tableMessage}
                   </TableCell>
                 </TableRow>
               ) : (
                 paginatedData.map((row, index) => (
-                <TableRow key={getRowKey(row, index)} className="hover:bg-gray-50/50 group">
-                  <TableCell className="text-[13px] text-gray-500 font-medium text-center px-0">
-                    {(currentPage - 1) * rowsPerPageNumber + index + 1}.
-                  </TableCell>
-
-                  <TableCell className="text-[13px] font-medium text-gray-900 max-w-[180px] whitespace-normal break-words leading-relaxed">
-                    {row.namaKomoditas}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 font-medium text-center whitespace-nowrap tabular-nums px-0">
-                    {row.jumlah}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-500 text-center whitespace-nowrap px-0">
-                    {row.satuan}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 text-center whitespace-nowrap tabular-nums px-0">
-                    {row.luasUsaha}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 text-center whitespace-nowrap tabular-nums w-[110px] px-0">
-                    {row.ketersediaanBulan}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 text-center whitespace-nowrap w-[110px] px-0">
-                    {row.ketersediaanTahun}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 max-w-[220px] whitespace-normal break-words leading-relaxed">
-                    {row.keterangan}
-                  </TableCell>
-
-                </TableRow>
+                  <TableRow key={getRowKey(row, index)} className={tableRowClass}>
+                    <TableCell className="text-center text-[13px] font-medium text-gray-500">
+                      {(currentPage - 1) * rowsPerPageNumber + index + 1}.
+                    </TableCell>
+                    <TableCell className="max-w-[220px] whitespace-normal break-words text-[13px] font-semibold leading-relaxed text-gray-900">
+                      {row.namaKomoditas || "-"}
+                    </TableCell>
+                    <TableCell className="text-center text-[13px] font-medium text-gray-700 tabular-nums">
+                      {formatQuantity(row.jumlah, row.satuan)}
+                    </TableCell>
+                    <TableCell className="text-center text-[13px] text-gray-600 tabular-nums">
+                      {formatArea(row.luasUsaha)}
+                    </TableCell>
+                    <TableCell className="min-w-[250px]">
+                      <div className="flex flex-wrap justify-center gap-2">
+                        <Badge className={mutedBadgeClass}>
+                          {formatNumber(row.ketersediaanBulan)} bulan
+                        </Badge>
+                        <Badge className={badgeSoftGreenClass}>
+                          {formatFrequency(row.ketersediaanTahun)}
+                        </Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell className="max-w-[280px] text-[13px] leading-relaxed text-gray-600">
+                      <p className="line-clamp-2">{row.keterangan || "-"}</p>
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-5 py-3 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
-            <span className="whitespace-nowrap">Baris per Page</span>
-
-            <Select
-              value={rowsPerPage}
-              onValueChange={(value) => {
-                setRowsPerPage(value);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 w-[70px] border-gray-200 bg-white text-[13px]">
-                <SelectValue />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="25">25</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-[13px] text-gray-500 font-medium whitespace-nowrap">
-              Page {currentPage} dari {totalPages}
-            </span>
-
-            <div className="flex items-center gap-1">
-              {[
-                {
-                  icon: ChevronsLeft,
-                  action: () => setCurrentPage(1),
-                  disabled: currentPage === 1,
-                },
-                {
-                  icon: ChevronLeft,
-                  action: () =>
-                    setCurrentPage(Math.max(1, currentPage - 1)),
-                  disabled: currentPage === 1,
-                },
-                {
-                  icon: ChevronRight,
-                  action: () =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1)),
-                  disabled: currentPage === totalPages,
-                },
-                {
-                  icon: ChevronsRight,
-                  action: () => setCurrentPage(totalPages),
-                  disabled: currentPage === totalPages,
-                },
-              ].map((btn, i) => (
-                <button
-                  key={i}
-                  onClick={btn.action}
-                  disabled={btn.disabled}
-                  className="p-1.5 rounded-md border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  <btn.icon className="size-4" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <JatikertoPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={(value) => {
+            setRowsPerPage(value);
+            setCurrentPage(1);
+          }}
+          onPageChange={setCurrentPage}
+        />
       </>
     </JatikertoTableLayout>
   );

@@ -1,17 +1,5 @@
 import { useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -20,13 +8,37 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
+import { BookOpenCheck, GraduationCap, Microscope, UsersRound } from "lucide-react";
 import { usePageData } from "@/api/hooks";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
 import { getProgramStudiBadgeClass, normalizeProgramStudi } from "../programStudi";
-import { fieldAliases, getDateValue, getNumberValue, getTextValue, rowIdentity, type JatikertoApiRow } from "../rowMappers";
-import { JatikertoTableLayout, rowMatchesSearch } from "../JatikertoTableLayout";
+import {
+  fieldAliases,
+  getDateValue,
+  getNumberValue,
+  getTextValue,
+  rowIdentity,
+  type JatikertoApiRow,
+} from "../rowMappers";
+import { JatikertoTableLayout } from "../JatikertoTableLayout";
+import {
+  formatArea,
+  formatIndonesianDate,
+  formatNumber,
+  getLastUpdated,
+  JatikertoHero,
+  JatikertoPagination,
+  JatikertoSummaryCards,
+  matchesFields,
+  parseDate,
+  statusBadgeClass,
+  tableHeadClass,
+  tableHeaderClass,
+  tableRowClass,
+} from "../dashboardUi";
+
+type ResearchStatus = "Akan Dimulai" | "Aktif" | "Selesai" | "-";
 
 interface MahasiswaRow extends JatikertoApiRow {
   id?: string;
@@ -55,9 +67,31 @@ function mapMahasiswaRow(row: MahasiswaRow): MahasiswaRow {
     programStudi: getTextValue(row, 2, ["programStudi", "program_studi", "prodi"], row.programStudi),
     mulai: getDateValue(row, 3, ["mulai", "tanggalMulai", "tanggal_mulai", "startDate", "start_date"], row.mulai),
     selesai: getDateValue(row, 4, ["selesai", "tanggalSelesai", "tanggal_selesai", "endDate", "end_date"], row.selesai),
-    luasan: Number.isFinite(luasan) ? `${luasan.toLocaleString("id-ID")} m2` : row.luasan,
+    luasan: Number.isFinite(luasan) ? `${luasan} m2` : row.luasan,
     judulPenelitian: getTextValue(row, 6, ["judulPenelitian", "judul_penelitian", "penelitian", ...fieldAliases.nama], row.judulPenelitian),
   };
+}
+
+function getResearchStatus(row: MahasiswaRow): ResearchStatus {
+  const start = parseDate(row.mulai);
+  const end = parseDate(row.selesai);
+  if (!start || !end) return "-";
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  start.setHours(0, 0, 0, 0);
+  end.setHours(0, 0, 0, 0);
+
+  if (start > today) return "Akan Dimulai";
+  if (end < today) return "Selesai";
+  return "Aktif";
+}
+
+function rowMatchesAkademikSearch(row: MahasiswaRow, searchQuery: string) {
+  return matchesFields(
+    [row.namaMahasiswa, row.dosenPembimbing, row.programStudi, row.judulPenelitian],
+    searchQuery,
+  );
 }
 
 export default function PelayananAkademik() {
@@ -76,13 +110,24 @@ export default function PelayananAkademik() {
     { year: selectedYear, month: selectedMonth, limit: 50 },
   );
 
-  const displayData = tableData.map(mapMahasiswaRow).filter((row) => rowMatchesSearch(row, searchQuery));
+  const mappedData = tableData.map(mapMahasiswaRow);
+  const displayData = mappedData.filter((row) => rowMatchesAkademikSearch(row, searchQuery));
   const rowsPerPageNumber = Number(rowsPerPage);
   const totalPages = Math.max(1, Math.ceil(displayData.length / rowsPerPageNumber));
+  const totalDosen = new Set(mappedData.map((row) => row.dosenPembimbing).filter(Boolean)).size;
+  const totalProdi = new Set(mappedData.map((row) => normalizeProgramStudi(row.programStudi) || row.programStudi).filter(Boolean)).size;
+  const activeResearch = mappedData.filter((row) => getResearchStatus(row) === "Aktif").length;
+  const lastUpdated = getLastUpdated(mappedData);
+  const summaryCards = [
+    { label: "Total Mahasiswa", value: formatNumber(mappedData.length), icon: GraduationCap },
+    { label: "Dosen Pembimbing", value: formatNumber(totalDosen), icon: UsersRound },
+    { label: "Program Studi Terlibat", value: formatNumber(totalProdi), icon: BookOpenCheck },
+    { label: "Penelitian Aktif", value: formatNumber(activeResearch), icon: Microscope },
+  ];
 
   const paginatedData = displayData.slice(
     (currentPage - 1) * rowsPerPageNumber,
-    currentPage * rowsPerPageNumber
+    currentPage * rowsPerPageNumber,
   );
   const tableMessage = getJatikertoDataMessage({
     isLoading,
@@ -91,12 +136,21 @@ export default function PelayananAkademik() {
     hasItems: displayData.length > 0,
   });
 
-
   return (
     <JatikertoTableLayout
       categoryName="Pelayanan Akademik"
       subtitle="Kegiatan Riset Mahasiswa Universitas Brawijaya di KST Jatikerto"
       searchValue={searchQuery}
+      searchPlaceholder="Cari mahasiswa, dosen, atau judul penelitian..."
+      headerContent={
+        <JatikertoHero
+          title="Dashboard Pelayanan Akademik"
+          description="Memantau kegiatan riset mahasiswa, dosen pembimbing, program studi terlibat, dan periode penelitian di KST Jatikerto."
+          badges={["Riset Akademik"]}
+          lastUpdated={lastUpdated}
+        />
+      }
+      beforeTable={<JatikertoSummaryCards items={summaryCards} />}
       onSearchChange={(value) => {
         setSearchQuery(value);
         setCurrentPage(1);
@@ -104,41 +158,36 @@ export default function PelayananAkademik() {
     >
       <>
         <div className="overflow-x-auto">
-          <Table className="min-w-[1450px]">
+          <Table className="min-w-[1500px]">
             <TableHeader>
-              <TableRow className="bg-gray-50/80 hover:bg-gray-50/80">
-                <TableHead className="font-bold text-gray-500 text-[12px] w-[50px] pl-5">
+              <TableRow className={tableHeaderClass}>
+                <TableHead className={`${tableHeadClass} w-[56px] pl-5`}>
                   No.
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[220px]">
+                <TableHead className={`${tableHeadClass} min-w-[220px]`}>
                   Nama Mahasiswa
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[240px]">
+                <TableHead className={`${tableHeadClass} min-w-[240px]`}>
                   Dosen Pembimbing
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[180px]">
+                <TableHead className={`${tableHeadClass} min-w-[190px]`}>
                   Program Studi
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[120px]">
+                <TableHead className={`${tableHeadClass} min-w-[150px]`}>
                   Mulai
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[120px]">
+                <TableHead className={`${tableHeadClass} min-w-[150px]`}>
                   Selesai
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[120px]">
+                <TableHead className={`${tableHeadClass} min-w-[140px]`}>
+                  Status
+                </TableHead>
+                <TableHead className={`${tableHeadClass} min-w-[130px]`}>
                   Luasan
                 </TableHead>
-
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[300px]">
+                <TableHead className={`${tableHeadClass} min-w-[320px]`}>
                   Judul Penelitian
                 </TableHead>
-
               </TableRow>
             </TableHeader>
 
@@ -146,123 +195,71 @@ export default function PelayananAkademik() {
               {tableMessage ? (
                 <TableRow>
                   <TableCell
-                    colSpan={8}
-                    className="h-32 text-center text-[13px] text-gray-400 font-medium"
+                    colSpan={9}
+                    className="h-32 text-center text-[13px] font-medium text-gray-400"
                   >
                     {tableMessage}
                   </TableCell>
                 </TableRow>
               ) : (
-                paginatedData.map((row, index) => (
-                <TableRow key={getRowKey(row, index)} className="hover:bg-gray-50/50 group">
-                  <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
-                    {(currentPage - 1) * rowsPerPageNumber + index + 1}.
-                  </TableCell>
+                paginatedData.map((row, index) => {
+                  const status = getResearchStatus(row);
 
-                  <TableCell className="text-[13px] font-medium text-gray-900 max-w-[220px] whitespace-normal break-words leading-relaxed">
-                    {row.namaMahasiswa}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 max-w-[240px] whitespace-normal break-words leading-relaxed">
-                    {row.dosenPembimbing}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 whitespace-normal break-words leading-relaxed">
-                    {normalizeProgramStudi(row.programStudi) ? (
-                      <Badge
-                        className={`${getProgramStudiBadgeClass(row.programStudi)} border`}
-                      >
-                        {normalizeProgramStudi(row.programStudi)}
-                      </Badge>
-                    ) : null}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 min-w-[120px] whitespace-nowrap">
-                    {row.mulai}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 min-w-[120px] whitespace-nowrap">
-                    {row.selesai}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 min-w-[120px] whitespace-nowrap tabular-nums">
-                    {row.luasan}
-                  </TableCell>
-
-                  <TableCell className="text-[13px] text-gray-600 max-w-[300px] whitespace-normal break-words leading-relaxed">
-                    {row.judulPenelitian}
-                  </TableCell>
-
-                </TableRow>
-                ))
+                  return (
+                    <TableRow key={getRowKey(row, index)} className={tableRowClass}>
+                      <TableCell className="pl-5 text-[13px] font-medium text-gray-500">
+                        {(currentPage - 1) * rowsPerPageNumber + index + 1}.
+                      </TableCell>
+                      <TableCell className="max-w-[220px] whitespace-normal break-words text-[13px] font-semibold leading-relaxed text-gray-900">
+                        {row.namaMahasiswa || "-"}
+                      </TableCell>
+                      <TableCell className="max-w-[240px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
+                        {row.dosenPembimbing || "-"}
+                      </TableCell>
+                      <TableCell className="text-[13px] text-gray-600">
+                        {normalizeProgramStudi(row.programStudi) ? (
+                          <Badge className={`${getProgramStudiBadgeClass(row.programStudi)} border`}>
+                            {normalizeProgramStudi(row.programStudi)}
+                          </Badge>
+                        ) : (
+                          "-"
+                        )}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-[13px] text-gray-600">
+                        {formatIndonesianDate(row.mulai)}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-[13px] text-gray-600">
+                        {formatIndonesianDate(row.selesai)}
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-[13px]">
+                        <Badge className={`h-auto rounded-full px-2.5 py-1 ${statusBadgeClass(status)}`}>
+                          {status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-[13px] text-gray-600 tabular-nums">
+                        {formatArea(row.luasan)}
+                      </TableCell>
+                      <TableCell className="max-w-[320px] text-[13px] leading-relaxed text-gray-600">
+                        <p className="line-clamp-2">{row.judulPenelitian || "-"}</p>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               )}
             </TableBody>
           </Table>
         </div>
 
-        {/* Pagination */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-5 py-3 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
-            <span className="whitespace-nowrap">Baris per Page</span>
-            <Select
-              value={rowsPerPage}
-              onValueChange={(value) => {
-                setRowsPerPage(value);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 w-[70px] border-gray-200 bg-white text-[13px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="25">25</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-[13px] text-gray-500 font-medium whitespace-nowrap">
-              Page {currentPage} dari {totalPages}
-            </span>
-
-            <div className="flex items-center gap-1">
-              {[
-                {
-                  icon: ChevronsLeft,
-                  action: () => setCurrentPage(1),
-                  disabled: currentPage === 1,
-                },
-                {
-                  icon: ChevronLeft,
-                  action: () => setCurrentPage(Math.max(1, currentPage - 1)),
-                  disabled: currentPage === 1,
-                },
-                {
-                  icon: ChevronRight,
-                  action: () =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1)),
-                  disabled: currentPage === totalPages,
-                },
-                {
-                  icon: ChevronsRight,
-                  action: () => setCurrentPage(totalPages),
-                  disabled: currentPage === totalPages,
-                },
-              ].map((btn, i) => (
-                <button
-                  key={i}
-                  onClick={btn.action}
-                  disabled={btn.disabled}
-                  className="p-1.5 rounded-md border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  <btn.icon className="size-4" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <JatikertoPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={(value) => {
+            setRowsPerPage(value);
+            setCurrentPage(1);
+          }}
+          onPageChange={setCurrentPage}
+        />
       </>
     </JatikertoTableLayout>
   );
