@@ -24,8 +24,9 @@ import {
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { usePageData } from "@/api/hooks";
+import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
-import { numberValue, rowIdentity, textValue, type JatikertoApiRow } from "../rowMappers";
+import { fieldAliases, getDateValue, getNumberValue, getTextValue, rowIdentity, type JatikertoApiRow } from "../rowMappers";
 
 interface MahasiswaRow extends JatikertoApiRow {
   id?: string;
@@ -52,110 +53,6 @@ const programStudiStyles = {
   "Pendidikan Teknologi Informasi": "bg-rose-400 border-rose-500 text-white",
 };
 
-export const tableData: MahasiswaRow[] = [
-  {
-    no: 1,
-    namaMahasiswa: "Mahasiswa 1 bin fulan marfuah",
-    dosenPembimbing: "Dr. Dosen Pembimbing baik tak terkira",
-    programStudi: "Teknik Informatika",
-    mulai: "Desember",
-    selesai: "Januari",
-    luasan: "150 m²",
-    judulPenelitian:
-      "Judul dari Sebuah Penelitian yang Cukup Panjang dan Perlu Turun Baris",
-  },
-  {
-    no: 2,
-    namaMahasiswa: "Mahasiswa 2",
-    dosenPembimbing: "Dosen Pembimbing 2",
-    programStudi: "Sistem Informasi",
-    mulai: "Januari",
-    selesai: "Februari",
-    luasan: "200 m²",
-    judulPenelitian: "Analisis Efektivitas Metode Baru",
-  },
-  {
-    no: 3,
-    namaMahasiswa: "Mahasiswa 3",
-    dosenPembimbing: "Dosen Pembimbing 3",
-    programStudi: "Pendidikan Teknologi Informasi",
-    mulai: "Februari",
-    selesai: "Maret",
-    luasan: "180 m²",
-    judulPenelitian: "Studi Komparatif Teknologi AI",
-  },
-  {
-    no: 4,
-    namaMahasiswa: "Mahasiswa 4",
-    dosenPembimbing: "Dosen Pembimbing 4",
-    programStudi: "Teknologi Informasi",
-    mulai: "Maret",
-    selesai: "April",
-    luasan: "220 m²",
-    judulPenelitian: "Pengembangan Aplikasi Mobile Interaktif",
-  },
-  {
-    no: 5,
-    namaMahasiswa: "Mahasiswa 5",
-    dosenPembimbing: "Dosen Pembimbing 5",
-    programStudi: "Teknik Komputer",
-    mulai: "April",
-    selesai: "Mei",
-    luasan: "250 m²",
-    judulPenelitian: "Optimalisasi Sistem Informasi Perusahaan",
-  },
-  {
-    no: 6,
-    namaMahasiswa: "Mahasiswa 6",
-    dosenPembimbing: "Dosen Pembimbing 6",
-    programStudi: "Sistem Informasi",
-    mulai: "Mei",
-    selesai: "Juni",
-    luasan: "170 m²",
-    judulPenelitian: "Pemodelan Data untuk Prediksi Cuaca",
-  },
-  {
-    no: 7,
-    namaMahasiswa: "Mahasiswa 7",
-    dosenPembimbing: "Dosen Pembimbing 7",
-    programStudi: "Teknik Informatika",
-    mulai: "Juni",
-    selesai: "Juli",
-    luasan: "300 m²",
-    judulPenelitian: "Rancang Bangun Robotika Otomatis",
-  },
-  {
-    no: 8,
-    namaMahasiswa: "Mahasiswa 8",
-    dosenPembimbing: "Dosen Pembimbing 8",
-    programStudi: "Pendidikan Teknologi Informasi",
-    mulai: "Juli",
-    selesai: "Agustus",
-    luasan: "210 m²",
-    judulPenelitian: "Kajian Dampak Sosial Media",
-  },
-  {
-    no: 9,
-    namaMahasiswa: "Mahasiswa 9",
-    dosenPembimbing: "Dosen Pembimbing 9",
-    programStudi: "Teknologi Informasi",
-    mulai: "Agustus",
-    selesai: "September",
-    luasan: "190 m²",
-    judulPenelitian: "Analisis Keamanan Jaringan Komputer",
-  },
-  {
-    no: 10,
-    namaMahasiswa: "Mahasiswa 10",
-    dosenPembimbing: "Dosen Pembimbing 10",
-    programStudi: "Teknik Komputer",
-    mulai: "September",
-    selesai: "Oktober",
-    luasan: "160 m²",
-    judulPenelitian: "Pengembangan Model Pembelajaran Mesin",
-  },
-];
-
 const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
 
 function getRowKey(row: MahasiswaRow, index: number) {
@@ -163,18 +60,18 @@ function getRowKey(row: MahasiswaRow, index: number) {
 }
 
 function mapMahasiswaRow(row: MahasiswaRow): MahasiswaRow {
-  if (!row.colValues) return row;
+  const luasan = getNumberValue(row, 5, ["luasan", "luas", "area"], Number.NaN);
 
   return {
     ...row,
     id: row.rowId ?? row.id,
-    namaMahasiswa: textValue(row, 0),
-    dosenPembimbing: textValue(row, 1),
-    programStudi: textValue(row, 2) as MahasiswaRow["programStudi"],
-    mulai: textValue(row, 3),
-    selesai: textValue(row, 4),
-    luasan: `${numberValue(row, 5).toLocaleString("id-ID")} m2`,
-    judulPenelitian: textValue(row, 6),
+    namaMahasiswa: getTextValue(row, 0, ["namaMahasiswa", "nama_mahasiswa", "mahasiswa", ...fieldAliases.nama], row.namaMahasiswa),
+    dosenPembimbing: getTextValue(row, 1, ["dosenPembimbing", "dosen_pembimbing", "dosen", "pembimbing"], row.dosenPembimbing),
+    programStudi: getTextValue(row, 2, ["programStudi", "program_studi", "prodi"], row.programStudi) as MahasiswaRow["programStudi"],
+    mulai: getDateValue(row, 3, ["mulai", "tanggalMulai", "tanggal_mulai", "startDate", "start_date"], row.mulai),
+    selesai: getDateValue(row, 4, ["selesai", "tanggalSelesai", "tanggal_selesai", "endDate", "end_date"], row.selesai),
+    luasan: Number.isFinite(luasan) ? `${luasan.toLocaleString("id-ID")} m2` : row.luasan,
+    judulPenelitian: getTextValue(row, 6, ["judulPenelitian", "judul_penelitian", "penelitian", ...fieldAliases.nama], row.judulPenelitian),
   };
 }
 
@@ -189,7 +86,7 @@ export default function PelayananAkademik() {
     error,
     errorStatus,
   } = usePageData<MahasiswaRow>(
-    "/kst/jatikerto/data/akademik/items",
+    API_ENDPOINTS.kst.jatikerto.akademikItems,
     { year: selectedYear, month: selectedMonth, limit: 50 },
   );
 

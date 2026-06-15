@@ -23,8 +23,9 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { usePageData } from "@/api/hooks";
+import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
-import { numberValue, rowIdentity, textValue, type JatikertoApiRow } from "../rowMappers";
+import { fieldAliases, getNumberValue, getTextValue, rowIdentity, type JatikertoApiRow } from "../rowMappers";
 
 interface KomoditasRow extends JatikertoApiRow {
   id?: string;
@@ -38,109 +39,6 @@ interface KomoditasRow extends JatikertoApiRow {
   keterangan: string;
 }
 
-export const tableData: KomoditasRow[] = [
-  {
-    no: 1,
-    nama: "Melon – Golden Aroma yang dipetik khusus",
-    proyeksiPanen: 1500,
-    satuan: "Kg",
-    luasUsaha: "500 m²",
-    masaTanamBulan: 3,
-    masaTanamTahun: "4 Kali",
-    keterangan: "Keterangan",
-  },
-  {
-    no: 2,
-    nama: "Apple – Fuji",
-    proyeksiPanen: 1200,
-    satuan: "Kg",
-    luasUsaha: "600 m²",
-    masaTanamBulan: 5,
-    masaTanamTahun: "3 Kali",
-    keterangan: "Segar dan renyah",
-  },
-  {
-    no: 3,
-    nama: "Banana – Cavendish",
-    proyeksiPanen: 1800,
-    satuan: "Kg",
-    luasUsaha: "700 m²",
-    masaTanamBulan: 4,
-    masaTanamTahun: "5 Kali",
-    keterangan: "Manis dan lembut",
-  },
-  {
-    no: 4,
-    nama: "Orange – Valencia",
-    proyeksiPanen: 1400,
-    satuan: "Kg",
-    luasUsaha: "550 m²",
-    masaTanamBulan: 3,
-    masaTanamTahun: "4 Kali",
-    keterangan: "Asam segar",
-  },
-  {
-    no: 5,
-    nama: "Grapes – Red Globe",
-    proyeksiPanen: 1000,
-    satuan: "Kg",
-    luasUsaha: "450 m²",
-    masaTanamBulan: 6,
-    masaTanamTahun: "3 Kali",
-    keterangan: "Manis berair",
-  },
-  {
-    no: 6,
-    nama: "Papaya – Sunrise",
-    proyeksiPanen: 1300,
-    satuan: "Kg",
-    luasUsaha: "480 m²",
-    masaTanamBulan: 4,
-    masaTanamTahun: "4 Kali",
-    keterangan: "Warna cerah",
-  },
-  {
-    no: 7,
-    nama: "Pineapple – Queen",
-    proyeksiPanen: 1600,
-    satuan: "Kg",
-    luasUsaha: "650 m²",
-    masaTanamBulan: 5,
-    masaTanamTahun: "5 Kali",
-    keterangan: "Aroma tajam",
-  },
-  {
-    no: 8,
-    nama: "Strawberry – Albion",
-    proyeksiPanen: 900,
-    satuan: "Kg",
-    luasUsaha: "300 m²",
-    masaTanamBulan: 7,
-    masaTanamTahun: "6 Kali",
-    keterangan: "Manis pekat",
-  },
-  {
-    no: 9,
-    nama: "Watermelon – Crimson Sweet",
-    proyeksiPanen: 2000,
-    satuan: "Kg",
-    luasUsaha: "800 m²",
-    masaTanamBulan: 3,
-    masaTanamTahun: "4 Kali",
-    keterangan: "Daging merah segar",
-  },
-  {
-    no: 10,
-    nama: "Mango – Alphonso",
-    proyeksiPanen: 1100,
-    satuan: "Kg",
-    luasUsaha: "520 m²",
-    masaTanamBulan: 4,
-    masaTanamTahun: "3 Kali",
-    keterangan: "Manis harum",
-  },
-];
-
 const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
 
 function getRowKey(row: KomoditasRow, index: number) {
@@ -148,18 +46,19 @@ function getRowKey(row: KomoditasRow, index: number) {
 }
 
 function mapKomoditasRow(row: KomoditasRow): KomoditasRow {
-  if (!row.colValues) return row;
+  const luasUsaha = getNumberValue(row, 1, ["luasUsaha", "luas_usaha", "luas", "area"], Number.NaN);
+  const masaTanamTahun = getNumberValue(row, 3, ["masaTanamTahun", "masa_tanam_tahun", "perTahun", "per_tahun"], Number.NaN);
 
   return {
     ...row,
     id: row.rowId ?? row.id,
-    nama: textValue(row, 0),
-    luasUsaha: `${numberValue(row, 1).toLocaleString("id-ID")} m2`,
-    masaTanamBulan: numberValue(row, 2),
-    masaTanamTahun: `${numberValue(row, 3)} Kali`,
-    proyeksiPanen: numberValue(row, 4),
-    satuan: textValue(row, 5),
-    keterangan: textValue(row, 6, "-"),
+    nama: getTextValue(row, 0, fieldAliases.nama, row.nama),
+    luasUsaha: Number.isFinite(luasUsaha) ? `${luasUsaha.toLocaleString("id-ID")} m2` : row.luasUsaha,
+    masaTanamBulan: getNumberValue(row, 2, ["masaTanamBulan", "masa_tanam_bulan", "bulan"], row.masaTanamBulan),
+    masaTanamTahun: Number.isFinite(masaTanamTahun) ? `${masaTanamTahun} Kali` : row.masaTanamTahun,
+    proyeksiPanen: getNumberValue(row, 4, ["proyeksiPanen", "proyeksi_panen", "panen", ...fieldAliases.jumlah], row.proyeksiPanen),
+    satuan: getTextValue(row, 5, ["satuan", "unit"], row.satuan),
+    keterangan: getTextValue(row, 6, ["keterangan", "description", "catatan"], row.keterangan ?? "-"),
   };
 }
 
@@ -173,7 +72,7 @@ export default function Pertanian() {
     isLoading,
     error,
     errorStatus,
-  } = usePageData<KomoditasRow>("/kst/jatikerto/data/pertanian/items", {
+  } = usePageData<KomoditasRow>(API_ENDPOINTS.kst.jatikerto.pertanianItems, {
     year: selectedYear,
     month: selectedMonth,
     limit: 50,

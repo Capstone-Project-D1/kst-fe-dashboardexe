@@ -2,7 +2,6 @@ import {
   Activity,
   Package,
   TrendingUp,
-  TrendingDown,
   Users,
   ClipboardList,
   CalendarDays,
@@ -27,6 +26,13 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { useApiData } from "@/api/hooks";
+import { API_ENDPOINTS } from "@/api/endpoints";
+import {
+  adaptDashboardSummary,
+  numberOrNull,
+  sourceData,
+  valueOf,
+} from "./adapters";
 
 const collaborationConfig = {
 
@@ -43,59 +49,13 @@ const researchConfig = {
   },
 } satisfies ChartConfig;
 
-type DashboardSource = {
-  kstIdentifier?: string;
-  data?: Record<string, unknown> | null;
-  warning?: string;
-};
-
-type DashboardSummary = {
-  totalVisitors?: number;
-  todayVisitors?: number;
-  weekVisitors?: number;
-  activeKst?: number;
-  totalKst?: number;
-  totalProduction?: number;
-  activeOperations?: number;
-  greenPerformance?: number;
-  sources?: DashboardSource[] | Record<string, DashboardSource | Record<string, unknown>>;
-  warnings?: string[];
-};
-
 function numberValue(value: unknown) {
-  return typeof value === "number" && Number.isFinite(value) ? value : 0;
-}
-
-function sourceData(summary: DashboardSummary | null, kstIdentifier: string) {
-  const sources = summary?.sources;
-  if (Array.isArray(sources)) {
-    const source = sources.find((item) => item.kstIdentifier === kstIdentifier);
-    return {
-      data: source?.data ?? null,
-      warning: source?.warning,
-    };
-  }
-
-  if (sources && typeof sources === "object") {
-    const source = sources[kstIdentifier];
-    if (source && typeof source === "object" && "data" in source) {
-      const typedSource = source as DashboardSource;
-      return {
-        data: typedSource.data ?? null,
-        warning: typedSource.warning,
-      };
-    }
-    return {
-      data: (source as Record<string, unknown>) ?? null,
-      warning: undefined,
-    };
-  }
-
-  return { data: null, warning: undefined };
+  return numberOrNull(value) ?? 0;
 }
 
 function normalizeCollaborationRows(payload: unknown) {
-  const rows = Array.isArray(payload) ? payload : [];
+  const value = valueOf(payload, ["value", "items", "data"]);
+  const rows = Array.isArray(payload) ? payload : Array.isArray(value) ? value : [];
   return rows.map((item, index) => {
     const record = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
     return {
@@ -106,7 +66,8 @@ function normalizeCollaborationRows(payload: unknown) {
 }
 
 function normalizeResearchRows(payload: unknown) {
-  const rows = Array.isArray(payload) ? payload : [];
+  const value = valueOf(payload, ["value", "items", "data"]);
+  const rows = Array.isArray(payload) ? payload : Array.isArray(value) ? value : [];
   return rows.map((item, index) => {
     const record = item && typeof item === "object" ? (item as Record<string, unknown>) : {};
     return {
@@ -163,33 +124,88 @@ function CircularProgress({
   );
 }
 
-function TrendBadge({ value }: { value: string }) {
-  return (
-    <Badge className="text-[#27A376] text-[11px] font-bold px-2 py-1 rounded-md flex items-center gap-1 border-[#B2DDB5] bg-[#F5FBF5]">
-      <TrendingUp className="size-4 text-[#46A758]" />
-      {value}
-    </Badge>
-  );
+function DisplayNumber({ value }: { value: number | null }) {
+  return value === null ? <>Belum tersedia</> : <>{value.toLocaleString("id-ID")}</>;
+}
+
+function MutedUnavailable() {
+  return <span className="text-xs font-semibold text-gray-400">Belum tersedia</span>;
+}
+
+function sourceStatusLabel(
+  source: ReturnType<typeof sourceData>,
+  label: string,
+  summaryLoaded: boolean,
+) {
+  if (source.warning) return `${label} belum terintegrasi`;
+  if (source.status) return `${label}: ${source.status}`;
+  if (source.data) return `${label} berhasil dimuat`;
+  return summaryLoaded ? `${label} belum tersedia` : `${label} menunggu data`;
 }
 
 export default function Dashboard() {
-  const { data: summary } = useApiData<DashboardSummary>("/dashboard/summary");
-  const { data: collaboration } = useApiData<{ value?: unknown }>(
-    "/dashboard/collaboration",
+  const {
+    data: summaryPayload,
+    isLoading: isSummaryLoading,
+    error: summaryError,
+  } = useApiData<unknown>(API_ENDPOINTS.dashboard.summary);
+  const {
+    data: collaboration,
+    isLoading: isCollaborationLoading,
+    error: collaborationError,
+  } = useApiData<unknown>(
+    API_ENDPOINTS.dashboard.collaboration,
     { period: "6months" },
   );
-  const { data: research } = useApiData<{ value?: unknown }>(
-    "/dashboard/research-projects",
+  const {
+    data: research,
+    isLoading: isResearchLoading,
+    error: researchError,
+  } = useApiData<unknown>(
+    API_ENDPOINTS.dashboard.researchProjects,
     { period: "6months" },
   );
-  const liveCollaborationData = normalizeCollaborationRows(collaboration?.value);
-  const liveResearchData = normalizeResearchRows(research?.value);
+  const summary = adaptDashboardSummary(summaryPayload);
+  const liveCollaborationData = normalizeCollaborationRows(collaboration);
+  const liveResearchData = normalizeResearchRows(research);
   const cangarSource = sourceData(summary, "cangar");
+  const jatikertoSource = sourceData(summary, "jatikerto");
+  const ngijoSource = sourceData(summary, "ngijo");
   const cangarData = cangarSource.data;
   const isCangarActive = Boolean(cangarData);
+  const hasEndpointError = Boolean(summaryError || collaborationError || researchError);
+  const latestCollaborationTotal =
+    liveCollaborationData.length > 0
+      ? liveCollaborationData[liveCollaborationData.length - 1].jatikerto
+      : null;
+  const summaryLoaded = !isSummaryLoading && !summaryError;
 
   return (
     <div className="flex flex-col gap-4 p-4 md:p-6 bg-gray-50/50 min-h-screen">
+      {hasEndpointError ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+          Data gagal dimuat. Silakan coba lagi nanti.
+        </div>
+      ) : null}
+
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
+        {[cangarSource, jatikertoSource, ngijoSource].map((source, index) => {
+          const label = ["Cangar", "Jatikerto", "Ngijo"][index];
+          const isWarning = Boolean(source.warning);
+          return (
+            <Badge
+              key={label}
+              variant="outline"
+              className={`w-fit rounded-md bg-white text-[11px] font-semibold ${
+                isWarning ? "border-red-200 text-red-700" : source.data ? "border-emerald-200 text-emerald-700" : "border-gray-200 text-gray-500"
+              }`}
+            >
+              {sourceStatusLabel(source, label, summaryLoaded)}
+            </Badge>
+          );
+        })}
+      </div>
+
       {/* SECTION 1: Top Dashboard */}
       <div className="grid grid-cols-1 lg:grid-cols-[2.5fr_1fr] gap-4">
         {/* Statistik Pengunjung Website */}
@@ -237,9 +253,9 @@ export default function Dashboard() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-2xl font-extrabold text-gray-900">
-                    {summary?.totalVisitors ?? 0}
+                    {isSummaryLoading ? "Memuat..." : <DisplayNumber value={summary.totalVisitors} />}
                   </span>
-                  <TrendBadge value="+12.5%" />
+                  <MutedUnavailable />
                 </div>
               </div>
 
@@ -251,9 +267,9 @@ export default function Dashboard() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-2xl font-extrabold text-gray-900">
-                    {summary?.todayVisitors ?? 0}
+                    {isSummaryLoading ? "Memuat..." : <DisplayNumber value={summary.todayVisitors} />}
                   </span>
-                  <TrendBadge value="+12.5%" />
+                  <MutedUnavailable />
                 </div>
               </div>
 
@@ -265,9 +281,9 @@ export default function Dashboard() {
 
                 <div className="flex items-center justify-between">
                   <span className="text-2xl font-extrabold text-gray-900">
-                    {summary?.weekVisitors ?? 0}
+                    {isSummaryLoading ? "Memuat..." : <DisplayNumber value={summary.weekVisitors} />}
                   </span>
-                  <TrendBadge value="+12.5%" />
+                  <MutedUnavailable />
                 </div>
               </div>
             </div>
@@ -279,7 +295,7 @@ export default function Dashboard() {
                 </p>
                 <p className="text-[13px] text-gray-500">
                   <span className="text-xl font-extrabold text-gray-900">
-                    {summary?.totalVisitors ?? 0}
+                    {summary.totalVisitors === null ? "Belum tersedia" : summary.totalVisitors.toLocaleString("id-ID")}
                   </span>{" "}
                   Pengunjung
                 </p>
@@ -290,10 +306,7 @@ export default function Dashboard() {
                   Hari Tertinggi
                 </p>
                 <p className="text-[14px] font-extrabold text-gray-900">
-                  Minggu, 10 Mei{" "}
-                  <span className="text-[12px] font-medium text-gray-400">
-                  ({summary?.todayVisitors ?? 0})
-                  </span>
+                  Belum tersedia
                 </p>
               </div>
             </div>
@@ -314,7 +327,9 @@ export default function Dashboard() {
 
           <CardContent className="space-y-4 pt-2">
             <div className="text-3xl font-extrabold text-gray-900 tracking-tight">
-              {summary?.activeKst ?? 0} dari {summary?.totalKst ?? 0} KST
+              {summary.activeKst === null || summary.totalKst === null
+                ? "Belum tersedia"
+                : `${summary.activeKst} dari ${summary.totalKst} KST`}
             </div>
 
             <div className="flex flex-wrap gap-1.5">
@@ -379,17 +394,17 @@ export default function Dashboard() {
           <CardContent className="space-y-4 pt-2">
             <div className="flex items-center justify-between">
               <div className="text-3xl font-extrabold text-gray-900 tracking-tight">
-                {(summary?.totalProduction ?? 0).toLocaleString("id-ID")}
+                <DisplayNumber value={summary.totalProduction} />
               </div>
-              <TrendBadge value="+15%" />
+              <MutedUnavailable />
             </div>
 
             <div className="space-y-1">
               <p className="text-[14px] font-bold text-gray-800">
-                Peningkatan 12.5% dari bulan lalu
+                Tren belum tersedia
               </p>
               <p className="text-[12px] text-gray-400 font-medium">
-                Total barang pada bulan ini meningkat sebesar 15%.
+                Data historis produksi belum tersedia untuk menghitung tren.
               </p>
             </div>
           </CardContent>
@@ -419,17 +434,17 @@ export default function Dashboard() {
           <CardContent className="space-y-4 pt-2">
             <div className="flex items-center justify-between">
               <div className="text-3xl font-extrabold text-gray-900 tracking-tight">
-                {(summary?.activeOperations ?? 0).toLocaleString("id-ID")}
+                <DisplayNumber value={summary.activeOperations} />
               </div>
-              <TrendBadge value="+5%" />
+              <MutedUnavailable />
             </div>
 
             <div className="space-y-1">
               <p className="text-[14px] font-bold text-gray-800">
-                Peningkatan 12.5% dari bulan lalu
+                Tren belum tersedia
               </p>
               <p className="text-[12px] text-gray-400 font-medium">
-                Total barang pada bulan ini meningkat sebesar 5%.
+                Data perbandingan periode belum tersedia.
               </p>
             </div>
           </CardContent>
@@ -465,7 +480,7 @@ export default function Dashboard() {
                   Reservasi
                 </p>
                 <p className="text-xl font-extrabold text-gray-900">
-                  {numberValue(cangarData?.totalVisitors).toLocaleString("id-ID")}
+                  <DisplayNumber value={numberOrNull(valueOf(cangarData, ["totalVisitors", "total_visitors"]))} />
                 </p>
               </div>
 
@@ -474,7 +489,7 @@ export default function Dashboard() {
                   Operasi
                 </p>
                 <p className="text-xl font-extrabold text-gray-900">
-                  {numberValue(cangarData?.activeOperations).toLocaleString("id-ID")}
+                  <DisplayNumber value={numberOrNull(valueOf(cangarData, ["activeOperations", "active_operations"]))} />
                 </p>
               </div>
 
@@ -483,7 +498,7 @@ export default function Dashboard() {
                   Stok
                 </p>
                 <p className="text-xl font-extrabold text-gray-900">
-                  {numberValue(cangarData?.totalProduction).toLocaleString("id-ID")}
+                  <DisplayNumber value={numberOrNull(valueOf(cangarData, ["totalProduction", "total_production"]))} />
                 </p>
               </div>
             </div>
@@ -491,8 +506,8 @@ export default function Dashboard() {
             <p className="text-[12px] text-gray-400 font-medium">
               {cangarSource.warning ??
                 (isCangarActive
-                  ? "Data Cangar tersedia dari backend gateway."
-                  : "Data Cangar belum tersedia dari backend gateway.")}
+                  ? "Data Cangar tersedia."
+                  : "Data Cangar belum tersedia.")}
             </p>
           </CardContent>
         </Card>
@@ -522,7 +537,11 @@ export default function Dashboard() {
           </CardHeader>
 
           <CardContent className="pt-6">
-            {liveResearchData.length === 0 ? (
+            {isResearchLoading ? (
+              <div className="h-50 w-full flex items-center justify-center rounded-xl bg-gray-50 text-sm font-medium text-gray-500">
+                Memuat data proyek riset...
+              </div>
+            ) : liveResearchData.length === 0 ? (
               <div className="h-50 w-full flex items-center justify-center rounded-xl bg-gray-50 text-sm font-medium text-gray-500">
                 Data proyek riset belum tersedia.
               </div>
@@ -605,14 +624,19 @@ export default function Dashboard() {
           </CardHeader>
 
           <CardContent className="pt-6">
-            <div className="flex flex-col items-center justify-center gap-4">
-              <CircularProgress value={summary?.greenPerformance ?? 0} label="Excellent" />
+            {summary.greenPerformance === null ? (
+              <div className="flex h-[190px] items-center justify-center text-sm font-semibold text-gray-400">
+                Belum tersedia
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center gap-4">
+                <CircularProgress value={summary.greenPerformance} label="Skor" />
 
-              <p className="text-[12px] text-gray-700 font-semibold text-center">
-                Kinerja 12% lebih tinggi dibandingkan kuartal lalu.
-                <TrendingUp className="inline-block ml-1 size-3 text-gray-700" />
-              </p>
-            </div>
+                <p className="text-[12px] text-gray-700 font-semibold text-center">
+                  Data green performance tersedia.
+                </p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -648,7 +672,11 @@ export default function Dashboard() {
                 Selama 6 Bulan terakhir
               </p>
 
-              {liveCollaborationData.length === 0 ? (
+              {isCollaborationLoading ? (
+                <div className="h-50 w-full flex items-center justify-center text-sm font-medium text-gray-500">
+                  Memuat data kolaborasi...
+                </div>
+              ) : liveCollaborationData.length === 0 ? (
                 <div className="h-50 w-full flex items-center justify-center text-sm font-medium text-gray-500">
                   Data kolaborasi belum tersedia.
                 </div>
@@ -699,17 +727,16 @@ export default function Dashboard() {
 
               <div className="flex items-center justify-between">
                 <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
-                  200
+                  {latestCollaborationTotal === null
+                    ? "Belum tersedia"
+                    : latestCollaborationTotal.toLocaleString("id-ID")}
                 </span>
 
-                <Badge className="text-[#E5484D] border-[#F8D7DA] bg-[#FFF5F5] text-[10px] font-bold px-2 py-1 rounded-md flex items-center gap-1">
-                  <TrendingDown className="size-4 text-[#E5484D]" />
-                  -20%
-                </Badge>
+                <MutedUnavailable />
               </div>
 
               <p className="text-[11px] text-gray-400 font-medium">
-                Penurunan 20% dari 6 bulan lalu
+                Tren 6 bulan belum dapat dihitung karena data tanggal kemitraan belum tersedia.
               </p>
             </div>
           </CardContent>

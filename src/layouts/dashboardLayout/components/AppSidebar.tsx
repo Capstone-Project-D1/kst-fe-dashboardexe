@@ -605,7 +605,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
                   <p className="text-[12px] text-gray-400 leading-relaxed">
                     Untuk frontend sementara tetap mengunduh CSV dummy. Format
-                    Excel/PDF nanti bisa disambungkan ke backend.
+                    Excel/PDF nanti akan tersedia.
                   </p>
                 </div>
               </div>

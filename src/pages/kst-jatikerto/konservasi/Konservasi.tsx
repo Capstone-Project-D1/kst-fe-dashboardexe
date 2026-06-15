@@ -24,8 +24,9 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { usePageData } from "@/api/hooks";
+import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
-import { numberValue, rowIdentity, textValue, type JatikertoApiRow } from "../rowMappers";
+import { fieldAliases, getNumberValue, getTextValue, rowIdentity, type JatikertoApiRow } from "../rowMappers";
 
 interface KonservasiRow extends JatikertoApiRow {
   id?: string;
@@ -39,122 +40,6 @@ interface KonservasiRow extends JatikertoApiRow {
 
 type KonservasiCategory = "konservasi-hewan" | "konservasi-tumbuhan";
 
-export const hewanData: KonservasiRow[] = [
-  {
-    no: 1,
-    namaKomoditas: "Rusa Totol",
-    foto:
-      "https://images.unsplash.com/photo-1484406566174-9da000fda645?w=300&h=160&fit=crop",
-    jumlah: 8,
-    satuan: "Ekor",
-    keterangan: "Keterangan dari hewan dan gambar",
-  },
-  {
-    no: 2,
-    namaKomoditas: "Kijang Jawa kijang jawa pajero",
-    foto:
-      "https://images.unsplash.com/photo-1546182990-dffeafbe841d?w=300&h=160&fit=crop",
-    jumlah: 18,
-    satuan: "Ekor",
-    keterangan:
-      "Keterangan dari hewan dan gambar yang cukup panjang sehingga perlu turun baris agar tabel tetap rapi.",
-  },
-  {
-    no: 3,
-    namaKomoditas: "Merak Hijau",
-    foto:
-      "https://images.unsplash.com/photo-1522926193341-e9ffd686c60f?w=300&h=160&fit=crop",
-    jumlah: 2,
-    satuan: "Ekor",
-    keterangan: "Keterangan dari hewan dan gambar",
-  },
-  {
-    no: 4,
-    namaKomoditas: "Elang Jawa",
-    foto:
-      "https://images.unsplash.com/photo-1501706362039-c6e8090b8372?w=300&h=160&fit=crop",
-    jumlah: 4,
-    satuan: "Ekor",
-    keterangan: "Pemantauan habitat dan kesehatan rutin",
-  },
-  {
-    no: 5,
-    namaKomoditas: "Burung Jalak Bali",
-    foto:
-      "https://images.unsplash.com/photo-1522926193341-e9ffd686c60f?w=300&h=160&fit=crop",
-    jumlah: 6,
-    satuan: "Ekor",
-    keterangan: "Program konservasi dan pengembangbiakan",
-  },
-  {
-    no: 6,
-    namaKomoditas: "Kura-kura Hutan",
-    foto:
-      "https://images.unsplash.com/photo-1437622368342-7a3d73a34c8f?w=300&h=160&fit=crop",
-    jumlah: 12,
-    satuan: "Ekor",
-    keterangan: "Perawatan area konservasi semi alami",
-  },
-];
-
-export const tumbuhanData: KonservasiRow[] = [
-  {
-    no: 1,
-    namaKomoditas: "Anggrek Bulan",
-    foto:
-      "https://images.unsplash.com/photo-1566907225470-b77b78824271?w=300&h=160&fit=crop",
-    jumlah: 35,
-    satuan: "Pohon",
-    keterangan: "Tanaman konservasi dengan pemantauan kelembaban rutin",
-  },
-  {
-    no: 2,
-    namaKomoditas: "Kantong Semar",
-    foto:
-      "https://images.unsplash.com/photo-1501004318641-b39e6451bec6?w=300&h=160&fit=crop",
-    jumlah: 20,
-    satuan: "Tanaman",
-    keterangan:
-      "Tumbuhan endemik yang membutuhkan area lembab dan perlindungan khusus.",
-  },
-  {
-    no: 3,
-    namaKomoditas: "Edelweis Jawa",
-    foto:
-      "https://images.unsplash.com/photo-1490750967868-88aa4486c946?w=300&h=160&fit=crop",
-    jumlah: 15,
-    satuan: "Rumpun",
-    keterangan: "Dibudidayakan sebagai bagian dari konservasi tumbuhan langka",
-  },
-  {
-    no: 4,
-    namaKomoditas: "Bambu Petung",
-    foto:
-      "https://images.unsplash.com/photo-1540946485063-a40da27545f8?w=300&h=160&fit=crop",
-    jumlah: 50,
-    satuan: "Batang",
-    keterangan: "Digunakan untuk konservasi lahan dan penguatan area hijau",
-  },
-  {
-    no: 5,
-    namaKomoditas: "Pohon Trembesi",
-    foto:
-      "https://images.unsplash.com/photo-1448375240586-882707db888b?w=300&h=160&fit=crop",
-    jumlah: 28,
-    satuan: "Pohon",
-    keterangan: "Tanaman peneduh dan penyerap karbon di area konservasi",
-  },
-  {
-    no: 6,
-    namaKomoditas: "Paku Sarang Burung",
-    foto:
-      "https://images.unsplash.com/photo-1509423350716-97f9360b4e09?w=300&h=160&fit=crop",
-    jumlah: 40,
-    satuan: "Tanaman",
-    keterangan: "Tumbuhan hias konservasi yang dirawat pada area teduh",
-  },
-];
-
 const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
 
 function getRowKey(row: KonservasiRow, category: KonservasiCategory, index: number) {
@@ -162,28 +47,26 @@ function getRowKey(row: KonservasiRow, category: KonservasiCategory, index: numb
 }
 
 function mapKonservasiRow(row: KonservasiRow, category: KonservasiCategory): KonservasiRow {
-  if (!row.colValues) return row;
-
   if (category === "konservasi-hewan") {
     return {
       ...row,
       id: row.rowId ?? row.id,
-      namaKomoditas: textValue(row, 0),
-      foto: textValue(row, 1),
-      jumlah: numberValue(row, 2),
-      satuan: textValue(row, 3),
-      keterangan: textValue(row, 4, "-"),
+      namaKomoditas: getTextValue(row, 0, fieldAliases.nama, row.namaKomoditas),
+      foto: getTextValue(row, 1, ["foto", "image", "gambar", "photo", "url"], row.foto ?? ""),
+      jumlah: getNumberValue(row, 2, fieldAliases.jumlah, row.jumlah),
+      satuan: getTextValue(row, 3, ["satuan", "unit"], row.satuan),
+      keterangan: getTextValue(row, 4, ["keterangan", "description", "catatan"], row.keterangan ?? "-"),
     };
   }
 
   return {
     ...row,
     id: row.rowId ?? row.id,
-    namaKomoditas: textValue(row, 0),
-    foto: row.foto ?? "",
-    jumlah: numberValue(row, 4),
-    satuan: textValue(row, 5),
-    keterangan: textValue(row, 6, "-"),
+    namaKomoditas: getTextValue(row, 0, fieldAliases.nama, row.namaKomoditas),
+    foto: getTextValue(row, 1, ["foto", "image", "gambar", "photo", "url"], row.foto ?? ""),
+    jumlah: getNumberValue(row, 4, fieldAliases.jumlah, row.jumlah),
+    satuan: getTextValue(row, 5, ["satuan", "unit"], row.satuan),
+    keterangan: getTextValue(row, 6, ["keterangan", "description", "catatan"], row.keterangan ?? "-"),
   };
 }
 
@@ -196,8 +79,8 @@ export default function Konservasi() {
     useState<KonservasiCategory>("konservasi-hewan");
   const konservasiEndpoint =
     selectedCategory === "konservasi-hewan"
-      ? "/kst/jatikerto/data/konservasi/hewan"
-      : "/kst/jatikerto/data/konservasi/tanaman";
+      ? API_ENDPOINTS.kst.jatikerto.konservasiHewan
+      : API_ENDPOINTS.kst.jatikerto.konservasiTanaman;
   const {
     items: activeData,
     isLoading,
@@ -352,11 +235,17 @@ export default function Konservasi() {
 
                   <TableCell className="min-w-[180px]">
                     <div className="flex justify-center">
-                      <img
-                        src={row.foto}
-                        alt={row.namaKomoditas}
-                        className="h-[70px] w-[150px] rounded-xl object-cover"
-                      />
+                      {row.foto ? (
+                        <img
+                          src={row.foto}
+                          alt={row.namaKomoditas}
+                          className="h-[70px] w-[150px] rounded-xl object-cover"
+                        />
+                      ) : (
+                        <div className="flex h-[70px] w-[150px] items-center justify-center rounded-xl bg-gray-100 text-xs font-medium text-gray-400">
+                          Belum tersedia
+                        </div>
+                      )}
                     </div>
                   </TableCell>
 

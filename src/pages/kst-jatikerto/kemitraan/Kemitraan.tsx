@@ -23,8 +23,9 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { usePageData } from "@/api/hooks";
+import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
-import { rowIdentity, textValue, type JatikertoApiRow } from "../rowMappers";
+import { fieldAliases, getDateValue, getTextValue, rowIdentity, type JatikertoApiRow } from "../rowMappers";
 
 interface MitraRow extends JatikertoApiRow {
   id?: string;
@@ -35,79 +36,6 @@ interface MitraRow extends JatikertoApiRow {
   keterangan: string;
 }
 
-export const tableData: MitraRow[] = [
-  {
-    no: 1,
-    mitra: "PT Teknologi Informasi dan Inovasi Digital Nusantara Indonesia",
-    bidangKerjasama: "Pengembangan Sistem Informasi Pertanian Cerdas",
-    jangkaWaktuKontrak: "8 Mei 2026 - 8 Mei 2027",
-    keterangan: "-",
-  },
-  {
-    no: 2,
-    mitra: "CV Agro Sejahtera Mandiri",
-    bidangKerjasama: "Pertanian",
-    jangkaWaktuKontrak: "15 Juni 2026 - 15 Juni 2027",
-    keterangan: "-",
-  },
-  {
-    no: 3,
-    mitra: "PT Green Energy Indonesia",
-    bidangKerjasama: "Energi Terbarukan",
-    jangkaWaktuKontrak: "1 Juli 2026 - 1 Juli 2027",
-    keterangan: "-",
-  },
-  {
-    no: 4,
-    mitra: "Yayasan Pendidikan Maju Bersama",
-    bidangKerjasama: "Pendidikan",
-    jangkaWaktuKontrak: "20 Agustus 2026 - 20 Agustus 2027",
-    keterangan: "-",
-  },
-  {
-    no: 5,
-    mitra: "PT Wisata Alam Nusantara",
-    bidangKerjasama: "Pariwisata",
-    jangkaWaktuKontrak: "10 September 2026 - 10 September 2027",
-    keterangan: "-",
-  },
-  {
-    no: 6,
-    mitra: "PT Samudra Perikanan Indonesia",
-    bidangKerjasama: "Perikanan",
-    jangkaWaktuKontrak: "5 Oktober 2026 - 5 Oktober 2027",
-    keterangan: "-",
-  },
-  {
-    no: 7,
-    mitra: "PT Manufaktur Teknologi Indonesia",
-    bidangKerjasama: "Manufaktur",
-    jangkaWaktuKontrak: "12 November 2026 - 12 November 2027",
-    keterangan: "-",
-  },
-  {
-    no: 8,
-    mitra: "PT Transportasi Cerdas Indonesia",
-    bidangKerjasama: "Transportasi",
-    jangkaWaktuKontrak: "25 Desember 2026 - 25 Desember 2027",
-    keterangan: "-",
-  },
-  {
-    no: 9,
-    mitra: "Bank Inovasi Nusantara",
-    bidangKerjasama: "Keuangan",
-    jangkaWaktuKontrak: "3 Januari 2027 - 3 Januari 2028",
-    keterangan: "-",
-  },
-  {
-    no: 10,
-    mitra: "PT Kesehatan Digital Indonesia",
-    bidangKerjasama: "Kesehatan",
-    jangkaWaktuKontrak: "18 Februari 2027 - 18 Februari 2028",
-    keterangan: "-",
-  },
-];
-
 const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
 
 function getRowKey(row: MitraRow, index: number) {
@@ -115,18 +43,19 @@ function getRowKey(row: MitraRow, index: number) {
 }
 
 function mapMitraRow(row: MitraRow): MitraRow {
-  if (!row.colValues) return row;
-
-  const mulai = textValue(row, 2);
-  const selesai = textValue(row, 3);
+  const mulai = getDateValue(row, 2, ["mulai", "tanggalMulai", "tanggal_mulai", "startDate", "start_date"]);
+  const selesai = getDateValue(row, 3, ["selesai", "tanggalSelesai", "tanggal_selesai", "endDate", "end_date"]);
 
   return {
     ...row,
     id: row.rowId ?? row.id,
-    mitra: textValue(row, 0),
-    bidangKerjasama: textValue(row, 1),
-    jangkaWaktuKontrak: [mulai, selesai].filter(Boolean).join(" - "),
-    keterangan: textValue(row, 4, "-"),
+    mitra: getTextValue(row, 0, ["mitra", "partner", ...fieldAliases.nama], row.mitra),
+    bidangKerjasama: getTextValue(row, 1, ["bidangKerjasama", "bidang_kerjasama", "kerjasama", ...fieldAliases.status], row.bidangKerjasama),
+    jangkaWaktuKontrak:
+      getTextValue(row, -1, ["jangkaWaktuKontrak", "jangka_waktu_kontrak", "kontrak"], "") ||
+      [mulai, selesai].filter(Boolean).join(" - ") ||
+      row.jangkaWaktuKontrak,
+    keterangan: getTextValue(row, 4, ["keterangan", "description", "catatan"], row.keterangan ?? "-"),
   };
 }
 
@@ -140,7 +69,7 @@ export default function Kemitraan() {
     isLoading,
     error,
     errorStatus,
-  } = usePageData<MitraRow>("/kst/jatikerto/data/kemitraan/items", {
+  } = usePageData<MitraRow>(API_ENDPOINTS.kst.jatikerto.kemitraanItems, {
     year: selectedYear,
     month: selectedMonth,
     limit: 50,

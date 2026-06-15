@@ -23,8 +23,9 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { usePageData } from "@/api/hooks";
+import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
-import { numberValue, rowIdentity, textValue, type JatikertoApiRow } from "../rowMappers";
+import { fieldAliases, getNumberValue, getTextValue, rowIdentity, type JatikertoApiRow } from "../rowMappers";
 
 interface PeternakanRow extends JatikertoApiRow {
   id?: string;
@@ -38,109 +39,6 @@ interface PeternakanRow extends JatikertoApiRow {
   keterangan: string;
 }
 
-export const tableData: PeternakanRow[] = [
-  {
-    no: 1,
-    namaKomoditas: "Sapi",
-    jumlah: 1500,
-    satuan: "Ekor",
-    luasUsaha: "700 m²",
-    ketersediaanBulan: 1,
-    ketersediaanTahun: "1 Kali",
-    keterangan: "Keterangan",
-  },
-  {
-    no: 2,
-    namaKomoditas: "Kambing",
-    jumlah: 800,
-    satuan: "Ekor",
-    luasUsaha: "400 m²",
-    ketersediaanBulan: 2,
-    ketersediaanTahun: "2 Kali",
-    keterangan: "Rutin setiap pagi",
-  },
-  {
-    no: 3,
-    namaKomoditas: "Ayam",
-    jumlah: 3000,
-    satuan: "Ekor",
-    luasUsaha: "500 m²",
-    ketersediaanBulan: 3,
-    ketersediaanTahun: "3 Kali",
-    keterangan: "Pemberian pakan organik",
-  },
-  {
-    no: 4,
-    namaKomoditas: "Bebek",
-    jumlah: 1200,
-    satuan: "Ekor",
-    luasUsaha: "350 m²",
-    ketersediaanBulan: 1,
-    ketersediaanTahun: "1 Kali",
-    keterangan: "Pengontrolan kesehatan rutin",
-  },
-  {
-    no: 5,
-    namaKomoditas: "Kelinci",
-    jumlah: 600,
-    satuan: "Ekor",
-    luasUsaha: "150 m²",
-    ketersediaanBulan: 1,
-    ketersediaanTahun: "1 Kali",
-    keterangan: "Pemberian sayuran segar",
-  },
-  {
-    no: 6,
-    namaKomoditas: "Ikan Lele",
-    jumlah: 5000,
-    satuan: "Ekor",
-    luasUsaha: "200 m²",
-    ketersediaanBulan: 2,
-    ketersediaanTahun: "2 Kali",
-    keterangan: "Pemantauan kualitas air",
-  },
-  {
-    no: 7,
-    namaKomoditas: "Kuda",
-    jumlah: 50,
-    satuan: "Ekor",
-    luasUsaha: "1000 m²",
-    ketersediaanBulan: 1,
-    ketersediaanTahun: "1 Kali",
-    keterangan: "Pelatihan mingguan",
-  },
-  {
-    no: 8,
-    namaKomoditas: "Itik",
-    jumlah: 1500,
-    satuan: "Ekor",
-    luasUsaha: "300 m²",
-    ketersediaanBulan: 1,
-    ketersediaanTahun: "1 Kali",
-    keterangan: "Pengendalian hama",
-  },
-  {
-    no: 9,
-    namaKomoditas: "Burung Puyuh",
-    jumlah: 2500,
-    satuan: "Ekor",
-    luasUsaha: "200 m²",
-    ketersediaanBulan: 3,
-    ketersediaanTahun: "3 Kali",
-    keterangan: "Pemberian suplemen vitamin",
-  },
-  {
-    no: 10,
-    namaKomoditas: "Domba",
-    jumlah: 900,
-    satuan: "Ekor",
-    luasUsaha: "600 m²",
-    ketersediaanBulan: 2,
-    ketersediaanTahun: "2 Kali",
-    keterangan: "Pemeriksaan kesehatan bulanan",
-  },
-];
-
 const months = ["Semua Bulan", "Januari", "Februari", "Maret", "April"];
 
 function getRowKey(row: PeternakanRow, index: number) {
@@ -148,18 +46,19 @@ function getRowKey(row: PeternakanRow, index: number) {
 }
 
 function mapPeternakanRow(row: PeternakanRow): PeternakanRow {
-  if (!row.colValues) return row;
+  const luasUsaha = getNumberValue(row, 1, ["luasUsaha", "luas_usaha", "luas", "area"], Number.NaN);
+  const ketersediaanTahun = getNumberValue(row, 3, ["ketersediaanTahun", "ketersediaan_tahun", "perTahun", "per_tahun"], Number.NaN);
 
   return {
     ...row,
     id: row.rowId ?? row.id,
-    namaKomoditas: textValue(row, 0),
-    luasUsaha: `${numberValue(row, 1).toLocaleString("id-ID")} m2`,
-    ketersediaanBulan: numberValue(row, 2),
-    ketersediaanTahun: `${numberValue(row, 3)} Kali`,
-    jumlah: numberValue(row, 4),
-    satuan: textValue(row, 5),
-    keterangan: textValue(row, 6, "-"),
+    namaKomoditas: getTextValue(row, 0, fieldAliases.nama, row.namaKomoditas),
+    luasUsaha: Number.isFinite(luasUsaha) ? `${luasUsaha.toLocaleString("id-ID")} m2` : row.luasUsaha,
+    ketersediaanBulan: getNumberValue(row, 2, ["ketersediaanBulan", "ketersediaan_bulan", "bulan"], row.ketersediaanBulan),
+    ketersediaanTahun: Number.isFinite(ketersediaanTahun) ? `${ketersediaanTahun} Kali` : row.ketersediaanTahun,
+    jumlah: getNumberValue(row, 4, fieldAliases.jumlah, row.jumlah),
+    satuan: getTextValue(row, 5, ["satuan", "unit"], row.satuan),
+    keterangan: getTextValue(row, 6, ["keterangan", "description", "catatan"], row.keterangan ?? "-"),
   };
 }
 
@@ -173,7 +72,7 @@ export default function Peternakan() {
     isLoading,
     error,
     errorStatus,
-  } = usePageData<PeternakanRow>("/kst/jatikerto/data/peternakan/items", {
+  } = usePageData<PeternakanRow>(API_ENDPOINTS.kst.jatikerto.peternakanItems, {
     year: selectedYear,
     month: selectedMonth,
     limit: 50,

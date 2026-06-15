@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { ClipboardList, Package, RotateCcw, TrendingDown, TrendingUp } from "lucide-react";
 import { useApiData, parsePageContainer } from "@/api/hooks";
+import { API_ENDPOINTS } from "@/api/endpoints";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -25,35 +26,34 @@ function signedValue(value: number, prefix: "+" | "-") {
   return `${prefix}${Math.abs(value).toLocaleString("id-ID")}`;
 }
 
+function statusBadgeClass(status: string) {
+  const normalized = status.toLowerCase();
+  if (normalized === "tervalidasi") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (normalized === "ditolak") return "border-red-200 bg-red-50 text-red-700";
+  if (normalized === "draft") return "border-amber-200 bg-amber-50 text-amber-700";
+  return "border-gray-200 bg-gray-50 text-gray-700";
+}
+
 export default function StokOpname() {
   const {
     data: stokPayload,
     isLoading: isStokLoading,
     error: stokError,
-  } = useApiData<unknown>("/api/kst/cangar/data/stok", { limit: 100 });
+  } = useApiData<unknown>(API_ENDPOINTS.kst.cangar.stock, { limit: 100 });
   const {
     data: itemsPayload,
     isLoading: isItemsLoading,
     error: itemsError,
   } = useApiData<unknown>(
-    "/api/kst/cangar/data/stok/items",
+    API_ENDPOINTS.kst.cangar.stockItems,
     { limit: 100 },
   );
   const { data: summaryPayload, error: summaryError } = useApiData<unknown>(
-    "/api/kst/cangar/data/summary",
+    API_ENDPOINTS.kst.cangar.summary,
   );
 
   const isLoading = isStokLoading || isItemsLoading;
 
-  // Debug: log raw payloads so the user can inspect DevTools → Console
-  useMemo(() => {
-    if (!isStokLoading && stokPayload !== null) {
-      console.log("[StokOpname] Raw stokPayload:", JSON.parse(JSON.stringify(stokPayload)));
-    }
-    if (!isItemsLoading && itemsPayload !== null) {
-      console.log("[StokOpname] Raw itemsPayload:", JSON.parse(JSON.stringify(itemsPayload)));
-    }
-  }, [stokPayload, itemsPayload, isStokLoading, isItemsLoading]);
 
   const rows = useMemo(() => {
     // --- Strategy 1: parse stokPayload through adapter ---
@@ -67,9 +67,6 @@ export default function StokOpname() {
       );
       if (page?.items && page.items.length > 0) {
         pageRows = adaptStockRows(page.items);
-        if (pageRows.length > 0) {
-          console.log("[StokOpname] stokPayload parsed via PageContainer:", pageRows.length, "rows");
-        }
       }
     }
 
@@ -93,17 +90,9 @@ export default function StokOpname() {
     if (primaryRows.length > 0) return primaryRows;
     if (itemRows.length > 0) return itemRows;
 
-    if (!isLoading) {
-      console.warn(
-        "[StokOpname] Data Barang kosong — stokPayload:",
-        stokPayload,
-        "| itemsPayload:",
-        itemsPayload,
-      );
-    }
 
     return [];
-  }, [stokPayload, itemsPayload, isLoading, isStokLoading, isItemsLoading]);
+  }, [stokPayload, itemsPayload]);
 
   const masterRows = useMemo(() => {
     const itemRows = adaptStockRows(itemsPayload);
@@ -214,8 +203,8 @@ export default function StokOpname() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    rows.map((row) => (
-                      <TableRow key={row.id} className="hover:bg-gray-50/60">
+                    rows.map((row, idx) => (
+                      <TableRow key={`${row.id}-${idx}`} className="hover:bg-gray-50/60">
                         <TableCell className="font-semibold text-gray-900">{row.namaBarang}</TableCell>
                         <TableCell className="text-gray-600">{row.satuan}</TableCell>
                         <TableCell className="text-right font-semibold text-emerald-700 tabular-nums">
@@ -231,10 +220,15 @@ export default function StokOpname() {
                         <TableCell className="text-gray-600">{row.stokFisikTerakhir}</TableCell>
                         <TableCell className="text-gray-600">{row.selisihTerakhir}</TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="rounded-md border-gray-200 bg-gray-50 text-gray-700">
-                            <ClipboardList className="size-3" />
-                            {row.statusOpname}
-                          </Badge>
+                          <div className="flex flex-col items-start gap-1">
+                            <Badge variant="outline" className={`rounded-md ${statusBadgeClass(row.statusOpname)}`}>
+                              <ClipboardList className="size-3" />
+                              {row.statusOpname}
+                            </Badge>
+                            {row.periode ? (
+                              <span className="text-xs font-medium text-gray-500">{row.periode}</span>
+                            ) : null}
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))
@@ -305,8 +299,8 @@ export default function StokOpname() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    masterRows.map((row) => (
-                      <TableRow key={row.id} className="hover:bg-gray-50/60">
+                    masterRows.map((row, idx) => (
+                      <TableRow key={`${row.id}-${idx}`} className="hover:bg-gray-50/60">
                         <TableCell className="font-semibold text-gray-900">#{row.id}</TableCell>
                         <TableCell className="font-medium text-gray-900">{row.namaBarang}</TableCell>
                         <TableCell className="text-gray-600">{row.satuan}</TableCell>
@@ -373,8 +367,8 @@ export default function StokOpname() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    rows.map((row) => (
-                      <TableRow key={row.id} className="hover:bg-gray-50/60">
+                    rows.map((row, idx) => (
+                      <TableRow key={`${row.id}-${idx}`} className="hover:bg-gray-50/60">
                         <TableCell className="font-semibold text-gray-900">{row.namaBarang}</TableCell>
                         <TableCell className="text-gray-600">{row.satuan}</TableCell>
                         <TableCell className="text-right font-semibold text-emerald-700 tabular-nums">

@@ -18,6 +18,7 @@ export interface StockItemRow {
   stokFisikTerakhir: string;
   selisihTerakhir: string;
   statusOpname: string;
+  periode?: string;
 }
 
 export interface BookingSummary {
@@ -34,6 +35,7 @@ export interface BookingRow {
   tanggal: string;
   tanggalRaw: string;
   jumlah: number;
+  kapasitas: number | null;
   status: string;
   catatan: string;
 }
@@ -308,18 +310,29 @@ export function adaptStockRows(payload: unknown): StockItemRow[] {
     const rawFisik = valueOf(item, [
       "stokFisikTerakhir",
       "stok_fisik_terakhir",
+      "physicalStockLast",
+      "lastPhysicalStock",
       "last_physical_stock",
       "stockFisik",
       "stok_fisik",
       "physical_stock",
+      "physicalStock",
     ]) ?? colValue(item, 7);
     const rawSelisih = valueOf(item, [
       "selisihTerakhir",
       "selisih_terakhir",
+      "differenceLast",
+      "lastDifference",
       "last_difference",
       "selisih",
       "difference",
     ]) ?? colValue(item, 8);
+    const rawStatus =
+      valueOf(item, ["statusOpname", "status_opname", "opname_status", "status"]) ?? colValue(item, 9);
+    const periode = toText(
+      valueOf(item, ["periode", "period", "minggu", "week", "validation_week"]) ?? colValue(item, 10),
+      "",
+    );
 
     return {
       id: toText(valueOf(item, ["id", "ID", "uuid", "kode", "kode_barang"]), String(index + 1)),
@@ -332,15 +345,13 @@ export function adaptStockRows(payload: unknown): StockItemRow[] {
       stokFisikTerakhir:
         rawFisik === undefined || rawFisik === null || rawFisik === ""
           ? "Belum opname"
-          : `${toText(rawFisik)} ${satuan}`,
+          : toText(rawFisik),
       selisihTerakhir:
         rawSelisih === undefined || rawSelisih === null || rawSelisih === ""
           ? "-"
           : toText(rawSelisih),
-      statusOpname: toText(
-        valueOf(item, ["statusOpname", "status_opname", "opname_status", "status"]) ?? colValue(item, 9),
-        "Belum ada opname",
-      ),
+      statusOpname: normalizeStockStatus(rawStatus),
+      periode: periode || undefined,
     };
   });
 }
@@ -384,10 +395,25 @@ export function adaptBookingRows(payload: unknown): BookingRow[] {
       jumlah: toNumber(
         valueOf(item, ["jumlah", "jumlah_tamu", "jumlahTamu", "guest_count", "pax", "guests"]) ?? colValue(item, 4),
       ),
+      kapasitas: (() => {
+        const value = valueOf(item, ["kapasitas", "capacity", "quota", "kuota", "available_capacity"]);
+        const parsed = toNumber(value, Number.NaN);
+        return Number.isFinite(parsed) ? parsed : null;
+      })(),
       status: normalizeBookingStatus(valueOf(item, ["status", "booking_status", "payment_status"]) ?? colValue(item, 5)),
       catatan: toText(valueOf(item, ["catatan", "note", "notes", "keterangan", "description"]) ?? colValue(item, 6), "-"),
     };
   });
+}
+
+function normalizeStockStatus(value: unknown) {
+  const status = toText(value, "Belum ada opname");
+  const lower = status.toLowerCase();
+  if (["validated", "valid", "tervalidasi"].includes(lower)) return "Tervalidasi";
+  if (["draft", "pending", "menunggu"].includes(lower)) return "Draft";
+  if (["rejected", "reject", "ditolak"].includes(lower)) return "Ditolak";
+  if (["belum ada opname", "belum opname", "none", "-"].includes(lower)) return "Belum ada opname";
+  return status;
 }
 
 export function adaptFinanceSummary(payload: unknown, rows: FinanceRow[] = []): FinanceSummary {
