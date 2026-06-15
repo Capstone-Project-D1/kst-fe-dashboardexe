@@ -25,7 +25,7 @@ import { usePageData } from "@/api/hooks";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
 import { fieldAliases, getDateValue, getNumberValue, getTextValue, rowIdentity, type JatikertoApiRow } from "../rowMappers";
-import { JatikertoTableLayout } from "../JatikertoTableLayout";
+import { JatikertoTableLayout, rowMatchesSearch } from "../JatikertoTableLayout";
 
 interface MahasiswaRow extends JatikertoApiRow {
   id?: string;
@@ -75,6 +75,7 @@ function mapMahasiswaRow(row: MahasiswaRow): MahasiswaRow {
 export default function PelayananAkademik() {
   const [selectedYear] = useState("2026");
   const [selectedMonth] = useState("Semua Bulan");
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
   const {
@@ -87,18 +88,19 @@ export default function PelayananAkademik() {
     { year: selectedYear, month: selectedMonth, limit: 50 },
   );
 
+  const displayData = tableData.map(mapMahasiswaRow).filter((row) => rowMatchesSearch(row, searchQuery));
   const rowsPerPageNumber = Number(rowsPerPage);
-  const totalPages = Math.max(1, Math.ceil(tableData.length / rowsPerPageNumber));
+  const totalPages = Math.max(1, Math.ceil(displayData.length / rowsPerPageNumber));
 
-  const paginatedData = tableData.slice(
+  const paginatedData = displayData.slice(
     (currentPage - 1) * rowsPerPageNumber,
     currentPage * rowsPerPageNumber
-  ).map(mapMahasiswaRow);
+  );
   const tableMessage = getJatikertoDataMessage({
     isLoading,
     error,
     errorStatus,
-    hasItems: tableData.length > 0,
+    hasItems: displayData.length > 0,
   });
 
 
@@ -106,6 +108,11 @@ export default function PelayananAkademik() {
     <JatikertoTableLayout
       categoryName="Pelayanan Akademik"
       subtitle="Kegiatan Riset Mahasiswa Universitas Brawijaya di KST Jatikerto"
+      searchValue={searchQuery}
+      onSearchChange={(value) => {
+        setSearchQuery(value);
+        setCurrentPage(1);
+      }}
     >
       <>
         <div className="overflow-x-auto">

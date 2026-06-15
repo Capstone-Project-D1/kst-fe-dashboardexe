@@ -24,7 +24,7 @@ import { usePageData } from "@/api/hooks";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
 import { fieldAliases, getDateValue, getTextValue, rowIdentity, type JatikertoApiRow } from "../rowMappers";
-import { JatikertoTableLayout } from "../JatikertoTableLayout";
+import { JatikertoTableLayout, rowMatchesSearch } from "../JatikertoTableLayout";
 
 interface MitraRow extends JatikertoApiRow {
   id?: string;
@@ -59,6 +59,7 @@ function mapMitraRow(row: MitraRow): MitraRow {
 export default function Kemitraan() {
   const [selectedYear] = useState("2026");
   const [selectedMonth] = useState("Semua Bulan");
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
   const {
@@ -72,18 +73,19 @@ export default function Kemitraan() {
     limit: 50,
   });
 
+  const displayData = tableData.map(mapMitraRow).filter((row) => rowMatchesSearch(row, searchQuery));
   const rowsPerPageNumber = Number(rowsPerPage);
-  const totalPages = Math.max(1, Math.ceil(tableData.length / rowsPerPageNumber));
+  const totalPages = Math.max(1, Math.ceil(displayData.length / rowsPerPageNumber));
 
-  const paginatedData = tableData.slice(
+  const paginatedData = displayData.slice(
     (currentPage - 1) * rowsPerPageNumber,
     currentPage * rowsPerPageNumber
-  ).map(mapMitraRow);
+  );
   const tableMessage = getJatikertoDataMessage({
     isLoading,
     error,
     errorStatus,
-    hasItems: tableData.length > 0,
+    hasItems: displayData.length > 0,
   });
 
 
@@ -91,6 +93,11 @@ export default function Kemitraan() {
     <JatikertoTableLayout
       categoryName="Kemitraan"
       subtitle="Kegiatan Kerjasama KST Jatikerto dengan Berbagai Mitra"
+      searchValue={searchQuery}
+      onSearchChange={(value) => {
+        setSearchQuery(value);
+        setCurrentPage(1);
+      }}
     >
       <>
         <div className="overflow-x-auto">
