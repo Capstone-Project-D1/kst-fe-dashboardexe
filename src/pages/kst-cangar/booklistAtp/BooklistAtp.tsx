@@ -183,7 +183,7 @@ export default function BooklistAtp() {
   return (
     <div className="flex min-h-screen flex-col gap-5 bg-gray-50/50 p-4 md:p-6">
       <CangarHero
-        title="📅 Manajemen Booking"
+        title="Manajemen Booking"
         description="Pengelolaan daftar booking, status reservasi, dan ketersediaan layanan KST Cangar."
       />
 

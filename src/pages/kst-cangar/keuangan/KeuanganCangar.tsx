@@ -254,7 +254,7 @@ export default function KeuanganCangar() {
   return (
     <div className="flex min-h-screen flex-col gap-5 bg-gray-50/50 p-4 md:p-6">
       <CangarHero
-        title="💰 Manajemen Keuangan"
+        title="Manajemen Keuangan"
         description="Pemantauan pemasukan, pengeluaran, saldo, dan rekap transaksi KST Cangar."
       />
       {hasAnyError ? (

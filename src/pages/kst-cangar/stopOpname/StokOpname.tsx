@@ -117,7 +117,7 @@ export default function StokOpname() {
   return (
     <div className="flex min-h-screen flex-col gap-5 bg-gray-50/50 p-4 md:p-6">
       <CangarHero
-        title="📦 Stok Opname"
+        title="Stok Opname"
         description="Pemantauan barang masuk, keluar, retur, dan hasil opname stok KST Cangar."
       />
 
