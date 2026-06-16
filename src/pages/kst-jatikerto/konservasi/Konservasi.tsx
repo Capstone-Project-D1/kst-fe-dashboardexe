@@ -31,6 +31,7 @@ import {
   badgeSoftGreenClass,
   formatNumber,
   getLastUpdated,
+  JatikertoEmptyState,
   JatikertoHero,
   JatikertoPagination,
   JatikertoSummaryCards,
@@ -181,9 +182,10 @@ export default function Konservasi() {
       headerContent={
         <JatikertoHero
           title="Dashboard Konservasi"
-          description="Pemantauan data konservasi hewan dan tumbuhan di KST Jatikerto."
+          description="Pemantauan konservasi hewan, tumbuhan, populasi, dan aktivitas pelestarian KST Jatikerto."
           badges={[categoryLabels[selectedCategory]]}
           lastUpdated={lastUpdated}
+          metric={{ label: "Total Populasi/Jumlah", value: formatNumber(totalJumlah) }}
         />
       }
       beforeTable={<JatikertoSummaryCards items={summaryCards} />}
@@ -215,25 +217,25 @@ export default function Konservasi() {
         </div>
 
         <div className="overflow-x-auto">
-          <Table className="min-w-[1080px]">
+          <Table className="min-w-[900px] table-fixed">
             <TableHeader>
               <TableRow className={tableHeaderClass}>
                 <TableHead className={`${tableHeadClass} w-[56px] pl-5`}>
                   No.
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[240px]`}>
+                <TableHead className={`${tableHeadClass} w-[24%]`}>
                   Nama Komoditas
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[170px] text-center`}>
+                <TableHead className={`${tableHeadClass} w-[16%] text-center`}>
                   Foto
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[150px] text-center`}>
+                <TableHead className={`${tableHeadClass} w-[14%] text-center`}>
                   Jumlah
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[160px] text-center`}>
+                <TableHead className={`${tableHeadClass} w-[17%] text-center`}>
                   Jenis Konservasi
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[300px]`}>
+                <TableHead className={`${tableHeadClass} w-[29%]`}>
                   Keterangan
                 </TableHead>
               </TableRow>
@@ -250,9 +252,9 @@ export default function Konservasi() {
                 <TableRow>
                   <TableCell
                     colSpan={6}
-                    className="h-32 text-center text-[13px] font-medium text-gray-400"
+                    className="p-5"
                   >
-                    {tableMessage}
+                    <JatikertoEmptyState title={tableMessage} />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -265,7 +267,7 @@ export default function Konservasi() {
                       {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                     </TableCell>
                     <TableCell className="max-w-[240px] whitespace-normal break-words text-[13px] font-semibold leading-relaxed text-gray-900">
-                      {row.namaKomoditas || "-"}
+                      {row.namaKomoditas || "Belum tersedia"}
                     </TableCell>
                     <TableCell className="min-w-[170px]">
                       <div className="flex justify-center">
@@ -273,7 +275,7 @@ export default function Konservasi() {
                       </div>
                     </TableCell>
                     <TableCell className="text-center text-[13px] font-medium text-gray-700 tabular-nums">
-                      {row.jumlah ? `${formatNumber(row.jumlah)} ${row.satuan || ""}` : "-"}
+                      {row.jumlah ? `${formatNumber(row.jumlah)} ${row.satuan || ""}` : "Belum tersedia"}
                     </TableCell>
                     <TableCell className="text-center">
                       <Badge className={selectedCategory === "konservasi-hewan" ? "h-auto rounded-full border-orange-200 bg-orange-50 px-2.5 py-1 text-orange-700" : badgeSoftGreenClass}>
@@ -281,7 +283,7 @@ export default function Konservasi() {
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-[300px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
-                      <p className="line-clamp-3 break-words">{row.keterangan || "-"}</p>
+                      <p className="line-clamp-3 break-words">{row.keterangan || "Belum tersedia"}</p>
                     </TableCell>
                   </TableRow>
                 ))

@@ -19,21 +19,25 @@ export type SummaryCardItem = {
   hint?: string;
 };
 
+export const JATIKERTO_EMPTY_TEXT = "Belum tersedia";
+
 export function JatikertoHero({
   title,
   description,
   badges,
+  lastUpdated,
+  metric,
 }: {
   title: string;
   description: string;
   badges: string[];
   lastUpdated?: string;
-  updateLabel?: string;
+  metric?: { label: string; value: ReactNode };
 }) {
   return (
     <section className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm">
       <div className="relative px-5 py-6 md:px-7">
-        <div className="absolute inset-y-0 right-0 hidden w-1/3 bg-gradient-to-l from-emerald-50 to-transparent md:block" />
+        <div className="absolute inset-y-0 right-0 hidden w-2/5 bg-[radial-gradient(circle_at_top_right,rgba(20,184,166,0.16),transparent_42%),linear-gradient(to_left,rgba(240,253,244,0.95),transparent)] md:block" />
         <div className="relative flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div className="max-w-3xl">
             <div className="mb-4 flex flex-wrap gap-2">
@@ -56,6 +60,21 @@ export function JatikertoHero({
               {description}
             </p>
           </div>
+          {metric ? (
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-left md:text-right">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                {metric.label}
+              </p>
+              <p className="mt-1 text-2xl font-bold text-gray-950">{metric.value}</p>
+            </div>
+          ) : lastUpdated ? (
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-left md:text-right">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                Pembaruan terakhir
+              </p>
+              <p className="mt-1 text-sm font-bold text-gray-900">{lastUpdated}</p>
+            </div>
+          ) : null}
         </div>
       </div>
     </section>
@@ -76,7 +95,7 @@ export function JatikertoSummaryCards({ items }: { items: SummaryCardItem[] }) {
                 {item.label}
               </p>
               <p className="mt-2 break-words text-2xl font-bold leading-tight text-gray-950">
-                {item.value ?? "-"}
+                {item.value ?? JATIKERTO_EMPTY_TEXT}
               </p>
               {item.hint ? (
                 <p className="mt-1 text-xs font-medium text-gray-500">
@@ -168,7 +187,7 @@ export function JatikertoPagination({
 
 export function formatNumber(value: number | string | undefined | null) {
   const number = typeof value === "number" ? value : Number(value);
-  return Number.isFinite(number) ? number.toLocaleString("id-ID") : "-";
+  return Number.isFinite(number) ? number.toLocaleString("id-ID") : JATIKERTO_EMPTY_TEXT;
 }
 
 export function getNumericValue(value: number | string | undefined | null) {
@@ -181,7 +200,7 @@ export function getNumericValue(value: number | string | undefined | null) {
 
 export function formatArea(value: number | string | undefined | null) {
   const number = getNumericValue(value);
-  return number ? `${formatNumber(number)} m²` : "-";
+  return number ? `${formatNumber(number)} m²` : JATIKERTO_EMPTY_TEXT;
 }
 
 export function formatQuantity(
@@ -189,7 +208,7 @@ export function formatQuantity(
   unit?: string,
 ) {
   const formatted = formatNumber(value);
-  return formatted === "-" ? "-" : [formatted, unit].filter(Boolean).join(" ");
+  return formatted === JATIKERTO_EMPTY_TEXT ? JATIKERTO_EMPTY_TEXT : [formatted, unit].filter(Boolean).join(" ");
 }
 
 export function getFrequencyValue(value: number | string | undefined | null) {
@@ -198,7 +217,7 @@ export function getFrequencyValue(value: number | string | undefined | null) {
 
 export function formatFrequency(value: number | string | undefined | null) {
   const number = getFrequencyValue(value);
-  return number ? `${formatNumber(number)} Kali/Tahun` : "-";
+  return number ? `${formatNumber(number)} Kali/Tahun` : JATIKERTO_EMPTY_TEXT;
 }
 
 export function parseDate(value?: unknown) {
@@ -207,6 +226,21 @@ export function parseDate(value?: unknown) {
 
 export function formatIndonesianDate(value?: unknown) {
   return formatDateOnly(value);
+}
+
+export function JatikertoEmptyState({
+  title = "Data sedang disiapkan",
+  description = "Informasi akan tampil otomatis setelah data tersedia.",
+}: {
+  title?: string;
+  description?: string;
+}) {
+  return (
+    <div className="flex min-h-[140px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-emerald-100 bg-emerald-50/40 p-5 text-center">
+      <p className="text-sm font-bold text-gray-800">{title}</p>
+      <p className="max-w-md text-xs font-medium leading-5 text-gray-500">{description}</p>
+    </div>
+  );
 }
 
 export function getLastUpdated<T extends Record<string, unknown>>(rows: T[]) {

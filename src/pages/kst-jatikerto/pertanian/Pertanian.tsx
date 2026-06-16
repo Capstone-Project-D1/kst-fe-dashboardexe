@@ -29,6 +29,7 @@ import {
   getFrequencyValue,
   getLastUpdated,
   getNumericValue,
+  JatikertoEmptyState,
   JatikertoHero,
   JatikertoPagination,
   JatikertoSummaryCards,
@@ -129,9 +130,10 @@ export default function Pertanian() {
       headerContent={
         <JatikertoHero
           title="Dashboard Pertanian"
-          description="Proyeksi panen dan pengelolaan komoditas pertanian KST Jatikerto."
+          description="Proyeksi Panen Komoditas Pertanian dan pengelolaan produksi agro KST Jatikerto."
           badges={["Pertanian Agroindustri"]}
           lastUpdated={lastUpdated}
+          metric={{ label: "Total Proyeksi Panen", value: formatQuantity(totalPanen, mappedData[0]?.satuan || "Kg") }}
         />
       }
       beforeTable={<JatikertoSummaryCards items={summaryCards} />}
@@ -142,25 +144,25 @@ export default function Pertanian() {
     >
       <>
         <div className="overflow-x-auto">
-          <Table className="min-w-[1120px]">
+          <Table className="min-w-[900px] table-fixed">
             <TableHeader>
               <TableRow className={tableHeaderClass}>
                 <TableHead className={`${tableHeadClass} w-[56px] text-center`}>
                   No.
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[220px]`}>
+                <TableHead className={`${tableHeadClass} w-[24%]`}>
                   Komoditas
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[160px] text-center`}>
+                <TableHead className={`${tableHeadClass} w-[16%] text-center`}>
                   Proyeksi Panen
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[130px] text-center`}>
+                <TableHead className={`${tableHeadClass} w-[14%] text-center`}>
                   Luas Usaha
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[250px] text-center`}>
+                <TableHead className={`${tableHeadClass} w-[24%] text-center`}>
                   Masa Tanam
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[280px]`}>
+                <TableHead className={`${tableHeadClass} w-[22%]`}>
                   Keterangan
                 </TableHead>
               </TableRow>
@@ -177,9 +179,9 @@ export default function Pertanian() {
                 <TableRow>
                   <TableCell
                     colSpan={6}
-                    className="h-32 text-center text-[13px] font-medium text-gray-400"
+                    className="p-5"
                   >
-                    {tableMessage}
+                    <JatikertoEmptyState title={tableMessage} />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -189,7 +191,7 @@ export default function Pertanian() {
                       {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                     </TableCell>
                     <TableCell className="max-w-[220px] whitespace-normal break-words text-[13px] font-semibold leading-relaxed text-gray-900">
-                      {row.nama || "-"}
+                      {row.nama || "Belum tersedia"}
                     </TableCell>
                     <TableCell className="text-center text-[13px] font-medium text-gray-700 tabular-nums">
                       {formatQuantity(row.proyeksiPanen, row.satuan)}
@@ -208,7 +210,7 @@ export default function Pertanian() {
                       </div>
                     </TableCell>
                     <TableCell className="max-w-[280px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
-                      <p className="line-clamp-3 break-words">{row.keterangan || "-"}</p>
+                      <p className="line-clamp-3 break-words">{row.keterangan || "Belum tersedia"}</p>
                     </TableCell>
                   </TableRow>
                 ))

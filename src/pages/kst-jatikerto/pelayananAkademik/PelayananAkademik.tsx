@@ -27,6 +27,7 @@ import {
   formatIndonesianDate,
   formatNumber,
   getLastUpdated,
+  JatikertoEmptyState,
   JatikertoHero,
   JatikertoPagination,
   JatikertoSummaryCards,
@@ -146,9 +147,10 @@ export default function PelayananAkademik() {
       headerContent={
         <JatikertoHero
           title="Dashboard Pelayanan Akademik"
-          description="Pemantauan kegiatan riset mahasiswa dan pembimbing di KST Jatikerto."
+          description="Pemantauan kegiatan riset mahasiswa, dosen pembimbing, program studi, dan pemanfaatan lahan akademik KST Jatikerto."
           badges={["Riset Akademik"]}
           lastUpdated={lastUpdated}
+          metric={{ label: "Penelitian Aktif", value: formatNumber(activeResearch) }}
         />
       }
       beforeTable={<JatikertoSummaryCards items={summaryCards} />}
@@ -159,34 +161,34 @@ export default function PelayananAkademik() {
     >
       <>
         <div className="overflow-x-auto">
-          <Table className="min-w-[1500px]">
+          <Table className="min-w-[1040px] table-fixed">
             <TableHeader>
               <TableRow className={tableHeaderClass}>
                 <TableHead className={`${tableHeadClass} w-[56px] pl-5`}>
                   No.
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[220px]`}>
+                <TableHead className={`${tableHeadClass} w-[15%]`}>
                   Nama Mahasiswa
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[240px]`}>
+                <TableHead className={`${tableHeadClass} w-[15%]`}>
                   Dosen Pembimbing
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[190px]`}>
+                <TableHead className={`${tableHeadClass} w-[14%]`}>
                   Program Studi
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[150px]`}>
+                <TableHead className={`${tableHeadClass} w-[11%]`}>
                   Mulai
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[150px]`}>
+                <TableHead className={`${tableHeadClass} w-[11%]`}>
                   Selesai
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[140px]`}>
+                <TableHead className={`${tableHeadClass} w-[11%]`}>
                   Status
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[130px]`}>
+                <TableHead className={`${tableHeadClass} w-[10%]`}>
                   Luasan
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[320px]`}>
+                <TableHead className={`${tableHeadClass} w-[23%]`}>
                   Judul Penelitian
                 </TableHead>
               </TableRow>
@@ -203,9 +205,9 @@ export default function PelayananAkademik() {
                 <TableRow>
                   <TableCell
                     colSpan={9}
-                    className="h-32 text-center text-[13px] font-medium text-gray-400"
+                    className="p-5"
                   >
-                    {tableMessage}
+                    <JatikertoEmptyState title={tableMessage} />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -218,14 +220,14 @@ export default function PelayananAkademik() {
                         {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                       </TableCell>
                       <TableCell className="max-w-[220px] whitespace-normal break-words text-[13px] font-semibold leading-relaxed text-gray-900">
-                        {row.namaMahasiswa || "-"}
+                        {row.namaMahasiswa || "Belum tersedia"}
                       </TableCell>
                       <TableCell className="max-w-[240px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
-                        {row.dosenPembimbing || "-"}
+                        {row.dosenPembimbing || "Belum tersedia"}
                       </TableCell>
                       <TableCell className="max-w-[190px] whitespace-normal break-words text-[13px] text-gray-600">
                         <Badge className={`${getProgramStudiBadgeClass(row.programStudi)} border`}>
-                          {normalizeProgramStudi(row.programStudi) || "-"}
+                          {normalizeProgramStudi(row.programStudi) || "Belum tersedia"}
                         </Badge>
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-[13px] text-gray-600">
@@ -243,7 +245,7 @@ export default function PelayananAkademik() {
                         {formatArea(row.luasan)}
                       </TableCell>
                       <TableCell className="max-w-[320px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
-                        <p className="line-clamp-3 break-words">{row.judulPenelitian || "-"}</p>
+                        <p className="line-clamp-3 break-words">{row.judulPenelitian || "Belum tersedia"}</p>
                       </TableCell>
                     </TableRow>
                   );

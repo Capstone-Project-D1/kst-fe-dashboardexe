@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { adaptFinanceRows, adaptFinanceSummary, formatRupiah } from "../adapters";
 import {
   CangarAlert,
+  CangarEmptyState,
   CangarHero,
   CangarSummaryCards,
   CangarTableSkeleton,
@@ -35,6 +36,7 @@ import {
   cangarTabsTriggerClass,
   tableLoadingRow,
 } from "../cangarUi";
+import { cangarFriendlyMessage } from "../cangarHelpers";
 
 const FINANCE_TABS = ["Input Transaksi", "Rekap Harian", "Rekap Mingguan", "Rekap Bulanan"];
 
@@ -254,12 +256,14 @@ export default function KeuanganCangar() {
   return (
     <div className="flex min-h-screen flex-col gap-5 bg-gray-50/50 p-4 md:p-6">
       <CangarHero
-        title="Manajemen Keuangan"
-        description="Pemantauan pemasukan, pengeluaran, saldo, dan rekap transaksi KST Cangar."
+        title="Dashboard Revenue dan Keuangan"
+        description="Pemantauan pemasukan, pengeluaran, saldo, dan rekap transaksi layanan wisata serta edukasi KST Cangar."
+        badges={["Revenue", "Reservasi", "Operasional"]}
+        metric={{ label: "Saldo Hari Ini", value: formatRupiah(summary.saldoHariIni) }}
       />
       {hasAnyError ? (
         <CangarAlert>
-          Sebagian data keuangan belum tersedia. Beberapa nilai mungkin belum ditampilkan.
+          {cangarFriendlyMessage(hasAnyError)}
         </CangarAlert>
       ) : null}
       <CangarSummaryCards
@@ -333,16 +337,16 @@ export default function KeuanganCangar() {
 
           <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
-              <Table className="min-w-[980px]">
+              <Table className="min-w-[920px] table-fixed">
                 <TableHeader>
                   <TableRow className={cangarTableHeaderClass}>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[80px] text-center`}>ID</TableHead>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[150px]`}>Tanggal</TableHead>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[130px]`}>Jenis</TableHead>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[160px]`}>Kategori</TableHead>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[150px] text-center`}>Nominal</TableHead>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[240px]`}>Keterangan</TableHead>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[130px]`}>Status</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[80px] text-center`}>ID</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[15%]`}>Tanggal</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[14%]`}>Jenis</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[16%]`}>Kategori</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[16%] text-center`}>Nominal</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[26%]`}>Keterangan</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[14%]`}>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -350,15 +354,15 @@ export default function KeuanganCangar() {
                     tableLoadingRow(7)
                   ) : filteredRows.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="h-28 text-center text-sm font-medium text-gray-500">
-                        Tidak ada data keuangan sesuai filter.
+                      <TableCell colSpan={7} className="p-5">
+                        <CangarEmptyState title="Belum ada data yang dapat ditampilkan" description="Data keuangan Cangar akan tampil setelah tersedia atau filter diubah." />
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredRows.map((row) => (
                       <TableRow key={row.id} className={cangarTableRowClass}>
                         <TableCell className="text-center font-semibold text-gray-900">#{row.id}</TableCell>
-                        <TableCell className="text-gray-600">{row.tanggal}</TableCell>
+                        <TableCell className="whitespace-normal break-words text-gray-600">{row.tanggal || "Belum tersedia"}</TableCell>
                         <TableCell>
                           <Badge
                             variant="outline"
@@ -374,12 +378,12 @@ export default function KeuanganCangar() {
                             {row.jenis}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-gray-600">{row.kategori}</TableCell>
+                        <TableCell className="whitespace-normal break-words text-gray-600">{row.kategori || "Belum tersedia"}</TableCell>
                         <TableCell className="text-center font-semibold text-gray-900 tabular-nums">
                           {formatRupiah(row.nominal)}
                         </TableCell>
-                        <TableCell className="max-w-[260px] whitespace-normal break-words text-gray-600">
-                          {row.keterangan}
+                        <TableCell className="whitespace-normal break-words text-gray-600">
+                          {row.keterangan || "Belum tersedia"}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline" className={cn("rounded-md", financeStatusClass(row.status))}>
@@ -469,8 +473,8 @@ export default function KeuanganCangar() {
                     tableLoadingRow(7)
                   ) : harianDisplayRows.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="h-28 text-center text-sm font-medium text-gray-500">
-                        Tidak ada data untuk tanggal ini.
+                      <TableCell colSpan={7} className="p-5">
+                        <CangarEmptyState title="Data belum tersedia" description="Belum ada data yang dapat ditampilkan untuk tanggal ini." />
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -574,13 +578,13 @@ export default function KeuanganCangar() {
               <CangarTableSkeleton columns={7} />
             </div>
           ) : mingguanFilteredRows.length === 0 ? (
-            <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm font-medium text-gray-500 shadow-sm">
-              Tidak ada data untuk minggu ini.
+            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              <CangarEmptyState title="Data belum tersedia" description="Belum ada data yang dapat ditampilkan untuk minggu ini." />
             </div>
           ) : (
             <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
               <div className="overflow-x-auto">
-                <Table className="min-w-[980px]">
+                <Table className="min-w-[920px] table-fixed">
                   <TableHeader>
                     <TableRow className={cangarTableHeaderClass}>
                       <TableHead className={`${cangarTableHeadClass} min-w-[80px] text-center`}>ID</TableHead>
@@ -693,13 +697,13 @@ export default function KeuanganCangar() {
               <CangarTableSkeleton columns={7} />
             </div>
           ) : bulananFilteredRows.length === 0 ? (
-            <div className="rounded-lg border border-gray-200 bg-white p-8 text-center text-sm font-medium text-gray-500 shadow-sm">
-              Tidak ada data untuk bulan ini.
+            <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+              <CangarEmptyState title="Data belum tersedia" description="Belum ada data yang dapat ditampilkan untuk bulan ini." />
             </div>
           ) : (
             <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
               <div className="overflow-x-auto">
-                <Table className="min-w-[980px]">
+                <Table className="min-w-[920px] table-fixed">
                   <TableHeader>
                     <TableRow className={cangarTableHeaderClass}>
                       <TableHead className={`${cangarTableHeadClass} min-w-[80px] text-center`}>ID</TableHead>

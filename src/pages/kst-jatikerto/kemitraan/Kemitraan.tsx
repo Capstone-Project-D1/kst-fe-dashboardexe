@@ -25,6 +25,7 @@ import {
   formatIndonesianDate,
   formatNumber,
   getLastUpdated,
+  JatikertoEmptyState,
   JatikertoHero,
   JatikertoPagination,
   JatikertoSummaryCards,
@@ -173,9 +174,10 @@ export default function Kemitraan() {
       headerContent={
         <JatikertoHero
           title="Dashboard Kemitraan"
-          description="Pemantauan kerja sama KST Jatikerto dengan mitra industri, riset, dan agroindustri."
+          description="Pemantauan kerja sama KST Jatikerto dengan mitra industri, riset, agroindustri, dan aktivitas operasional kemitraan."
           badges={["Kemitraan Agroindustri"]}
           lastUpdated={lastUpdated}
+          metric={{ label: "Kontrak Aktif", value: formatNumber(activeContracts) }}
         />
       }
       beforeTable={<JatikertoSummaryCards items={summaryCards} />}
@@ -186,25 +188,25 @@ export default function Kemitraan() {
     >
       <>
         <div className="overflow-x-auto">
-          <Table className="min-w-[1220px]">
+          <Table className="min-w-[920px] table-fixed">
             <TableHeader>
               <TableRow className={tableHeaderClass}>
                 <TableHead className={`${tableHeadClass} w-[56px] pl-5`}>
                   No.
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[260px]`}>
+                <TableHead className={`${tableHeadClass} w-[22%]`}>
                   Mitra
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[240px]`}>
+                <TableHead className={`${tableHeadClass} w-[22%]`}>
                   Bidang Kerjasama
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[270px]`}>
+                <TableHead className={`${tableHeadClass} w-[24%]`}>
                   Jangka Waktu Kontrak
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[150px]`}>
+                <TableHead className={`${tableHeadClass} w-[14%]`}>
                   Status
                 </TableHead>
-                <TableHead className={`${tableHeadClass} min-w-[260px]`}>
+                <TableHead className={`${tableHeadClass} w-[18%]`}>
                   Keterangan
                 </TableHead>
               </TableRow>
@@ -221,9 +223,9 @@ export default function Kemitraan() {
                 <TableRow>
                   <TableCell
                     colSpan={6}
-                    className="h-32 text-center text-[13px] font-medium text-gray-400"
+                    className="p-5"
                   >
-                    {tableMessage}
+                    <JatikertoEmptyState title={tableMessage} />
                   </TableCell>
                 </TableRow>
               ) : (
@@ -236,11 +238,11 @@ export default function Kemitraan() {
                         {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                       </TableCell>
                       <TableCell className="max-w-[260px] whitespace-normal break-words text-[13px] font-semibold leading-relaxed text-gray-900">
-                        {row.mitra || "-"}
+                        {row.mitra || "Belum tersedia"}
                       </TableCell>
                       <TableCell className="max-w-[240px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
                         <Badge className={`${badgeSoftGreenClass} max-w-full whitespace-normal break-words text-left leading-relaxed`}>
-                          {row.bidangKerjasama || "-"}
+                          {row.bidangKerjasama || "Belum tersedia"}
                         </Badge>
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-[13px] text-gray-600">
@@ -252,7 +254,7 @@ export default function Kemitraan() {
                         </Badge>
                       </TableCell>
                       <TableCell className="max-w-[260px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
-                        <p className="line-clamp-3 break-words">{row.keterangan || "-"}</p>
+                        <p className="line-clamp-3 break-words">{row.keterangan || "Belum tersedia"}</p>
                       </TableCell>
                     </TableRow>
                   );

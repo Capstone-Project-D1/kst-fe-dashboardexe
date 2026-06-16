@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adaptStockRows, adaptStockSummary, type StockItemRow } from "../adapters";
 import {
   CangarAlert,
+  CangarEmptyState,
   CangarHero,
   CangarSummaryCards,
   cangarTableHeadClass,
@@ -25,6 +26,7 @@ import {
   cangarTabsTriggerClass,
   tableLoadingRow,
 } from "../cangarUi";
+import { cangarFriendlyMessage } from "../cangarHelpers";
 
 const STOK_TABS = [
   "Data Barang",
@@ -117,13 +119,15 @@ export default function StokOpname() {
   return (
     <div className="flex min-h-screen flex-col gap-5 bg-gray-50/50 p-4 md:p-6">
       <CangarHero
-        title="Stok Opname"
-        description="Pemantauan barang masuk, keluar, retur, dan hasil opname stok KST Cangar."
+        title="Dashboard Stok Operasional Cangar"
+        description="Pemantauan stok opname, arus barang, retur, dan kesiapan operasional layanan eco-agrotourism KST Cangar."
+        badges={["Stok Opname", "Operasional", "Eco-Agrotourism"]}
+        metric={{ label: "Total Barang", value: summary.totalBarang.toLocaleString("id-ID") }}
       />
 
       {hasError ? (
         <CangarAlert>
-          Sebagian data stok belum tersedia. Beberapa nilai mungkin belum ditampilkan.
+          {cangarFriendlyMessage(stokError || itemsError || summaryError)}
         </CangarAlert>
       ) : null}
 
@@ -150,18 +154,18 @@ export default function StokOpname() {
         <TabsContent value="Data Barang">
           <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
-              <Table className="min-w-[1180px]">
+              <Table className="min-w-[1080px] table-fixed">
                 <TableHeader>
                   <TableRow className={cangarTableHeaderClass}>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[220px]`}>Nama Barang</TableHead>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[90px]`}>Satuan</TableHead>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[120px] text-center`}>Total Masuk</TableHead>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[120px] text-center`}>Total Keluar</TableHead>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[110px] text-center`}>Total Retur</TableHead>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[130px] text-center`}>Stok Sistem</TableHead>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[160px] text-center`}>Stok Fisik Terakhir</TableHead>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[140px] text-center`}>Selisih Terakhir</TableHead>
-                    <TableHead className={`${cangarTableHeadClass} min-w-[170px]`}>Status Opname</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[22%]`}>Nama Barang</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[8%]`}>Satuan</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[11%] text-center`}>Total Masuk</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[11%] text-center`}>Total Keluar</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[10%] text-center`}>Total Retur</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[12%] text-center`}>Stok Sistem</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[13%] text-center`}>Stok Fisik</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[11%] text-center`}>Selisih</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} w-[15%]`}>Status Opname</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -169,15 +173,15 @@ export default function StokOpname() {
                     tableLoadingRow(9)
                   ) : rows.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={9} className="h-28 text-center text-sm font-medium text-gray-500">
-                        Belum ada data barang Cangar.
+                      <TableCell colSpan={9} className="p-5">
+                        <CangarEmptyState title="Data belum tersedia" description="Data barang Cangar sedang disiapkan." />
                       </TableCell>
                     </TableRow>
                   ) : (
                     rows.map((row, idx) => (
                       <TableRow key={`${row.id}-${idx}`} className={cangarTableRowClass}>
-                        <TableCell className="font-semibold text-gray-900">{row.namaBarang}</TableCell>
-                        <TableCell className="text-gray-600">{row.satuan}</TableCell>
+                        <TableCell className="whitespace-normal break-words font-semibold leading-relaxed text-gray-900">{row.namaBarang || "Belum tersedia"}</TableCell>
+                        <TableCell className="whitespace-normal break-words text-gray-600">{row.satuan || "Belum tersedia"}</TableCell>
                         <TableCell className="text-center font-semibold text-emerald-700 tabular-nums">
                           {signedValue(row.totalMasuk, "+")}
                         </TableCell>
@@ -188,8 +192,8 @@ export default function StokOpname() {
                         <TableCell className="text-center font-medium text-gray-900">
                           {row.stokSistem.toLocaleString("id-ID")} {row.satuan}
                         </TableCell>
-                        <TableCell className="text-center text-gray-600">{row.stokFisikTerakhir}</TableCell>
-                        <TableCell className="text-center text-gray-600">{row.selisihTerakhir}</TableCell>
+                        <TableCell className="whitespace-normal break-words text-center text-gray-600">{row.stokFisikTerakhir || "Belum tersedia"}</TableCell>
+                        <TableCell className="whitespace-normal break-words text-center text-gray-600">{row.selisihTerakhir || "Belum tersedia"}</TableCell>
                         <TableCell>
                           <div className="flex flex-col items-start gap-1">
                             <Badge variant="outline" className={`rounded-md ${statusBadgeClass(row.statusOpname)}`}>
@@ -253,7 +257,7 @@ export default function StokOpname() {
         <TabsContent value="Master Barang">
           <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
-              <Table className="min-w-[640px]">
+              <Table className="min-w-[640px] table-fixed">
                 <TableHeader>
                   <TableRow className={cangarTableHeaderClass}>
                     <TableHead className={`${cangarTableHeadClass} min-w-[100px] text-center`}>ID</TableHead>
@@ -267,16 +271,16 @@ export default function StokOpname() {
                     tableLoadingRow(4)
                   ) : masterRows.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={4} className="h-28 text-center text-sm font-medium text-gray-500">
-                        Belum ada master barang Cangar.
+                      <TableCell colSpan={4} className="p-5">
+                        <CangarEmptyState title="Data belum tersedia" description="Master barang Cangar sedang disiapkan." />
                       </TableCell>
                     </TableRow>
                   ) : (
                     masterRows.map((row, idx) => (
                       <TableRow key={`${row.id}-${idx}`} className={cangarTableRowClass}>
                         <TableCell className="text-center font-semibold text-gray-900">#{row.id}</TableCell>
-                        <TableCell className="font-medium text-gray-900">{row.namaBarang}</TableCell>
-                        <TableCell className="text-gray-600">{row.satuan}</TableCell>
+                        <TableCell className="whitespace-normal break-words font-medium text-gray-900">{row.namaBarang || "Belum tersedia"}</TableCell>
+                        <TableCell className="whitespace-normal break-words text-gray-600">{row.satuan || "Belum tersedia"}</TableCell>
                         <TableCell>
                           <Badge variant="outline" className="rounded-md border-emerald-200 bg-emerald-50 text-emerald-700">
                             Aktif
@@ -321,7 +325,7 @@ export default function StokOpname() {
 
           <div className="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
-              <Table className="min-w-[860px]">
+              <Table className="min-w-[820px] table-fixed">
                 <TableHeader>
                   <TableRow className={cangarTableHeaderClass}>
                     <TableHead className={`${cangarTableHeadClass} min-w-[220px]`}>Nama Barang</TableHead>
@@ -337,15 +341,15 @@ export default function StokOpname() {
                     tableLoadingRow(6)
                   ) : rows.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={6} className="h-28 text-center text-sm font-medium text-gray-500">
-                        Belum ada laporan mingguan Cangar.
+                      <TableCell colSpan={6} className="p-5">
+                        <CangarEmptyState title="Data belum tersedia" description="Laporan mingguan Cangar sedang disiapkan." />
                       </TableCell>
                     </TableRow>
                   ) : (
                     rows.map((row, idx) => (
                       <TableRow key={`${row.id}-${idx}`} className={cangarTableRowClass}>
-                        <TableCell className="font-semibold text-gray-900">{row.namaBarang}</TableCell>
-                        <TableCell className="text-gray-600">{row.satuan}</TableCell>
+                        <TableCell className="whitespace-normal break-words font-semibold text-gray-900">{row.namaBarang || "Belum tersedia"}</TableCell>
+                        <TableCell className="whitespace-normal break-words text-gray-600">{row.satuan || "Belum tersedia"}</TableCell>
                         <TableCell className="text-center font-semibold text-emerald-700 tabular-nums">
                           {signedValue(row.totalMasuk, "+")}
                         </TableCell>

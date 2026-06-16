@@ -1,5 +1,6 @@
 import type { ComponentType, ReactNode } from "react";
 import { Badge } from "@/components/ui/badge";
+import { CANGAR_EMPTY_TEXT, CANGAR_PREPARING_TEXT } from "./cangarHelpers";
 
 type IconComponent = ComponentType<{ className?: string }>;
 
@@ -23,20 +24,31 @@ export function CangarHero({
   title,
   description,
   lastUpdated,
+  badges = [],
+  metric,
 }: {
   title: string;
   description: string;
   lastUpdated?: string;
+  badges?: string[];
+  metric?: { label: string; value: ReactNode };
 }) {
   return (
     <section className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm">
       <div className="relative px-5 py-6 md:px-7">
-        <div className="absolute inset-y-0 right-0 hidden w-1/3 bg-gradient-to-l from-emerald-50 to-transparent md:block" />
+        <div className="absolute inset-y-0 right-0 hidden w-2/5 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.18),transparent_42%),linear-gradient(to_left,rgba(240,253,244,0.95),transparent)] md:block" />
         <div className="relative flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
           <div className="max-w-3xl">
-            <Badge className="mb-4 border-emerald-200 bg-emerald-50 text-emerald-700">
-              KST Cangar
-            </Badge>
+            <div className="mb-4 flex flex-wrap gap-2">
+              <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">
+                KST Cangar
+              </Badge>
+              {badges.map((badge) => (
+                <Badge key={badge} className="border-lime-200 bg-lime-50 text-lime-700">
+                  {badge}
+                </Badge>
+              ))}
+            </div>
             <h1 className="text-2xl font-bold tracking-tight text-gray-950 md:text-3xl">
               {title}
             </h1>
@@ -44,7 +56,14 @@ export function CangarHero({
               {description}
             </p>
           </div>
-          {lastUpdated ? (
+          {metric ? (
+            <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-left md:text-right">
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                {metric.label}
+              </p>
+              <p className="mt-1 text-2xl font-bold text-gray-950">{metric.value}</p>
+            </div>
+          ) : lastUpdated ? (
             <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-left md:text-right">
               <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
                 Data dimuat pada
@@ -72,7 +91,7 @@ export function CangarSummaryCards({ items }: { items: CangarSummaryItem[] }) {
                 {item.label}
               </p>
               <p className="mt-2 text-2xl font-bold leading-tight text-gray-950">
-                {item.value ?? "-"}
+                {item.value ?? CANGAR_EMPTY_TEXT}
               </p>
               <p className="mt-1 text-xs font-medium text-gray-500">
                 {item.helper ?? "Ringkasan data terbaru"}
@@ -92,6 +111,21 @@ export function CangarAlert({ children }: { children: ReactNode }) {
   return (
     <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 shadow-sm">
       {children}
+    </div>
+  );
+}
+
+export function CangarEmptyState({
+  title = CANGAR_PREPARING_TEXT,
+  description = "Informasi akan tampil otomatis setelah data tersedia.",
+}: {
+  title?: string;
+  description?: string;
+}) {
+  return (
+    <div className="flex min-h-[140px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-emerald-100 bg-emerald-50/40 p-5 text-center">
+      <p className="text-sm font-bold text-gray-800">{title}</p>
+      <p className="max-w-md text-xs font-medium leading-5 text-gray-500">{description}</p>
     </div>
   );
 }
