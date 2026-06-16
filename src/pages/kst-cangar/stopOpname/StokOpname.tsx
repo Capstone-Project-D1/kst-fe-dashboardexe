@@ -14,6 +14,17 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { adaptStockRows, adaptStockSummary, type StockItemRow } from "../adapters";
+import {
+  CangarAlert,
+  CangarHero,
+  CangarSummaryCards,
+  cangarTableHeadClass,
+  cangarTableHeaderClass,
+  cangarTableRowClass,
+  cangarTabsListClass,
+  cangarTabsTriggerClass,
+  tableLoadingRow,
+} from "../cangarUi";
 
 const STOK_TABS = [
   "Data Barang",
@@ -56,10 +67,8 @@ export default function StokOpname() {
 
 
   const rows = useMemo(() => {
-    // --- Strategy 1: parse stokPayload through adapter ---
     const stokRows = adaptStockRows(stokPayload);
 
-    // --- Strategy 2: parse stokPayload as PageContainer (standard pagination format) ---
     let pageRows: StockItemRow[] = [];
     if (stokRows.length === 0 && stokPayload !== null) {
       const page = parsePageContainer<unknown>(
@@ -70,14 +79,11 @@ export default function StokOpname() {
       }
     }
 
-    // --- Strategy 3: parse itemsPayload (master items endpoint) ---
     const itemRows = adaptStockRows(itemsPayload);
 
-    // Pick the best stok source
     const primaryRows = stokRows.length > 0 ? stokRows : pageRows;
 
     if (primaryRows.length > 0 && itemRows.length > 0) {
-      // Merge: primary has movement data, items may have extra items not in primary
       const byName = new Map(primaryRows.map((row) => [row.namaBarang.toLowerCase(), row]));
       for (const item of itemRows) {
         if (!byName.has(item.namaBarang.toLowerCase())) {
@@ -110,68 +116,31 @@ export default function StokOpname() {
 
   return (
     <div className="flex min-h-screen flex-col gap-5 bg-gray-50/50 p-4 md:p-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-bold text-gray-900">Stok Opname</h1>
-        <p className="text-sm font-medium text-gray-500">KST Cangar</p>
-      </div>
+      <CangarHero
+        title="📦 Stok Opname"
+        description="Pemantauan barang masuk, keluar, retur, dan hasil opname stok KST Cangar."
+      />
 
       {hasError ? (
-        <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-          Sebagian data stok Cangar belum bisa dimuat. Nilai kosong memakai fallback.
-        </div>
+        <CangarAlert>
+          Sebagian data stok belum tersedia. Beberapa nilai mungkin belum ditampilkan.
+        </CangarAlert>
       ) : null}
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Card className="rounded-lg border-gray-200 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-600">Total Barang</CardTitle>
-            <Package className="size-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{summary.totalBarang}</div>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-lg border-gray-200 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-600">Total Masuk</CardTitle>
-            <TrendingUp className="size-4 text-emerald-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-emerald-700">
-              {signedValue(summary.totalMasuk, "+")}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-lg border-gray-200 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-600">Total Keluar</CardTitle>
-            <TrendingDown className="size-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-700">
-              {signedValue(summary.totalKeluar, "-")}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="rounded-lg border-gray-200 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-semibold text-gray-600">Total Retur</CardTitle>
-            <RotateCcw className="size-4 text-gray-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-gray-900">{summary.totalRetur}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <CangarSummaryCards
+        items={[
+          { label: "Total Barang", value: summary.totalBarang, icon: Package, helper: "Jumlah barang terpantau" },
+          { label: "Total Masuk", value: signedValue(summary.totalMasuk, "+"), icon: TrendingUp, helper: "Akumulasi barang masuk", tone: "green" },
+          { label: "Total Keluar", value: signedValue(summary.totalKeluar, "-"), icon: TrendingDown, helper: "Akumulasi barang keluar", tone: "red" },
+          { label: "Total Retur", value: summary.totalRetur, icon: RotateCcw, helper: "Total barang retur" },
+        ]}
+      />
 
       <Tabs defaultValue="Data Barang" className="gap-4">
         <div className="overflow-x-auto pb-1">
-          <TabsList className="h-10 w-max bg-white shadow-sm">
+          <TabsList className={cangarTabsListClass}>
             {STOK_TABS.map((tab) => (
-              <TabsTrigger key={tab} value={tab} className="px-4 text-[13px]">
+              <TabsTrigger key={tab} value={tab} className={cangarTabsTriggerClass}>
                 {tab}
               </TabsTrigger>
             ))}
@@ -179,46 +148,48 @@ export default function StokOpname() {
         </div>
 
         <TabsContent value="Data Barang">
-          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
               <Table className="min-w-[1180px]">
                 <TableHeader>
-                  <TableRow className="bg-gray-50 hover:bg-gray-50">
-                    <TableHead className="min-w-[220px] font-bold text-gray-600">Nama Barang</TableHead>
-                    <TableHead className="min-w-[90px] font-bold text-gray-600">Satuan</TableHead>
-                    <TableHead className="min-w-[120px] text-right font-bold text-gray-600">Total Masuk</TableHead>
-                    <TableHead className="min-w-[120px] text-right font-bold text-gray-600">Total Keluar</TableHead>
-                    <TableHead className="min-w-[110px] text-right font-bold text-gray-600">Total Retur</TableHead>
-                    <TableHead className="min-w-[130px] font-bold text-gray-600">Stok Sistem</TableHead>
-                    <TableHead className="min-w-[160px] font-bold text-gray-600">Stok Fisik Terakhir</TableHead>
-                    <TableHead className="min-w-[140px] font-bold text-gray-600">Selisih Terakhir</TableHead>
-                    <TableHead className="min-w-[170px] font-bold text-gray-600">Status Opname</TableHead>
+                  <TableRow className={cangarTableHeaderClass}>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[220px]`}>Nama Barang</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[90px]`}>Satuan</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[120px] text-center`}>Total Masuk</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[120px] text-center`}>Total Keluar</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[110px] text-center`}>Total Retur</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[130px] text-center`}>Stok Sistem</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[160px] text-center`}>Stok Fisik Terakhir</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[140px] text-center`}>Selisih Terakhir</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[170px]`}>Status Opname</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.length === 0 ? (
+                  {isLoading ? (
+                    tableLoadingRow(9)
+                  ) : rows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={9} className="h-28 text-center text-sm font-medium text-gray-500">
-                        {isLoading ? "Memuat data barang Cangar..." : "Belum ada data barang Cangar."}
+                        Belum ada data barang Cangar.
                       </TableCell>
                     </TableRow>
                   ) : (
                     rows.map((row, idx) => (
-                      <TableRow key={`${row.id}-${idx}`} className="hover:bg-gray-50/60">
+                      <TableRow key={`${row.id}-${idx}`} className={cangarTableRowClass}>
                         <TableCell className="font-semibold text-gray-900">{row.namaBarang}</TableCell>
                         <TableCell className="text-gray-600">{row.satuan}</TableCell>
-                        <TableCell className="text-right font-semibold text-emerald-700 tabular-nums">
+                        <TableCell className="text-center font-semibold text-emerald-700 tabular-nums">
                           {signedValue(row.totalMasuk, "+")}
                         </TableCell>
-                        <TableCell className="text-right font-semibold text-red-700 tabular-nums">
+                        <TableCell className="text-center font-semibold text-red-700 tabular-nums">
                           {signedValue(row.totalKeluar, "-")}
                         </TableCell>
-                        <TableCell className="text-right text-gray-700 tabular-nums">{row.totalRetur}</TableCell>
-                        <TableCell className="font-medium text-gray-900">
+                        <TableCell className="text-center text-gray-700 tabular-nums">{row.totalRetur}</TableCell>
+                        <TableCell className="text-center font-medium text-gray-900">
                           {row.stokSistem.toLocaleString("id-ID")} {row.satuan}
                         </TableCell>
-                        <TableCell className="text-gray-600">{row.stokFisikTerakhir}</TableCell>
-                        <TableCell className="text-gray-600">{row.selisihTerakhir}</TableCell>
+                        <TableCell className="text-center text-gray-600">{row.stokFisikTerakhir}</TableCell>
+                        <TableCell className="text-center text-gray-600">{row.selisihTerakhir}</TableCell>
                         <TableCell>
                           <div className="flex flex-col items-start gap-1">
                             <Badge variant="outline" className={`rounded-md ${statusBadgeClass(row.statusOpname)}`}>
@@ -280,28 +251,30 @@ export default function StokOpname() {
         </TabsContent>
 
         <TabsContent value="Master Barang">
-          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
               <Table className="min-w-[640px]">
                 <TableHeader>
-                  <TableRow className="bg-gray-50 hover:bg-gray-50">
-                    <TableHead className="min-w-[100px] font-bold text-gray-600">ID</TableHead>
-                    <TableHead className="min-w-[260px] font-bold text-gray-600">Nama Barang</TableHead>
-                    <TableHead className="min-w-[120px] font-bold text-gray-600">Satuan</TableHead>
-                    <TableHead className="min-w-[160px] font-bold text-gray-600">Status</TableHead>
+                  <TableRow className={cangarTableHeaderClass}>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[100px] text-center`}>ID</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[260px]`}>Nama Barang</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[120px]`}>Satuan</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[160px]`}>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {masterRows.length === 0 ? (
+                  {isLoading ? (
+                    tableLoadingRow(4)
+                  ) : masterRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={4} className="h-28 text-center text-sm font-medium text-gray-500">
-                        {isLoading ? "Memuat master barang Cangar..." : "Belum ada master barang Cangar."}
+                        Belum ada master barang Cangar.
                       </TableCell>
                     </TableRow>
                   ) : (
                     masterRows.map((row, idx) => (
-                      <TableRow key={`${row.id}-${idx}`} className="hover:bg-gray-50/60">
-                        <TableCell className="font-semibold text-gray-900">#{row.id}</TableCell>
+                      <TableRow key={`${row.id}-${idx}`} className={cangarTableRowClass}>
+                        <TableCell className="text-center font-semibold text-gray-900">#{row.id}</TableCell>
                         <TableCell className="font-medium text-gray-900">{row.namaBarang}</TableCell>
                         <TableCell className="text-gray-600">{row.satuan}</TableCell>
                         <TableCell>
@@ -346,39 +319,41 @@ export default function StokOpname() {
             </Card>
           </div>
 
-          <div className="mt-4 overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
               <Table className="min-w-[860px]">
                 <TableHeader>
-                  <TableRow className="bg-gray-50 hover:bg-gray-50">
-                    <TableHead className="min-w-[220px] font-bold text-gray-600">Nama Barang</TableHead>
-                    <TableHead className="min-w-[110px] font-bold text-gray-600">Satuan</TableHead>
-                    <TableHead className="min-w-[130px] text-right font-bold text-gray-600">Masuk</TableHead>
-                    <TableHead className="min-w-[130px] text-right font-bold text-gray-600">Keluar</TableHead>
-                    <TableHead className="min-w-[130px] text-right font-bold text-gray-600">Retur</TableHead>
-                    <TableHead className="min-w-[140px] font-bold text-gray-600">Stok Sistem</TableHead>
+                  <TableRow className={cangarTableHeaderClass}>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[220px]`}>Nama Barang</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[110px]`}>Satuan</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[130px] text-center`}>Masuk</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[130px] text-center`}>Keluar</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[130px] text-center`}>Retur</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[140px] text-center`}>Stok Sistem</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {rows.length === 0 ? (
+                  {isLoading ? (
+                    tableLoadingRow(6)
+                  ) : rows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="h-28 text-center text-sm font-medium text-gray-500">
-                        {isLoading ? "Memuat laporan mingguan Cangar..." : "Belum ada laporan mingguan Cangar."}
+                        Belum ada laporan mingguan Cangar.
                       </TableCell>
                     </TableRow>
                   ) : (
                     rows.map((row, idx) => (
-                      <TableRow key={`${row.id}-${idx}`} className="hover:bg-gray-50/60">
+                      <TableRow key={`${row.id}-${idx}`} className={cangarTableRowClass}>
                         <TableCell className="font-semibold text-gray-900">{row.namaBarang}</TableCell>
                         <TableCell className="text-gray-600">{row.satuan}</TableCell>
-                        <TableCell className="text-right font-semibold text-emerald-700 tabular-nums">
+                        <TableCell className="text-center font-semibold text-emerald-700 tabular-nums">
                           {signedValue(row.totalMasuk, "+")}
                         </TableCell>
-                        <TableCell className="text-right font-semibold text-red-700 tabular-nums">
+                        <TableCell className="text-center font-semibold text-red-700 tabular-nums">
                           {signedValue(row.totalKeluar, "-")}
                         </TableCell>
-                        <TableCell className="text-right text-gray-700 tabular-nums">{row.totalRetur}</TableCell>
-                        <TableCell className="font-medium text-gray-900">
+                        <TableCell className="text-center text-gray-700 tabular-nums">{row.totalRetur}</TableCell>
+                        <TableCell className="text-center font-medium text-gray-900">
                           {row.stokSistem.toLocaleString("id-ID")} {row.satuan}
                         </TableCell>
                       </TableRow>

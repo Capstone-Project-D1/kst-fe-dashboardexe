@@ -28,6 +28,7 @@ import {
   JatikertoHero,
   JatikertoPagination,
   JatikertoSummaryCards,
+  JatikertoTableSkeleton,
   matchesFields,
   parseDate,
   statusBadgeClass,
@@ -172,7 +173,7 @@ export default function Kemitraan() {
       headerContent={
         <JatikertoHero
           title="Dashboard Kemitraan"
-          description="Memantau kerja sama KST Jatikerto dengan mitra strategis dalam pengembangan agroindustri, riset terapan, dan penguatan ekosistem pertanian."
+          description="Pemantauan kerja sama KST Jatikerto dengan mitra industri, riset, dan agroindustri."
           badges={["Kemitraan Agroindustri"]}
           lastUpdated={lastUpdated}
         />
@@ -210,7 +211,13 @@ export default function Kemitraan() {
             </TableHeader>
 
             <TableBody>
-              {tableMessage ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="p-0">
+                    <JatikertoTableSkeleton columns={6} />
+                  </TableCell>
+                </TableRow>
+              ) : tableMessage ? (
                 <TableRow>
                   <TableCell
                     colSpan={6}
@@ -232,7 +239,7 @@ export default function Kemitraan() {
                         {row.mitra || "-"}
                       </TableCell>
                       <TableCell className="max-w-[240px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
-                        <Badge className={badgeSoftGreenClass}>
+                        <Badge className={`${badgeSoftGreenClass} max-w-full whitespace-normal break-words text-left leading-relaxed`}>
                           {row.bidangKerjasama || "-"}
                         </Badge>
                       </TableCell>
@@ -244,8 +251,8 @@ export default function Kemitraan() {
                           {status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="max-w-[260px] text-[13px] leading-relaxed text-gray-600">
-                        <p className="line-clamp-2">{row.keterangan || "-"}</p>
+                      <TableCell className="max-w-[260px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
+                        <p className="line-clamp-3 break-words">{row.keterangan || "-"}</p>
                       </TableCell>
                     </TableRow>
                   );

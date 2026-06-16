@@ -8,6 +8,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { formatDateOnly, parseCalendarDate } from "@/lib/date";
 
 type IconComponent = ComponentType<{ className?: string }>;
 
@@ -22,12 +23,12 @@ export function JatikertoHero({
   title,
   description,
   badges,
-  lastUpdated,
 }: {
   title: string;
   description: string;
   badges: string[];
   lastUpdated?: string;
+  updateLabel?: string;
 }) {
   return (
     <section className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm">
@@ -55,14 +56,6 @@ export function JatikertoHero({
               {description}
             </p>
           </div>
-          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-left md:text-right">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
-              Last updated
-            </p>
-            <p className="mt-1 text-sm font-bold text-gray-900">
-              {lastUpdated || "-"}
-            </p>
-          </div>
         </div>
       </div>
     </section>
@@ -82,7 +75,7 @@ export function JatikertoSummaryCards({ items }: { items: SummaryCardItem[] }) {
               <p className="text-[12px] font-semibold uppercase tracking-wide text-gray-500">
                 {item.label}
               </p>
-              <p className="mt-2 text-2xl font-bold leading-tight text-gray-950">
+              <p className="mt-2 break-words text-2xl font-bold leading-tight text-gray-950">
                 {item.value ?? "-"}
               </p>
               {item.hint ? (
@@ -98,6 +91,23 @@ export function JatikertoSummaryCards({ items }: { items: SummaryCardItem[] }) {
         </div>
       ))}
     </section>
+  );
+}
+
+export function JatikertoTableSkeleton({ columns = 6 }: { columns?: number }) {
+  return (
+    <div className="space-y-3 px-5 py-5">
+      {Array.from({ length: 5 }).map((_, rowIndex) => (
+        <div key={rowIndex} className="grid gap-3" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
+          {Array.from({ length: columns }).map((__, columnIndex) => (
+            <div
+              key={columnIndex}
+              className="h-4 animate-pulse rounded-full bg-gray-100"
+            />
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -117,7 +127,7 @@ export function JatikertoPagination({
   return (
     <div className="flex flex-col items-center justify-between gap-3 border-t border-gray-100 px-4 py-3 sm:flex-row sm:px-5">
       <div className="flex items-center gap-2 text-[13px] font-medium text-gray-500">
-        <span className="whitespace-nowrap">Baris per Page</span>
+        <span className="whitespace-nowrap">Baris per halaman</span>
         <Select value={rowsPerPage} onValueChange={onRowsPerPageChange}>
           <SelectTrigger className="h-8 w-[70px] border-gray-200 bg-white text-[13px]">
             <SelectValue />
@@ -132,33 +142,17 @@ export function JatikertoPagination({
 
       <div className="flex items-center gap-3">
         <span className="whitespace-nowrap text-[13px] font-medium text-gray-500">
-          Page {currentPage} dari {totalPages}
+          Halaman {currentPage} dari {totalPages}
         </span>
         <div className="flex items-center gap-1">
           {[
-            {
-              icon: ChevronsLeft,
-              action: () => onPageChange(1),
-              disabled: currentPage === 1,
-            },
-            {
-              icon: ChevronLeft,
-              action: () => onPageChange(Math.max(1, currentPage - 1)),
-              disabled: currentPage === 1,
-            },
-            {
-              icon: ChevronRight,
-              action: () => onPageChange(Math.min(totalPages, currentPage + 1)),
-              disabled: currentPage === totalPages,
-            },
-            {
-              icon: ChevronsRight,
-              action: () => onPageChange(totalPages),
-              disabled: currentPage === totalPages,
-            },
-          ].map((btn, i) => (
+            { icon: ChevronsLeft, action: () => onPageChange(1), disabled: currentPage === 1 },
+            { icon: ChevronLeft, action: () => onPageChange(Math.max(1, currentPage - 1)), disabled: currentPage === 1 },
+            { icon: ChevronRight, action: () => onPageChange(Math.min(totalPages, currentPage + 1)), disabled: currentPage === totalPages },
+            { icon: ChevronsRight, action: () => onPageChange(totalPages), disabled: currentPage === totalPages },
+          ].map((btn, index) => (
             <button
-              key={i}
+              key={index}
               onClick={btn.action}
               disabled={btn.disabled}
               className="rounded-md border border-gray-200 p-1.5 text-gray-400 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-30"
@@ -204,53 +198,15 @@ export function getFrequencyValue(value: number | string | undefined | null) {
 
 export function formatFrequency(value: number | string | undefined | null) {
   const number = getFrequencyValue(value);
-  return number ? `${formatNumber(number)} kali` : "-";
+  return number ? `${formatNumber(number)} Kali/Tahun` : "-";
 }
 
-export function parseDate(value?: string | null) {
-  if (!value) return null;
-
-  const normalized = value.trim();
-  if (!normalized) return null;
-
-  const indonesianMonths: Record<string, number> = {
-    januari: 0,
-    februari: 1,
-    maret: 2,
-    april: 3,
-    mei: 4,
-    juni: 5,
-    juli: 6,
-    agustus: 7,
-    september: 8,
-    oktober: 9,
-    november: 10,
-    desember: 11,
-  };
-  const isoDate = normalized.match(/\d{4}-\d{2}-\d{2}/)?.[0];
-  const indonesianDate = normalized.match(/(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})/);
-  const parsed = isoDate
-    ? new Date(`${isoDate}T00:00:00`)
-    : indonesianDate
-      ? new Date(
-          Number(indonesianDate[3]),
-          indonesianMonths[indonesianDate[2].toLowerCase()],
-          Number(indonesianDate[1]),
-        )
-      : new Date(normalized);
-
-  return Number.isNaN(parsed.getTime()) ? null : parsed;
+export function parseDate(value?: unknown) {
+  return parseCalendarDate(value);
 }
 
-export function formatIndonesianDate(value?: string | null) {
-  const date = parseDate(value);
-  if (!date) return value || "-";
-
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "long",
-    year: "numeric",
-  }).format(date);
+export function formatIndonesianDate(value?: unknown) {
+  return formatDateOnly(value);
 }
 
 export function getLastUpdated<T extends Record<string, unknown>>(rows: T[]) {
@@ -271,13 +227,10 @@ export function getLastUpdated<T extends Record<string, unknown>>(rows: T[]) {
     .filter((date): date is Date => Boolean(date))
     .sort((a, b) => b.getTime() - a.getTime())[0];
 
-  return latest ? formatIndonesianDate(latest.toISOString()) : "-";
+  return latest ? formatIndonesianDate(latest) : undefined;
 }
 
-export function matchesFields(
-  fields: Array<unknown>,
-  searchQuery: string,
-) {
+export function matchesFields(fields: Array<unknown>, searchQuery: string) {
   const normalizedQuery = searchQuery.trim().toLowerCase();
   if (!normalizedQuery) return true;
 

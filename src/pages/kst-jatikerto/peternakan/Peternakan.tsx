@@ -32,6 +32,7 @@ import {
   JatikertoHero,
   JatikertoPagination,
   JatikertoSummaryCards,
+  JatikertoTableSkeleton,
   matchesFields,
   mutedBadgeClass,
   tableHeadClass,
@@ -63,7 +64,7 @@ function mapPeternakanRow(row: PeternakanRow): PeternakanRow {
     ...row,
     id: row.rowId ?? row.id,
     namaKomoditas: getTextValue(row, 0, fieldAliases.nama, row.namaKomoditas),
-    luasUsaha: Number.isFinite(luasUsaha) ? `${luasUsaha} m2` : row.luasUsaha,
+    luasUsaha: Number.isFinite(luasUsaha) ? `${luasUsaha} m²` : row.luasUsaha,
     ketersediaanBulan: getNumberValue(row, 2, ["ketersediaanBulan", "ketersediaan_bulan", "bulan"], row.ketersediaanBulan),
     ketersediaanTahun: Number.isFinite(ketersediaanTahun) ? `${ketersediaanTahun} Kali` : row.ketersediaanTahun,
     jumlah: getNumberValue(row, 4, fieldAliases.jumlah, row.jumlah),
@@ -128,7 +129,7 @@ export default function Peternakan() {
       headerContent={
         <JatikertoHero
           title="Dashboard Peternakan"
-          description="Memantau komoditas ternak KST Jatikerto, total populasi, luasan usaha, dan ketersediaan produksi sepanjang tahun."
+          description="Pemantauan populasi dan ketersediaan komoditas peternakan KST Jatikerto."
           badges={["Peternakan Agroindustri"]}
           lastUpdated={lastUpdated}
         />
@@ -166,7 +167,13 @@ export default function Peternakan() {
             </TableHeader>
 
             <TableBody>
-              {tableMessage ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="p-0">
+                    <JatikertoTableSkeleton columns={6} />
+                  </TableCell>
+                </TableRow>
+              ) : tableMessage ? (
                 <TableRow>
                   <TableCell
                     colSpan={6}
@@ -193,15 +200,15 @@ export default function Peternakan() {
                     <TableCell className="min-w-[250px]">
                       <div className="flex flex-wrap justify-center gap-2">
                         <Badge className={mutedBadgeClass}>
-                          {formatNumber(row.ketersediaanBulan)} bulan
+                          {formatNumber(row.ketersediaanBulan)} Bulan
                         </Badge>
                         <Badge className={badgeSoftGreenClass}>
                           {formatFrequency(row.ketersediaanTahun)}
                         </Badge>
                       </div>
                     </TableCell>
-                    <TableCell className="max-w-[280px] text-[13px] leading-relaxed text-gray-600">
-                      <p className="line-clamp-2">{row.keterangan || "-"}</p>
+                    <TableCell className="max-w-[280px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
+                      <p className="line-clamp-3 break-words">{row.keterangan || "-"}</p>
                     </TableCell>
                   </TableRow>
                 ))

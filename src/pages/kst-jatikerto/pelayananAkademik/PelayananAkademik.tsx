@@ -30,6 +30,7 @@ import {
   JatikertoHero,
   JatikertoPagination,
   JatikertoSummaryCards,
+  JatikertoTableSkeleton,
   matchesFields,
   parseDate,
   statusBadgeClass,
@@ -67,7 +68,7 @@ function mapMahasiswaRow(row: MahasiswaRow): MahasiswaRow {
     programStudi: getTextValue(row, 2, ["programStudi", "program_studi", "prodi"], row.programStudi),
     mulai: getDateValue(row, 3, ["mulai", "tanggalMulai", "tanggal_mulai", "startDate", "start_date"], row.mulai),
     selesai: getDateValue(row, 4, ["selesai", "tanggalSelesai", "tanggal_selesai", "endDate", "end_date"], row.selesai),
-    luasan: Number.isFinite(luasan) ? `${luasan} m2` : row.luasan,
+    luasan: Number.isFinite(luasan) ? `${luasan} m²` : row.luasan,
     judulPenelitian: getTextValue(row, 6, ["judulPenelitian", "judul_penelitian", "penelitian", ...fieldAliases.nama], row.judulPenelitian),
   };
 }
@@ -145,7 +146,7 @@ export default function PelayananAkademik() {
       headerContent={
         <JatikertoHero
           title="Dashboard Pelayanan Akademik"
-          description="Memantau kegiatan riset mahasiswa, dosen pembimbing, program studi terlibat, dan periode penelitian di KST Jatikerto."
+          description="Pemantauan kegiatan riset mahasiswa dan pembimbing di KST Jatikerto."
           badges={["Riset Akademik"]}
           lastUpdated={lastUpdated}
         />
@@ -192,7 +193,13 @@ export default function PelayananAkademik() {
             </TableHeader>
 
             <TableBody>
-              {tableMessage ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={9} className="p-0">
+                    <JatikertoTableSkeleton columns={9} />
+                  </TableCell>
+                </TableRow>
+              ) : tableMessage ? (
                 <TableRow>
                   <TableCell
                     colSpan={9}
@@ -216,14 +223,10 @@ export default function PelayananAkademik() {
                       <TableCell className="max-w-[240px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
                         {row.dosenPembimbing || "-"}
                       </TableCell>
-                      <TableCell className="text-[13px] text-gray-600">
-                        {normalizeProgramStudi(row.programStudi) ? (
-                          <Badge className={`${getProgramStudiBadgeClass(row.programStudi)} border`}>
-                            {normalizeProgramStudi(row.programStudi)}
-                          </Badge>
-                        ) : (
-                          "-"
-                        )}
+                      <TableCell className="max-w-[190px] whitespace-normal break-words text-[13px] text-gray-600">
+                        <Badge className={`${getProgramStudiBadgeClass(row.programStudi)} border`}>
+                          {normalizeProgramStudi(row.programStudi) || "-"}
+                        </Badge>
                       </TableCell>
                       <TableCell className="whitespace-nowrap text-[13px] text-gray-600">
                         {formatIndonesianDate(row.mulai)}
@@ -239,8 +242,8 @@ export default function PelayananAkademik() {
                       <TableCell className="whitespace-nowrap text-[13px] text-gray-600 tabular-nums">
                         {formatArea(row.luasan)}
                       </TableCell>
-                      <TableCell className="max-w-[320px] text-[13px] leading-relaxed text-gray-600">
-                        <p className="line-clamp-2">{row.judulPenelitian || "-"}</p>
+                      <TableCell className="max-w-[320px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
+                        <p className="line-clamp-3 break-words">{row.judulPenelitian || "-"}</p>
                       </TableCell>
                     </TableRow>
                   );

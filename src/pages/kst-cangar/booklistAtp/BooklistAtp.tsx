@@ -23,6 +23,17 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { adaptBookingRows, adaptBookingSummary } from "../adapters";
+import {
+  CangarAlert,
+  CangarHero,
+  CangarSummaryCards,
+  cangarTableHeadClass,
+  cangarTableHeaderClass,
+  cangarTableRowClass,
+  cangarTabsListClass,
+  cangarTabsTriggerClass,
+  tableLoadingRow,
+} from "../cangarUi";
 
 const BOOKING_TABS = ["Daftar Booking", "Jadwal & Ketersediaan"];
 
@@ -114,6 +125,10 @@ export default function BooklistAtp() {
     [rows, appliedFilters],
   );
   const summary = useMemo(() => adaptBookingSummary(summaryPayload, rows), [summaryPayload, rows]);
+  const activeBookings = useMemo(
+    () => rows.filter((row) => row.status !== "Dibatalkan").length,
+    [rows],
+  );
   const scheduleRows = useMemo(() => {
     const grouped = new Map<
       string,
@@ -167,22 +182,31 @@ export default function BooklistAtp() {
 
   return (
     <div className="flex min-h-screen flex-col gap-5 bg-gray-50/50 p-4 md:p-6">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-xl font-bold text-gray-900">Manajemen Booking</h1>
-        <p className="text-sm font-medium text-gray-500">KST Cangar</p>
-      </div>
+      <CangarHero
+        title="📅 Manajemen Booking"
+        description="Pengelolaan daftar booking, status reservasi, dan ketersediaan layanan KST Cangar."
+      />
 
       {bookingError || summaryError ? (
-        <div className="rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-          Sebagian data booking Cangar belum bisa dimuat. Nilai kosong memakai fallback.
-        </div>
+        <CangarAlert>
+          Sebagian data booking belum tersedia. Beberapa nilai mungkin belum ditampilkan.
+        </CangarAlert>
       ) : null}
+
+      <CangarSummaryCards
+        items={[
+          { label: "Menunggu Konfirmasi", value: summary.pending, icon: Clock3, helper: "Booking yang perlu ditindaklanjuti", tone: "amber" },
+          { label: "Confirmed Bulan Ini", value: summary.confirmedMonth, icon: CheckCircle2, helper: "Reservasi terkonfirmasi", tone: "green" },
+          { label: "Booking Hari Ini", value: summary.today, icon: CalendarCheck, helper: "Aktivitas reservasi hari ini", tone: "blue" },
+          { label: "Total Booking Aktif", value: activeBookings, icon: CalendarCheck, helper: "Tidak termasuk dibatalkan" },
+        ]}
+      />
 
       <Tabs defaultValue="Daftar Booking" className="gap-4">
         <div className="overflow-x-auto pb-1">
-          <TabsList className="h-10 w-max bg-white shadow-sm">
+          <TabsList className={cangarTabsListClass}>
             {BOOKING_TABS.map((tab) => (
-              <TabsTrigger key={tab} value={tab} className="px-4 text-[13px]">
+              <TabsTrigger key={tab} value={tab} className={cangarTabsTriggerClass}>
                 {tab}
               </TabsTrigger>
             ))}
@@ -190,39 +214,7 @@ export default function BooklistAtp() {
         </div>
 
         <TabsContent value="Daftar Booking" className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Menunggu Konfirmasi</CardTitle>
-                <Clock3 className="size-4 text-amber-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{summary.pending}</div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Confirmed Bulan Ini</CardTitle>
-                <CheckCircle2 className="size-4 text-emerald-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{summary.confirmedMonth}</div>
-              </CardContent>
-            </Card>
-
-            <Card className="rounded-lg border-gray-200 shadow-sm">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-gray-600">Booking Hari Ini</CardTitle>
-                <CalendarCheck className="size-4 text-blue-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{summary.today}</div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="flex flex-col gap-3 rounded-lg border border-gray-200 bg-white p-3 shadow-sm xl:flex-row xl:items-end xl:justify-between">
+          <div className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white p-3 shadow-sm xl:flex-row xl:items-end xl:justify-between">
             <div className="grid flex-1 grid-cols-1 gap-3 md:grid-cols-3">
               <label className="space-y-1.5">
                 <span className="text-xs font-semibold text-gray-600">Status</span>
@@ -291,36 +283,38 @@ export default function BooklistAtp() {
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
               <Table className="min-w-[820px]">
                 <TableHeader>
-                  <TableRow className="bg-gray-50 hover:bg-gray-50">
-                    <TableHead className="min-w-[80px] font-bold text-gray-600">ID</TableHead>
-                    <TableHead className="min-w-[200px] font-bold text-gray-600">Nama Customer</TableHead>
-                    <TableHead className="min-w-[150px] font-bold text-gray-600">No. HP</TableHead>
-                    <TableHead className="min-w-[150px] font-bold text-gray-600">Layanan</TableHead>
-                    <TableHead className="min-w-[150px] font-bold text-gray-600">Tanggal</TableHead>
-                    <TableHead className="min-w-[90px] text-right font-bold text-gray-600">Jumlah</TableHead>
-                    <TableHead className="min-w-[130px] font-bold text-gray-600">Status</TableHead>
+                  <TableRow className={cangarTableHeaderClass}>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[80px] text-center`}>ID</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[200px]`}>Nama Customer</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[150px]`}>No. HP</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[150px]`}>Layanan</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[150px]`}>Tanggal</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[90px] text-center`}>Jumlah</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[130px]`}>Status</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredRows.length === 0 ? (
+                  {isLoading ? (
+                    tableLoadingRow(7)
+                  ) : filteredRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} className="h-28 text-center text-sm font-medium text-gray-500">
-                        {isLoading ? "Memuat data booking Cangar..." : "Tidak ada data booking sesuai filter."}
+                        Tidak ada data booking sesuai filter.
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredRows.map((row) => (
-                      <TableRow key={row.id} className="hover:bg-gray-50/60">
-                        <TableCell className="font-semibold text-gray-900">#{row.id}</TableCell>
+                      <TableRow key={row.id} className={cangarTableRowClass}>
+                        <TableCell className="text-center font-semibold text-gray-900">#{row.id}</TableCell>
                         <TableCell className="font-medium text-gray-900">{row.namaCustomer}</TableCell>
                         <TableCell className="text-gray-600">{row.noHp}</TableCell>
                         <TableCell className="text-gray-600">{row.layanan}</TableCell>
                         <TableCell className="text-gray-600">{row.tanggal}</TableCell>
-                        <TableCell className="text-right tabular-nums">{row.jumlah}</TableCell>
+                        <TableCell className="text-center tabular-nums">{row.jumlah}</TableCell>
                         <TableCell>
                           <Badge
                             variant="outline"
@@ -346,7 +340,7 @@ export default function BooklistAtp() {
         </TabsContent>
 
         <TabsContent value="Jadwal & Ketersediaan" className="space-y-4">
-          <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
             <p className="text-sm font-semibold text-gray-700">Kapasitas per Hari</p>
             <div className="mt-2 flex flex-wrap gap-2 text-sm font-medium text-gray-600">
               <Badge variant="outline" className="rounded-md border-gray-200 bg-gray-50 text-gray-700">
@@ -392,24 +386,26 @@ export default function BooklistAtp() {
             </Card>
           </div>
 
-          <div className="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm">
+          <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
             <div className="overflow-x-auto">
               <Table className="min-w-[720px]">
                 <TableHeader>
-                  <TableRow className="bg-gray-50 hover:bg-gray-50">
-                    <TableHead className="min-w-[150px] font-bold text-gray-600">Tanggal</TableHead>
-                    <TableHead className="min-w-[170px] font-bold text-gray-600">Layanan</TableHead>
-                    <TableHead className="min-w-[130px] text-center font-bold text-gray-600">Total Booking</TableHead>
-                    <TableHead className="min-w-[140px] text-center font-bold text-gray-600">Qty Confirmed</TableHead>
-                    <TableHead className="min-w-[110px] text-center font-bold text-gray-600">Pending</TableHead>
-                    <TableHead className="min-w-[140px] font-bold text-gray-600">Ketersediaan</TableHead>
+                  <TableRow className={cangarTableHeaderClass}>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[150px]`}>Tanggal</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[170px]`}>Layanan</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[130px] text-center`}>Total Booking</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[140px] text-center`}>Qty Confirmed</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[110px] text-center`}>Pending</TableHead>
+                    <TableHead className={`${cangarTableHeadClass} min-w-[140px]`}>Ketersediaan</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {scheduleRows.length === 0 ? (
+                  {isLoading ? (
+                    tableLoadingRow(6)
+                  ) : scheduleRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="h-28 text-center text-sm font-medium text-gray-500">
-                        {isLoading ? "Memuat jadwal booking Cangar..." : "Belum ada jadwal booking Cangar."}
+                        Belum ada jadwal booking Cangar.
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -419,7 +415,7 @@ export default function BooklistAtp() {
                       const remainingCapacity = Math.max(0, row.capacity - row.confirmedQty);
 
                       return (
-                        <TableRow key={row.key} className="hover:bg-gray-50/60">
+                        <TableRow key={row.key} className={cangarTableRowClass}>
                           <TableCell className="text-gray-600">{row.tanggal}</TableCell>
                           <TableCell className="font-medium text-gray-900">
                             <span className="inline-flex items-center gap-2">

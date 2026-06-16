@@ -34,8 +34,8 @@ import {
   JatikertoHero,
   JatikertoPagination,
   JatikertoSummaryCards,
+  JatikertoTableSkeleton,
   matchesFields,
-  mutedBadgeClass,
   tableHeadClass,
   tableHeaderClass,
   tableRowClass,
@@ -181,7 +181,7 @@ export default function Konservasi() {
       headerContent={
         <JatikertoHero
           title="Dashboard Konservasi"
-          description="Memantau koleksi konservasi hewan dan tumbuhan KST Jatikerto, termasuk jumlah populasi, dokumentasi visual, dan catatan pemeliharaan."
+          description="Pemantauan data konservasi hewan dan tumbuhan di KST Jatikerto."
           badges={[categoryLabels[selectedCategory]]}
           lastUpdated={lastUpdated}
         />
@@ -240,7 +240,13 @@ export default function Konservasi() {
             </TableHeader>
 
             <TableBody>
-              {tableMessage ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="p-0">
+                    <JatikertoTableSkeleton columns={6} />
+                  </TableCell>
+                </TableRow>
+              ) : tableMessage ? (
                 <TableRow>
                   <TableCell
                     colSpan={6}
@@ -270,12 +276,12 @@ export default function Konservasi() {
                       {row.jumlah ? `${formatNumber(row.jumlah)} ${row.satuan || ""}` : "-"}
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge className={selectedCategory === "konservasi-hewan" ? badgeSoftGreenClass : mutedBadgeClass}>
+                      <Badge className={selectedCategory === "konservasi-hewan" ? "h-auto rounded-full border-orange-200 bg-orange-50 px-2.5 py-1 text-orange-700" : badgeSoftGreenClass}>
                         {categoryLabels[selectedCategory].replace("Konservasi ", "")}
                       </Badge>
                     </TableCell>
-                    <TableCell className="max-w-[300px] text-[13px] leading-relaxed text-gray-600">
-                      <p className="line-clamp-2">{row.keterangan || "-"}</p>
+                    <TableCell className="max-w-[300px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
+                      <p className="line-clamp-3 break-words">{row.keterangan || "-"}</p>
                     </TableCell>
                   </TableRow>
                 ))

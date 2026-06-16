@@ -1,3 +1,5 @@
+import { formatDateInputValueSafe, formatIndonesianCalendarDate } from "@/lib/date";
+
 type AnyRecord = Record<string, unknown>;
 
 export interface StockSummary {
@@ -148,30 +150,11 @@ export function formatRupiah(value: unknown) {
 }
 
 export function formatIndonesianDate(value: unknown) {
-  const text = toText(value, "");
-  if (!text) return "-";
-
-  const date = new Date(text);
-  if (Number.isNaN(date.getTime())) return text;
-
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  }).format(date);
+  return formatIndonesianCalendarDate(value);
 }
 
 export function formatDateInputValue(value: unknown) {
-  const text = toText(value, "");
-  if (!text) return "";
-
-  const date = new Date(text);
-  if (Number.isNaN(date.getTime())) return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : "";
-
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+  return formatDateInputValueSafe(value);
 }
 
 export function extractItems(payload: unknown): unknown[] {

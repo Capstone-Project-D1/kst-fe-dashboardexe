@@ -32,6 +32,7 @@ import {
   JatikertoHero,
   JatikertoPagination,
   JatikertoSummaryCards,
+  JatikertoTableSkeleton,
   matchesFields,
   mutedBadgeClass,
   tableHeadClass,
@@ -63,7 +64,7 @@ function mapKomoditasRow(row: KomoditasRow): KomoditasRow {
     ...row,
     id: row.rowId ?? row.id,
     nama: getTextValue(row, 0, fieldAliases.nama, row.nama),
-    luasUsaha: Number.isFinite(luasUsaha) ? `${luasUsaha} m2` : row.luasUsaha,
+    luasUsaha: Number.isFinite(luasUsaha) ? `${luasUsaha} m²` : row.luasUsaha,
     masaTanamBulan: getNumberValue(row, 2, ["masaTanamBulan", "masa_tanam_bulan", "bulan"], row.masaTanamBulan),
     masaTanamTahun: Number.isFinite(masaTanamTahun) ? `${masaTanamTahun} Kali` : row.masaTanamTahun,
     proyeksiPanen: getNumberValue(row, 4, ["proyeksiPanen", "proyeksi_panen", "panen", ...fieldAliases.jumlah], row.proyeksiPanen),
@@ -128,7 +129,7 @@ export default function Pertanian() {
       headerContent={
         <JatikertoHero
           title="Dashboard Pertanian"
-          description="Memantau komoditas pertanian KST Jatikerto, proyeksi panen, luas usaha, dan pola masa tanam untuk perencanaan produksi."
+          description="Proyeksi panen dan pengelolaan komoditas pertanian KST Jatikerto."
           badges={["Pertanian Agroindustri"]}
           lastUpdated={lastUpdated}
         />
@@ -166,7 +167,13 @@ export default function Pertanian() {
             </TableHeader>
 
             <TableBody>
-              {tableMessage ? (
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="p-0">
+                    <JatikertoTableSkeleton columns={6} />
+                  </TableCell>
+                </TableRow>
+              ) : tableMessage ? (
                 <TableRow>
                   <TableCell
                     colSpan={6}
@@ -193,15 +200,15 @@ export default function Pertanian() {
                     <TableCell className="min-w-[250px]">
                       <div className="flex flex-wrap justify-center gap-2">
                         <Badge className={mutedBadgeClass}>
-                          {formatNumber(row.masaTanamBulan)} bulan
+                          {formatNumber(row.masaTanamBulan)} Bulan
                         </Badge>
                         <Badge className={badgeSoftGreenClass}>
                           {formatFrequency(row.masaTanamTahun)}
                         </Badge>
                       </div>
                     </TableCell>
-                    <TableCell className="max-w-[280px] text-[13px] leading-relaxed text-gray-600">
-                      <p className="line-clamp-2">{row.keterangan || "-"}</p>
+                    <TableCell className="max-w-[280px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
+                      <p className="line-clamp-3 break-words">{row.keterangan || "-"}</p>
                     </TableCell>
                   </TableRow>
                 ))
