@@ -615,27 +615,72 @@ function HarvestBars({ rows }: { rows: JatikertoApiRow[] }) {
     .sort((left, right) => right.value - left.value)
     .slice(0, 8);
   const maxValue = Math.max(...values.map((item) => item.value), 1);
+  const axisTicks = Array.from({ length: 5 }, (_, index) => (maxValue * (4 - index)) / 4);
 
   if (values.length === 0) {
     return (
-      <div className="grid min-h-[142px] place-items-center rounded-xl border border-dashed border-teal-100 bg-teal-50/60 px-5 text-center text-sm font-semibold text-teal-700">
+      <div className="mt-5 grid min-h-[230px] flex-1 place-items-center rounded-xl border border-dashed border-teal-100 bg-teal-50/60 px-5 text-center text-sm font-semibold text-teal-700">
         Data panen belum tersedia
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-[170px] items-end gap-3 pt-6">
-      {values.map((item, index) => (
-        <div key={`${item.label}-${index}`} className="flex min-w-0 flex-1 flex-col items-center gap-2">
-          <div
-            className={`w-full rounded-t-xl ${index === 0 ? "bg-teal-600" : "bg-teal-100"}`}
-            style={{ height: `${Math.max((item.value / maxValue) * 132, 28)}px` }}
-            title={`${item.label}: ${formatNumber(item.value)}`}
-          />
-          <span className="w-full truncate text-center text-[11px] font-bold text-gray-500">{item.label}</span>
+    <div className="mt-5 flex min-h-[230px] flex-1 flex-col">
+      <div className="grid flex-1 grid-cols-[48px_minmax(0,1fr)] gap-3">
+        <div className="relative min-h-[190px] text-[10px] font-semibold text-gray-400">
+          {axisTicks.map((tick, index) => (
+            <span
+              key={`${tick}-${index}`}
+              className="absolute right-0 -translate-y-1/2 tabular-nums"
+              style={{ top: `${(index / (axisTicks.length - 1)) * 100}%` }}
+            >
+              {formatNumber(Math.round(tick), "Kg")}
+            </span>
+          ))}
         </div>
-      ))}
+        <div className="relative min-h-[190px] overflow-hidden rounded-xl border border-teal-100/70 bg-teal-50/25 px-3 pb-0 pt-4">
+          <div className="pointer-events-none absolute inset-x-3 bottom-0 top-4">
+            {axisTicks.map((tick, index) => (
+              <div
+                key={`${tick}-line-${index}`}
+                className="absolute left-0 right-0 border-t border-teal-900/10"
+                style={{ top: `${(index / (axisTicks.length - 1)) * 100}%` }}
+              />
+            ))}
+          </div>
+          <div className="pointer-events-none absolute bottom-0 left-3 right-3 top-4 grid" style={{ gridTemplateColumns: `repeat(${values.length}, minmax(0, 1fr))` }}>
+            {values.map((item, index) => (
+              <div key={`${item.label}-guide-${index}`} className="border-l border-teal-900/[0.06] first:border-l-0" />
+            ))}
+          </div>
+          <div className="relative z-10 flex h-full items-end gap-2 sm:gap-3">
+            {values.map((item, index) => (
+              <div key={`${item.label}-${index}`} className="flex h-full min-w-0 flex-1 items-end justify-center">
+                <div
+                  className={`w-full max-w-14 rounded-t-lg shadow-sm ${index === 0 ? "bg-teal-600" : "bg-teal-200"}`}
+                  style={{ height: `max(${(item.value / maxValue) * 100}%, 28px)` }}
+                  title={`${item.label}: ${formatNumber(item.value, "Kg")}`}
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="mt-2 grid grid-cols-[48px_minmax(0,1fr)] gap-3">
+        <div />
+        <div className="flex gap-2 sm:gap-3">
+          {values.map((item, index) => (
+            <span
+              key={`${item.label}-label-${index}`}
+              className="min-w-0 flex-1 truncate text-center text-[11px] font-bold leading-4 text-gray-500"
+              title={item.label}
+            >
+              {item.label}
+            </span>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -1072,8 +1117,8 @@ export default function Dashboard() {
             description="Ikhtisar pertanian, peternakan, konservasi, dan riset akademik dari data Jatikerto."
           />
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
-            <CardShell className="border-teal-100">
-              <CardContent className="p-5 md:p-6">
+            <CardShell className="h-full border-teal-100">
+              <CardContent className="flex h-full min-h-[390px] flex-col p-5 md:p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <p className="text-[11px] font-bold uppercase tracking-wide text-teal-700">Proyeksi Panen</p>
