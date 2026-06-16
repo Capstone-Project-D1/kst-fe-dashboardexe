@@ -181,7 +181,7 @@ function CardShell({
   className?: string;
 }) {
   return (
-    <Card className={`overflow-hidden rounded-[8px] border-gray-200/80 bg-white shadow-sm ${className}`}>
+    <Card className={`overflow-hidden rounded-2xl border-gray-200 bg-white shadow-sm ${className}`}>
       {children}
     </Card>
   );
@@ -190,15 +190,87 @@ function CardShell({
 function SectionHeader({
   title,
   tone,
+  description,
 }: {
   title: string;
   tone: Tone;
+  description?: string;
 }) {
   return (
-    <div className="flex items-center gap-3">
-      <span className={`h-1 w-9 rounded-full ${toneClass[tone].accent}`} />
-      <h2 className="text-lg font-extrabold text-gray-950 md:text-xl">{title}</h2>
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <div className="min-w-0">
+        <div className="mb-3 flex items-center gap-3">
+          <span className={`h-1 w-9 rounded-full ${toneClass[tone].accent}`} />
+          <Badge className={`rounded-full border px-2.5 py-1 text-[11px] font-bold ${toneClass[tone].badge}`}>
+            Ringkasan operasional
+          </Badge>
+        </div>
+        <h2 className="text-xl font-bold tracking-tight text-gray-950 md:text-2xl">{title}</h2>
+        {description ? (
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-600">{description}</p>
+        ) : null}
+      </div>
     </div>
+  );
+}
+
+function HeroOverview({
+  kstValue,
+  indicatorValue,
+  focusValue,
+}: {
+  kstValue: ReactNode;
+  indicatorValue: ReactNode;
+  focusValue: ReactNode;
+}) {
+  return (
+    <section className="overflow-hidden rounded-2xl border border-emerald-100 bg-white shadow-sm">
+      <div className="relative px-5 py-6 md:px-7">
+        <div className="absolute inset-y-0 right-0 hidden w-2/5 bg-[radial-gradient(circle_at_top_right,rgba(16,185,129,0.18),transparent_42%),linear-gradient(to_left,rgba(240,253,244,0.95),transparent)] md:block" />
+        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="max-w-3xl">
+            <div className="mb-4 flex flex-wrap gap-2">
+              <Badge className="border-emerald-200 bg-emerald-50 text-emerald-700">
+                Executive Dashboard
+              </Badge>
+              <Badge className="border-lime-200 bg-lime-50 text-lime-700">
+                Ngijo
+              </Badge>
+              <Badge className="border-lime-200 bg-lime-50 text-lime-700">
+                Cangar
+              </Badge>
+              <Badge className="border-lime-200 bg-lime-50 text-lime-700">
+                Jatikerto
+              </Badge>
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-950 md:text-3xl">
+              Beranda Executive Dashboard
+            </h1>
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">
+              Ringkasan lintas KST untuk memantau riset, keberlanjutan, operasional,
+              agro, dan konservasi dari data yang sudah tersedia.
+            </p>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-3 lg:min-w-[440px]">
+            {[
+              { label: "KST terpantau", value: kstValue },
+              { label: "Indikator tercatat", value: indicatorValue },
+              { label: "Fokus aktif", value: focusValue },
+            ].map((item) => (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-emerald-100 bg-emerald-50/70 px-4 py-3 text-left lg:text-right"
+              >
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-emerald-700">
+                  {item.label}
+                </p>
+                <p className="mt-1 text-2xl font-bold text-gray-950">{item.value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -219,14 +291,21 @@ function ExecutiveSummaryCard({
 }) {
   if (featured) {
     return (
-      <CardShell className="border-emerald-950 bg-emerald-950 text-white shadow-lg shadow-emerald-950/15">
+      <CardShell className="border-emerald-900 bg-emerald-950 text-white shadow-md shadow-emerald-950/15">
         <CardContent className="relative min-h-[158px] p-5">
-          <div className="absolute -bottom-8 -right-6 h-24 w-24 rounded-full border-[14px] border-emerald-700/40" />
-          <p className="text-[11px] font-extrabold uppercase text-emerald-100">{label}</p>
-          <div className="mt-4 text-4xl font-black leading-none">{value}</div>
-          <div className="mt-5 flex items-center gap-2 text-xs font-bold text-emerald-100">
-            <Icon className="size-4" />
-            <span>{description}</span>
+          <div className="absolute -bottom-10 -right-8 size-32 rounded-full border-[18px] border-emerald-700/35" />
+          <div className="relative">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-[11px] font-bold uppercase tracking-wide text-emerald-100">{label}</p>
+              <div className="grid size-10 place-items-center rounded-xl border border-white/10 bg-white/10">
+                <Icon className="size-5" />
+              </div>
+            </div>
+            <div className="mt-4 text-4xl font-bold leading-none tracking-tight">{value}</div>
+            <div className="mt-5 flex items-center gap-2 text-xs font-semibold text-emerald-100">
+              <span className="size-2 rounded-full bg-emerald-300" />
+              <span>{description}</span>
+            </div>
           </div>
         </CardContent>
       </CardShell>
@@ -237,17 +316,19 @@ function ExecutiveSummaryCard({
     <CardShell>
       <CardContent className="flex min-h-[158px] flex-col justify-between p-5">
         <div>
-          <p className="text-[11px] font-extrabold uppercase text-gray-500">{label}</p>
-          <div className="mt-3 break-words text-3xl font-black leading-tight text-gray-950">{value}</div>
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</p>
+            <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-2 text-emerald-700">
+              <Icon className="size-5" />
+            </div>
+          </div>
+          <div className="mt-3 break-words text-3xl font-bold leading-tight tracking-tight text-gray-950">{value}</div>
           <p className="mt-2 text-sm leading-5 text-gray-500">{description}</p>
         </div>
         {children ? (
           <div className="mt-4">{children}</div>
         ) : (
-          <div className="mt-4 flex items-center gap-2 text-emerald-700">
-            <Icon className="size-5" />
-            <span className="h-2 w-16 rounded-full bg-emerald-100" />
-          </div>
+          <div className="mt-4 text-xs font-semibold text-emerald-700">Data tersedia</div>
         )}
       </CardContent>
     </CardShell>
@@ -256,7 +337,7 @@ function ExecutiveSummaryCard({
 
 function IconBadge({ icon: Icon, tone }: { icon: IconComponent; tone: Tone }) {
   return (
-    <div className={`grid size-11 shrink-0 place-items-center rounded-full border ${toneClass[tone].icon}`}>
+    <div className={`grid size-11 shrink-0 place-items-center rounded-xl border ${toneClass[tone].icon}`}>
       <Icon className="size-5" />
     </div>
   );
@@ -282,8 +363,8 @@ function CompactMetricCard({
       <CardContent className="flex min-h-[124px] items-center gap-4 p-5">
         <IconBadge icon={icon} tone={tone} />
         <div className="min-w-0">
-          <p className="text-[11px] font-extrabold uppercase text-gray-500">{label}</p>
-          <div className="mt-1 break-words text-2xl font-black leading-tight text-gray-950">{value}</div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</p>
+          <div className="mt-1 break-words text-2xl font-bold leading-tight tracking-tight text-gray-950">{value}</div>
           {description ? (
             <p className="mt-1 text-xs leading-5 text-gray-500">{description}</p>
           ) : null}
@@ -308,7 +389,7 @@ function ProgressLine({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between gap-3 text-[11px] font-extrabold uppercase text-gray-500">
+      <div className="flex items-center justify-between gap-3 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
         <span className="min-w-0">{label}</span>
         <span className={toneClass[tone].text}>{value === null ? EMPTY_TEXT : `${Math.round(percent)}%`}</span>
       </div>
@@ -343,10 +424,10 @@ function SemiGauge({
       >
         <div className="absolute bottom-0 left-1/2 h-[82px] w-[72%] -translate-x-1/2 rounded-t-full bg-white" />
         <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-center">
-          <div className="text-3xl font-black leading-none text-gray-950">
+          <div className="text-3xl font-bold leading-none tracking-tight text-gray-950">
             {value === null ? "-" : value.toLocaleString("id-ID", { maximumFractionDigits: 1 })}
           </div>
-          <div className="mt-1 text-[11px] font-extrabold uppercase text-gray-500">Avg TRL</div>
+          <div className="mt-1 text-[11px] font-semibold uppercase tracking-wide text-gray-500">Avg TRL</div>
         </div>
       </div>
     </div>
@@ -372,7 +453,7 @@ function DonutMetricCard({
   return (
     <CardShell>
       <CardContent className="flex min-h-[250px] flex-col p-5">
-        <p className="text-[11px] font-extrabold uppercase text-gray-500">Booking vs Pending</p>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Booking vs Pending</p>
         <div className="mt-6 grid place-items-center">
           <div
             className="grid size-32 place-items-center rounded-full"
@@ -382,7 +463,7 @@ function DonutMetricCard({
           >
             <div className="grid size-24 place-items-center rounded-full bg-white">
               <div className="text-center">
-                <div className="text-3xl font-black text-gray-950">
+                <div className="text-3xl font-bold tracking-tight text-gray-950">
                   {isLoading ? "..." : `${Math.round(completedPercent)}%`}
                 </div>
                 <div className="text-[11px] font-bold text-gray-500">Booking aktif</div>
@@ -437,7 +518,7 @@ function MiniBarComparisonCard({
   return (
     <CardShell>
       <CardContent className="flex min-h-[250px] flex-col p-5">
-        <p className="text-[11px] font-extrabold uppercase text-gray-500">{title}</p>
+        <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{title}</p>
         <div className="mt-6 space-y-5">
           {rows.map((item) => {
             const Icon = item.icon;
@@ -461,7 +542,7 @@ function MiniBarComparisonCard({
           })}
         </div>
         {message ? (
-          <div className="mt-auto rounded-[8px] bg-amber-50 p-4 text-sm leading-5 text-amber-900">
+          <div className="mt-auto rounded-xl bg-amber-50 p-4 text-sm leading-5 text-amber-900">
             {message}
           </div>
         ) : null}
@@ -490,9 +571,9 @@ function FinancialHighlightCard({
       <CardContent className="relative flex min-h-[250px] flex-col p-5">
         <div className="absolute -right-10 -top-10 size-32 rounded-full bg-amber-50" />
         <div className="relative">
-          <p className="text-[11px] font-extrabold uppercase text-gray-500">Financial Highlight</p>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Financial Highlight</p>
           <p className="mt-5 text-sm font-medium text-gray-500">Saldo aktif unit</p>
-          <div className="mt-2 break-words text-3xl font-black leading-tight text-gray-950">
+          <div className="mt-2 break-words text-3xl font-bold leading-tight tracking-tight text-gray-950">
             {isLoading ? "Memuat..." : saldo === null ? EMPTY_TEXT : formatRupiah(saldo)}
           </div>
         </div>
@@ -537,7 +618,7 @@ function HarvestBars({ rows }: { rows: JatikertoApiRow[] }) {
 
   if (values.length === 0) {
     return (
-      <div className="grid min-h-[142px] place-items-center rounded-[8px] bg-teal-50 text-sm font-semibold text-teal-700">
+      <div className="grid min-h-[142px] place-items-center rounded-xl border border-dashed border-teal-100 bg-teal-50/60 px-5 text-center text-sm font-semibold text-teal-700">
         Data panen belum tersedia
       </div>
     );
@@ -548,7 +629,7 @@ function HarvestBars({ rows }: { rows: JatikertoApiRow[] }) {
       {values.map((item, index) => (
         <div key={`${item.label}-${index}`} className="flex min-w-0 flex-1 flex-col items-center gap-2">
           <div
-            className={`w-full rounded-t-[8px] ${index === 0 ? "bg-teal-600" : "bg-teal-100"}`}
+            className={`w-full rounded-t-xl ${index === 0 ? "bg-teal-600" : "bg-teal-100"}`}
             style={{ height: `${Math.max((item.value / maxValue) * 132, 28)}px` }}
             title={`${item.label}: ${formatNumber(item.value)}`}
           />
@@ -812,12 +893,24 @@ export default function Dashboard() {
     displayKonservasi !== null
       ? dataStatusText(isKonservasiLoading, konservasiError, true)
       : dataStatusText(isAkademikLoading, akademikError, displayActiveResearch !== null);
+  const kstTerpantauValue = isSummaryLoading
+    ? "..."
+    : summary.activeKst !== null && summary.totalKst !== null
+      ? `${summary.activeKst}/${summary.totalKst}`
+      : `${Math.max(integratedKst, directKstCount)}/${KST_KEYS.length}`;
+  const focusAktifValue = `${[hasCangarData, hasJatikertoData].filter(Boolean).length} fokus`;
 
   return (
-    <div className="min-h-screen bg-gray-100/70 px-4 py-6 md:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-10">
+    <div className="min-h-screen bg-gray-50 px-4 py-6 md:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
+        <HeroOverview
+          kstValue={kstTerpantauValue}
+          indicatorValue={mainIndicators > 0 ? mainIndicators : WAITING_TEXT}
+          focusValue={focusAktifValue}
+        />
+
         {hasEndpointError ? (
-          <div className="rounded-[8px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+          <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 shadow-sm">
             Sebagian data belum dapat dimuat. Highlight yang tersedia tetap ditampilkan.
           </div>
         ) : null}
@@ -834,7 +927,7 @@ export default function Dashboard() {
                 <Badge
                   key={label}
                   variant="outline"
-                  className={`rounded-[6px] bg-white text-[11px] font-semibold ${
+                  className={`rounded-full bg-white px-2.5 py-1 text-[11px] font-semibold shadow-sm ${
                     isWarning ? "border-amber-200 text-amber-700" : "border-gray-200 text-gray-500"
                   }`}
                 >
@@ -846,23 +939,11 @@ export default function Dashboard() {
         ) : null}
 
         <section className="space-y-5">
-          <div className="max-w-3xl">
-            <h1 className="text-2xl font-black text-gray-950 md:text-3xl">
-              Executive Dashboard
-            </h1>
-          </div>
-
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <ExecutiveSummaryCard
               label="KST Terpantau"
-              value={
-                isSummaryLoading
-                  ? "..."
-                  : summary.activeKst !== null && summary.totalKst !== null
-                    ? `${summary.activeKst}/${summary.totalKst}`
-                    : `${Math.max(integratedKst, directKstCount)}/${KST_KEYS.length}`
-              }
-              description="Live feed active"
+              value={kstTerpantauValue}
+              description="Data tersedia dari unit yang berhasil dimuat"
               icon={Activity}
               featured
             />
@@ -891,7 +972,7 @@ export default function Dashboard() {
             </ExecutiveSummaryCard>
             <ExecutiveSummaryCard
               label="Fokus Agro / Operasional / Konservasi"
-              value={`${[hasCangarData, hasJatikertoData].filter(Boolean).length} fokus`}
+              value={focusAktifValue}
               description="Booking, stok, saldo, panen, ternak, konservasi"
               icon={TrendingUp}
             />
@@ -899,13 +980,17 @@ export default function Dashboard() {
         </section>
 
         <section className="space-y-5">
-          <SectionHeader title="Ngijo Highlight: Riset & Keberlanjutan" tone="emerald" />
+          <SectionHeader
+            title="Ngijo Highlight: Riset & Keberlanjutan"
+            tone="emerald"
+            description="Memantau kesiapan teknologi, performa hijau, energi terbarukan, dan kolaborasi atau paten."
+          />
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
-            <CardShell>
+            <CardShell className="border-emerald-100">
               <CardContent className="grid gap-6 p-5 md:grid-cols-[minmax(0,1fr)_minmax(240px,1fr)] md:p-6">
                 <div className="flex min-h-[260px] flex-col items-center justify-center border-b border-gray-100 pb-6 text-center md:border-b-0 md:border-r md:pb-0 md:pr-6">
                   <SemiGauge value={averageTrl} max={9} tone="emerald" />
-                  <h3 className="mt-4 text-xl font-black text-gray-950">Technology Readiness Level</h3>
+                  <h3 className="mt-4 text-xl font-bold text-gray-950">Technology Readiness Level</h3>
                   <p className="mt-2 max-w-sm text-sm leading-6 text-gray-500">
                     Rata-rata TRL dari data riset Ngijo yang tersedia.
                   </p>
@@ -913,8 +998,8 @@ export default function Dashboard() {
                 <div className="flex min-h-[260px] flex-col justify-center gap-6">
                   <ProgressLine label="Green Performance" value={greenPerformance} tone="emerald" />
                   {ngijoStatusMessage ? (
-                    <div className="rounded-[8px] border border-emerald-100 bg-emerald-50 p-4">
-                      <p className="text-[11px] font-extrabold uppercase text-emerald-700">Status data</p>
+                    <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4">
+                      <p className="text-[11px] font-bold uppercase tracking-wide text-emerald-700">Status data</p>
                       <p className="mt-2 text-sm leading-6 text-emerald-900">
                         {ngijoStatusMessage}
                       </p>
@@ -949,7 +1034,11 @@ export default function Dashboard() {
         </section>
 
         <section className="space-y-5">
-          <SectionHeader title="Cangar Highlight: Operasional & Keuangan" tone="amber" />
+          <SectionHeader
+            title="Cangar Highlight: Operasional & Keuangan"
+            tone="amber"
+            description="Ringkasan booking, pergerakan stok, dan kondisi keuangan unit Cangar."
+          />
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
             <DonutMetricCard
               total={displayTotalBooking}
@@ -977,21 +1066,25 @@ export default function Dashboard() {
         </section>
 
         <section className="space-y-5">
-          <SectionHeader title="Jatikerto Highlight: Agro & Konservasi" tone="teal" />
+          <SectionHeader
+            title="Jatikerto Highlight: Agro & Konservasi"
+            tone="teal"
+            description="Ikhtisar pertanian, peternakan, konservasi, dan riset akademik dari data Jatikerto."
+          />
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
-            <CardShell>
+            <CardShell className="border-teal-100">
               <CardContent className="p-5 md:p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
-                    <p className="text-[11px] font-extrabold uppercase text-teal-700">Proyeksi Panen</p>
-                    <h3 className="mt-2 text-2xl font-black text-gray-950">
+                    <p className="text-[11px] font-bold uppercase tracking-wide text-teal-700">Proyeksi Panen</p>
+                    <h3 className="mt-2 text-2xl font-bold tracking-tight text-gray-950">
                       {isPertanianLoading ? "Memuat..." : formatNumber(displayTotalPanen, "Kg")}
                     </h3>
                     <p className="mt-2 max-w-xl text-sm leading-6 text-gray-500">
                       Visual ringkasan berdasarkan komoditas pertanian yang tersedia, bukan data historis bulanan.
                     </p>
                   </div>
-                  <Badge className="w-fit rounded-[6px] border border-teal-200 bg-teal-50 font-bold text-teal-700">
+                  <Badge className="w-fit rounded-full border border-teal-200 bg-teal-50 px-2.5 py-1 font-bold text-teal-700">
                     {formatNumber(displayKomoditasAgro)} komoditas
                   </Badge>
                 </div>
