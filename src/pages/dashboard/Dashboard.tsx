@@ -16,7 +16,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { API_ENDPOINTS } from "@/api/endpoints";
-import { useApiData, usePageData } from "@/api/hooks";
+import { parsePageContainer, useApiData, usePageData } from "@/api/hooks";
 import {
   adaptBookingRows,
   adaptBookingSummary,
@@ -42,7 +42,9 @@ type Tone = "emerald" | "amber" | "teal";
 
 const KST_KEYS = ["ngijo", "cangar", "jatikerto"] as const;
 const EMPTY_TEXT = "Data belum tersedia";
-const WAITING_TEXT = "Menunggu sinkronisasi data";
+const WAITING_TEXT = "Data belum tersedia";
+const EMPTY_MESSAGE = "Belum ada data yang dilaporkan";
+const ERROR_MESSAGE = "Data tidak dapat dimuat saat ini";
 
 const toneClass = {
   emerald: {
@@ -89,10 +91,76 @@ function formatPercent(value: number | null | undefined) {
   return `${value.toLocaleString("id-ID")}%`;
 }
 
-function dataStatusText(isLoading: boolean, error?: string | null) {
+function dataStatusText(
+  isLoading: boolean,
+  error?: string | null,
+  hasData = false,
+) {
   if (isLoading) return "Memuat data...";
-  if (error) return "Sebagian data belum dapat dimuat";
-  return WAITING_TEXT;
+  if (error) return ERROR_MESSAGE;
+  return hasData ? "" : EMPTY_MESSAGE;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
+function normalizeFieldName(value: string) {
+  return value.replace(/[\s_-]/g, "").toLowerCase();
+}
+
+function parseNumericValue(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value.replace(/[^\d,-.]/g, "").replace(",", "."));
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+}
+
+function parseJsonValue(value: unknown): unknown {
+  if (typeof value !== "string") return value;
+
+  try {
+    return JSON.parse(value) as unknown;
+  } catch {
+    return value;
+  }
+}
+
+function findNumericField(
+  payload: unknown,
+  aliases: readonly string[],
+  depth = 0,
+): number | null {
+  if (depth > 6) return null;
+  const parsed = parseJsonValue(payload);
+  if (parsed !== payload) return findNumericField(parsed, aliases, depth + 1);
+
+  if (Array.isArray(payload)) {
+    for (const item of payload) {
+      const nested = findNumericField(item, aliases, depth + 1);
+      if (nested !== null) return nested;
+    }
+    return null;
+  }
+
+  if (!isRecord(payload)) return null;
+
+  const normalizedAliases = new Set(aliases.map(normalizeFieldName));
+  for (const [key, value] of Object.entries(payload)) {
+    if (!normalizedAliases.has(normalizeFieldName(key))) continue;
+    const numberValue = parseNumericValue(value);
+    if (numberValue !== null) return numberValue;
+  }
+
+  for (const key of ["data", "response", "summary", "stok", "stock"]) {
+    if (!(key in payload)) continue;
+    const nested = findNumericField(payload[key], aliases, depth + 1);
+    if (nested !== null) return nested;
+  }
+
+  return null;
 }
 
 function sourceStatusLabel(
@@ -100,10 +168,9 @@ function sourceStatusLabel(
   label: string,
   summaryLoaded: boolean,
 ) {
-  if (source.warning) return `${label} menunggu sinkronisasi`;
-  if (source.status) return `${label}: ${source.status}`;
-  if (source.data) return `${label} terintegrasi`;
-  return summaryLoaded ? `${label} belum tersedia` : `${label} menunggu data`;
+  if (source.warning) return `${label} belum tersedia`;
+  if (source.status || source.data) return `${label} belum ada highlight yang dapat ditampilkan`;
+  return summaryLoaded ? `${label} belum tersedia` : `${label} memuat data`;
 }
 
 function CardShell({
@@ -217,7 +284,9 @@ function CompactMetricCard({
         <div className="min-w-0">
           <p className="text-[11px] font-extrabold uppercase text-gray-500">{label}</p>
           <div className="mt-1 break-words text-2xl font-black leading-tight text-gray-950">{value}</div>
-          <p className="mt-1 text-xs leading-5 text-gray-500">{description}</p>
+          {description ? (
+            <p className="mt-1 text-xs leading-5 text-gray-500">{description}</p>
+          ) : null}
         </div>
       </CardContent>
     </CardShell>
@@ -331,7 +400,11 @@ function DonutMetricCard({
             {formatNumber(pending)} pending
           </span>
         </div>
-        <p className="mt-3 text-xs leading-5 text-gray-500">{dataStatusText(isLoading, error)}</p>
+        {dataStatusText(isLoading, error, total !== null) ? (
+          <p className="mt-3 text-xs leading-5 text-gray-500">
+            {dataStatusText(isLoading, error, total !== null)}
+          </p>
+        ) : null}
       </CardContent>
     </CardShell>
   );
@@ -343,19 +416,22 @@ function MiniBarComparisonCard({
   leftValue,
   rightLabel,
   rightValue,
-  description,
+  message,
 }: {
   title: string;
   leftLabel: string;
-  leftValue: number;
+  leftValue: number | null;
   rightLabel: string;
-  rightValue: number;
-  description: string;
+  rightValue: number | null;
+  message?: string;
 }) {
-  const maxValue = Math.max(leftValue, rightValue, 1);
+  const hasValues = leftValue !== null && rightValue !== null;
+  const safeLeftValue = leftValue ?? 0;
+  const safeRightValue = rightValue ?? 0;
+  const maxValue = Math.max(safeLeftValue, safeRightValue, 1);
   const rows = [
-    { label: leftLabel, value: leftValue, icon: ArrowDownRight, color: "bg-amber-700" },
-    { label: rightLabel, value: rightValue, icon: ArrowUpRight, color: "bg-blue-200" },
+    { label: leftLabel, value: leftValue, safeValue: safeLeftValue, icon: ArrowDownRight, color: "bg-amber-700" },
+    { label: rightLabel, value: rightValue, safeValue: safeRightValue, icon: ArrowUpRight, color: "bg-blue-200" },
   ];
 
   return (
@@ -375,15 +451,20 @@ function MiniBarComparisonCard({
                   <span>{formatNumber(item.value)}</span>
                 </div>
                 <div className="h-3 overflow-hidden rounded-full bg-gray-100">
-                  <div className={`h-full rounded-full ${item.color}`} style={{ width: `${(item.value / maxValue) * 100}%` }} />
+                  <div
+                    className={`h-full rounded-full ${item.color}`}
+                    style={{ width: `${hasValues ? (item.safeValue / maxValue) * 100 : 0}%` }}
+                  />
                 </div>
               </div>
             );
           })}
         </div>
-        <div className="mt-auto rounded-[8px] bg-amber-50 p-4 text-sm leading-5 text-amber-900">
-          {description}
-        </div>
+        {message ? (
+          <div className="mt-auto rounded-[8px] bg-amber-50 p-4 text-sm leading-5 text-amber-900">
+            {message}
+          </div>
+        ) : null}
       </CardContent>
     </CardShell>
   );
@@ -433,7 +514,11 @@ function FinancialHighlightCard({
             <span className="font-extrabold text-gray-950">{formatNumber(itemCount)}</span>
           </div>
         </div>
-        <p className="relative mt-3 text-xs leading-5 text-gray-500">{dataStatusText(isLoading, error)}</p>
+        {dataStatusText(isLoading, error, saldo !== null || itemCount !== null) ? (
+          <p className="relative mt-3 text-xs leading-5 text-gray-500">
+            {dataStatusText(isLoading, error, saldo !== null || itemCount !== null)}
+          </p>
+        ) : null}
       </CardContent>
     </CardShell>
   );
@@ -513,14 +598,15 @@ export default function Dashboard() {
     API_ENDPOINTS.kst.cangar.summary,
   );
   const { data: bookingPayload, isLoading: isBookingLoading, error: bookingError } =
-    useApiData<unknown>(API_ENDPOINTS.kst.cangar.booking);
+    useApiData<unknown>(API_ENDPOINTS.kst.cangar.booking, { limit: 100 });
   const { data: stockPayload, isLoading: isStockLoading, error: stockError } =
-    useApiData<unknown>(API_ENDPOINTS.kst.cangar.stock);
+    useApiData<unknown>(API_ENDPOINTS.kst.cangar.stock, { limit: 100 });
   const { data: stockItemsPayload } = useApiData<unknown>(
     API_ENDPOINTS.kst.cangar.stockItems,
+    { limit: 100 },
   );
   const { data: financePayload, isLoading: isFinanceLoading, error: financeError } =
-    useApiData<unknown>(API_ENDPOINTS.kst.cangar.finance);
+    useApiData<unknown>(API_ENDPOINTS.kst.cangar.finance, { limit: 100 });
   const { data: financeRecapPayload } = useApiData<unknown>(
     API_ENDPOINTS.kst.cangar.financeRecap,
   );
@@ -567,17 +653,60 @@ export default function Dashboard() {
   const ngijoPartnershipMetric = ngijoCollaboration ?? pendingPatents;
 
   const bookingRows = adaptBookingRows(bookingPayload);
-  const bookingSummary = adaptBookingSummary(bookingPayload, bookingRows);
+  const bookingSummary = adaptBookingSummary(cangarSummaryPayload ?? bookingPayload, bookingRows);
   const totalBooking = bookingRows.length || bookingSummary.confirmedMonth + bookingSummary.pending;
   const hasBookingData = bookingPayload !== null || bookingRows.length > 0;
   const displayTotalBooking = hasBookingData ? totalBooking : null;
   const displayPendingBooking = hasBookingData ? bookingSummary.pending : null;
-  const stockRows = adaptStockRows(stockItemsPayload);
-  const stockSummary = adaptStockSummary(stockPayload ?? cangarSummaryPayload, stockRows);
-  const hasStockData = stockPayload !== null || cangarSummaryPayload !== null || stockRows.length > 0;
-  const displayStockItems = hasStockData ? stockSummary.totalBarang : null;
-  const displayStockIn = hasStockData ? stockSummary.totalMasuk : null;
-  const displayStockOut = hasStockData ? stockSummary.totalKeluar : null;
+  const directStockRows = adaptStockRows(stockPayload);
+  const pagedStockRows =
+    directStockRows.length === 0 && stockPayload !== null
+      ? adaptStockRows(parsePageContainer<unknown>(stockPayload)?.items ?? [])
+      : [];
+  const stockItemRows = adaptStockRows(stockItemsPayload);
+  const primaryStockRows = directStockRows.length > 0 ? directStockRows : pagedStockRows;
+  const stockRows =
+    primaryStockRows.length > 0 && stockItemRows.length > 0
+      ? Array.from(
+          new Map(
+            [...stockItemRows, ...primaryStockRows].map((row) => [
+              row.namaBarang.toLowerCase(),
+              row,
+            ]),
+          ).values(),
+        )
+      : primaryStockRows.length > 0
+        ? primaryStockRows
+        : stockItemRows;
+  const stockSummary = adaptStockSummary(cangarSummaryPayload, stockRows);
+  const summaryStockIn = findNumericField(cangarSummaryPayload, [
+    "stok_masuk",
+    "stokMasuk",
+    "stock_in",
+    "total_masuk",
+    "masuk",
+  ]);
+  const summaryStockOut = findNumericField(cangarSummaryPayload, [
+    "stok_keluar",
+    "stokKeluar",
+    "stock_out",
+    "total_keluar",
+    "keluar",
+  ]);
+  const summaryStockItems = findNumericField(cangarSummaryPayload, [
+    "total_barang",
+    "totalBarang",
+    "total_items",
+    "total_stok",
+  ]);
+  const hasStockRows = stockRows.length > 0;
+  const rowStockIn = stockRows.reduce((total, row) => total + row.totalMasuk, 0);
+  const rowStockOut = stockRows.reduce((total, row) => total + row.totalKeluar, 0);
+  const displayStockItems = hasStockRows
+    ? stockSummary.totalBarang || stockRows.length
+    : summaryStockItems;
+  const displayStockIn = hasStockRows ? rowStockIn : summaryStockIn;
+  const displayStockOut = hasStockRows ? rowStockOut : summaryStockOut;
   const financeRows = adaptFinanceRows(financePayload);
   const financeSummary = adaptFinanceSummary(financeRecapPayload ?? financePayload, financeRows);
   const hasFinanceData = financeRecapPayload !== null || financePayload !== null || financeRows.length > 0;
@@ -637,6 +766,8 @@ export default function Dashboard() {
     displayPopulasiTernak,
     conservationOrResearchMetric,
   ].some(hasValue);
+  const directKstAvailability = [hasNgijoData, hasCangarData, hasJatikertoData];
+  const directKstCount = directKstAvailability.filter(Boolean).length;
   const hasEndpointError = Boolean(
     summaryError ||
       averageTrlError ||
@@ -650,6 +781,37 @@ export default function Dashboard() {
       konservasiError ||
       akademikError,
   );
+  const ngijoStatusMessage = dataStatusText(
+    isAverageTrlLoading || isGreenLoading,
+    averageTrlError || greenError,
+    averageTrl !== null || greenPerformance !== null,
+  );
+  const renewableStatusMessage = dataStatusText(
+    isRenewableLoading,
+    renewableError,
+    renewableEnergy !== null,
+  );
+  const stockComparisonMessage = isStockLoading
+    ? "Memuat data..."
+    : stockError
+      ? "Data stok tidak dapat dimuat saat ini"
+      : displayStockIn === null || displayStockOut === null
+        ? "Belum ada data stok yang dilaporkan"
+        : "";
+  const harvestStatusMessage = dataStatusText(
+    isPertanianLoading,
+    pertanianError,
+    displayTotalPanen !== null,
+  );
+  const livestockStatusMessage = dataStatusText(
+    isPeternakanLoading,
+    peternakanError,
+    displayPopulasiTernak !== null,
+  );
+  const conservationStatusMessage =
+    displayKonservasi !== null
+      ? dataStatusText(isKonservasiLoading, konservasiError, true)
+      : dataStatusText(isAkademikLoading, akademikError, displayActiveResearch !== null);
 
   return (
     <div className="min-h-screen bg-gray-100/70 px-4 py-6 md:px-6 lg:px-8">
@@ -660,27 +822,28 @@ export default function Dashboard() {
           </div>
         ) : null}
 
-        <div className="flex flex-wrap gap-2">
-          {sources.map((source, index) => {
-            const label = ["Ngijo", "Cangar", "Jatikerto"][index];
-            const isWarning = Boolean(source.warning);
-            return (
-              <Badge
-                key={label}
-                variant="outline"
-                className={`rounded-[6px] bg-white text-[11px] font-semibold ${
-                  isWarning
-                    ? "border-amber-200 text-amber-700"
-                    : source.data
-                      ? "border-emerald-200 text-emerald-700"
-                      : "border-gray-200 text-gray-500"
-                }`}
-              >
-                {sourceStatusLabel(source, label, summaryLoaded)}
-              </Badge>
-            );
-          })}
-        </div>
+        {sources.some((source, index) => !directKstAvailability[index] && (source.warning || summaryLoaded)) ? (
+          <div className="flex flex-wrap gap-2">
+            {sources.map((source, index) => {
+              const label = ["Ngijo", "Cangar", "Jatikerto"][index];
+              const hasDirectData = directKstAvailability[index];
+              const isWarning = Boolean(source.warning);
+              if (hasDirectData || (!isWarning && !summaryLoaded)) return null;
+
+              return (
+                <Badge
+                  key={label}
+                  variant="outline"
+                  className={`rounded-[6px] bg-white text-[11px] font-semibold ${
+                    isWarning ? "border-amber-200 text-amber-700" : "border-gray-200 text-gray-500"
+                  }`}
+                >
+                  {sourceStatusLabel(source, label, summaryLoaded)}
+                </Badge>
+              );
+            })}
+          </div>
+        ) : null}
 
         <section className="space-y-5">
           <div className="max-w-3xl">
@@ -697,7 +860,7 @@ export default function Dashboard() {
                   ? "..."
                   : summary.activeKst !== null && summary.totalKst !== null
                     ? `${summary.activeKst}/${summary.totalKst}`
-                    : `${integratedKst}/${KST_KEYS.length}`
+                    : `${Math.max(integratedKst, directKstCount)}/${KST_KEYS.length}`
               }
               description="Live feed active"
               icon={Activity}
@@ -749,15 +912,14 @@ export default function Dashboard() {
                 </div>
                 <div className="flex min-h-[260px] flex-col justify-center gap-6">
                   <ProgressLine label="Green Performance" value={greenPerformance} tone="emerald" />
-                  <div className="rounded-[8px] border border-emerald-100 bg-emerald-50 p-4">
-                    <p className="text-[11px] font-extrabold uppercase text-emerald-700">Status data</p>
-                    <p className="mt-2 text-sm leading-6 text-emerald-900">
-                      {dataStatusText(
-                        isAverageTrlLoading || isGreenLoading,
-                        averageTrlError || greenError,
-                      )}
-                    </p>
-                  </div>
+                  {ngijoStatusMessage ? (
+                    <div className="rounded-[8px] border border-emerald-100 bg-emerald-50 p-4">
+                      <p className="text-[11px] font-extrabold uppercase text-emerald-700">Status data</p>
+                      <p className="mt-2 text-sm leading-6 text-emerald-900">
+                        {ngijoStatusMessage}
+                      </p>
+                    </div>
+                  ) : null}
                 </div>
               </CardContent>
             </CardShell>
@@ -765,7 +927,7 @@ export default function Dashboard() {
               <CompactMetricCard
                 label="Energi Terbarukan"
                 value={isRenewableLoading ? "Memuat..." : formatNumber(renewableEnergy, "MWh")}
-                description={dataStatusText(isRenewableLoading, renewableError)}
+                description={renewableStatusMessage}
                 icon={Zap}
                 tone="emerald"
               />
@@ -798,10 +960,10 @@ export default function Dashboard() {
             <MiniBarComparisonCard
               title="Stok Masuk vs Keluar"
               leftLabel="Stok Masuk"
-              leftValue={displayStockIn ?? 0}
+              leftValue={displayStockIn}
               rightLabel="Stok Keluar"
-              rightValue={displayStockOut ?? 0}
-              description={dataStatusText(isStockLoading, stockError)}
+              rightValue={displayStockOut}
+              message={stockComparisonMessage}
             />
             <FinancialHighlightCard
               saldo={displaySaldo}
@@ -834,9 +996,11 @@ export default function Dashboard() {
                   </Badge>
                 </div>
                 <HarvestBars rows={pertanianRows} />
-                <p className="mt-4 text-xs leading-5 text-gray-500">
-                  {dataStatusText(isPertanianLoading, pertanianError)}
-                </p>
+                {harvestStatusMessage ? (
+                  <p className="mt-4 text-xs leading-5 text-gray-500">
+                    {harvestStatusMessage}
+                  </p>
+                ) : null}
               </CardContent>
             </CardShell>
             <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
@@ -851,7 +1015,7 @@ export default function Dashboard() {
               <CompactMetricCard
                 label="Populasi Ternak"
                 value={isPeternakanLoading ? "Memuat..." : formatNumber(displayPopulasiTernak)}
-                description={dataStatusText(isPeternakanLoading, peternakanError)}
+                description={livestockStatusMessage}
                 icon={Boxes}
                 tone="teal"
                 className="bg-teal-50/45"
@@ -864,9 +1028,7 @@ export default function Dashboard() {
                     : formatNumber(conservationOrResearchMetric)
                 }
                 description={
-                  displayKonservasi !== null
-                    ? dataStatusText(isKonservasiLoading, konservasiError)
-                    : dataStatusText(isAkademikLoading, akademikError)
+                  conservationStatusMessage
                 }
                 icon={displayKonservasi !== null ? Leaf : GraduationCap}
                 tone="teal"
