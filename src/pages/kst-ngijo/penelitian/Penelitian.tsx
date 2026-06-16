@@ -1,25 +1,16 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
-  TrendingUp,
-  TrendingDown,
-  MoreVertical,
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   Activity,
   BarChart3,
   Shield,
   Users,
   Microscope,
+  FlaskConical,
+  Factory,
+  Fish,
+  Leaf,
+  Zap,
 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -32,15 +23,22 @@ import { cn } from "@/lib/utils";
 import { useApiData, usePageData } from "@/api/hooks";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { colValue, fieldNumber, fieldValue, getContractColumnIndex, getContractColumnVariants, isRecord, ngijoNumber, textOrFallback } from "../adapters";
-
-interface SummaryCardData {
-  icon: React.ElementType;
-  title: string;
-  value: number | null;
-  trend: number | null;
-  trendLabel: string | null;
-  description: string;
-}
+import {
+  NgijoEmptyState,
+  NgijoHero,
+  NgijoKpiCards,
+  NgijoPagination,
+  NgijoTableSkeleton,
+} from "../ngijoUi";
+import {
+  DATA_EMPTY_TEXT,
+  friendlyDataMessage,
+  formatMetric,
+  ngijoBadgeNeutralClass,
+  ngijoTableHeadClass,
+  ngijoTableHeaderClass,
+  ngijoTableRowClass,
+} from "../ngijoHelpers";
 
 interface InovasiRow {
   id?: string;
@@ -52,14 +50,15 @@ interface InovasiRow {
   trlLabel: string;
 }
 
-// Maps the upstream "agriculture/energy/technology/..." variant tokens to the
-// display labels used in the dashboard. Falls back to a Title-Cased token when
-// an unknown variant arrives so new categories still render as readable text.
 const DOMAIN_LABELS: Record<string, string> = {
   technology: "Technology",
   agriculture: "Agritech",
   energy: "Energy",
   sustainability: "Sustainability",
+  herbal: "Jamu & Atsiri",
+  fisheries: "Perikanan Air Tawar",
+  aquaculture: "Perikanan Air Tawar",
+  waste: "Pengolahan Limbah",
   other: "Other",
 };
 
@@ -67,6 +66,15 @@ function domainLabel(variant: string): string {
   const key = variant.toLowerCase().trim();
   if (DOMAIN_LABELS[key]) return DOMAIN_LABELS[key];
   return key ? key.charAt(0).toUpperCase() + key.slice(1) : "";
+}
+
+function domainTone(domain: string) {
+  const value = domain.toLowerCase();
+  if (value.includes("jamu") || value.includes("atsiri") || value.includes("agri")) return "border-lime-200 bg-lime-50 text-lime-700";
+  if (value.includes("ikan") || value.includes("aqua")) return "border-sky-200 bg-sky-50 text-sky-700";
+  if (value.includes("energy") || value.includes("energi")) return "border-amber-200 bg-amber-50 text-amber-700";
+  if (value.includes("sustain") || value.includes("limbah")) return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  return "border-gray-200 bg-gray-50 text-gray-600";
 }
 
 const TRL_STATUS: Record<number, string> = {
@@ -112,92 +120,6 @@ function TrlIndicator({ level }: { level: number | null }) {
   );
 }
 
-const summaryCards: SummaryCardData[] = [
-  {
-    icon: Activity,
-    title: "Total Penelitian & Inovasi Aktif",
-    value: null,
-    trend: null,
-    trendLabel: null,
-    description: "Jumlah penelitian & inovasi yang aktif pada bulan ini.",
-  },
-  {
-    icon: BarChart3,
-    title: "Rata-rata Skor TRL",
-    value: null,
-    trend: null,
-    trendLabel: null,
-    description: "Rata-rata Skor TRL pada penelitian & inovasi yang aktif.",
-  },
-  {
-    icon: Shield,
-    title: "Paten Tertunda",
-    value: null,
-    trend: null,
-    trendLabel: null,
-    description: "Jumlah paten tertunda yang dikirim API Ngijo.",
-  },
-  {
-    icon: Users,
-    title: "Kolaborasi",
-    value: null,
-    trend: null,
-    trendLabel: null,
-    description: "Total kolaborasi yang dikirim API Ngijo.",
-  },
-];
-
-function SummaryCard({ data }: { data: SummaryCardData }) {
-  const Icon = data.icon;
-  const isPositive = (data.trend ?? 0) >= 0;
-
-  return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 flex flex-col gap-3 shadow-sm hover:shadow-md transition-shadow duration-200">
-      <div className="flex items-center gap-2.5">
-        <Icon className="size-5 text-gray-500" />
-
-        <span className="text-[12px] font-semibold text-gray-600 leading-tight">
-          {data.title}
-        </span>
-      </div>
-
-      <div className="flex items-center justify-between">
-        <span className="text-3xl font-extrabold text-gray-900 tracking-tight">
-          {data.value === null ? "Belum tersedia" : data.value.toLocaleString("id-ID")}
-        </span>
-
-        {data.trend === null ? null : (
-          <div
-            className={cn(
-              "flex h-6 py-0.5 px-2 justify-center items-center gap-1 rounded-md border text-[11px] font-bold",
-              isPositive
-                ? "border-[#B2DDB5] bg-[#F5FBF5] text-[#46A758]"
-                : "border-[#F8D7DA] bg-[#FFF5F5] text-[#E5484D]"
-            )}
-          >
-            {isPositive ? (
-              <TrendingUp className="size-4 text-[#46A758]" />
-            ) : (
-              <TrendingDown className="size-4 text-[#E5484D]" />
-            )}
-            {isPositive ? "+" : ""}
-            {data.trend}%
-          </div>
-        )}
-      </div>
-
-      <div className="space-y-0.5">
-        <p className="text-[13px] font-bold text-gray-800">
-          {data.trendLabel ?? "Tren belum tersedia"}
-        </p>
-        <p className="text-[11px] text-gray-400 font-medium leading-relaxed">
-          {data.description}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 function resolveDomain(domainRaw: unknown, variants: Map<number, string>): string {
   if (domainRaw === undefined || domainRaw === null || domainRaw === "") return "";
 
@@ -209,6 +131,21 @@ function resolveDomain(domainRaw: unknown, variants: Map<number, string>): strin
   // hiding a value that the API actually sent.
   if (typeof domainRaw === "string") return domainLabel(domainRaw);
   return String(domainRaw);
+}
+
+function aggregateDomains(rows: InovasiRow[]) {
+  const counts = rows.reduce<Record<string, number>>((acc, row) => {
+    acc[row.domain] = (acc[row.domain] ?? 0) + 1;
+    return acc;
+  }, {});
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5);
+}
+
+function trlReadiness(averageTrl: number | null) {
+  if (averageTrl === null) return 0;
+  return Math.max(0, Math.min(100, Math.round((averageTrl / 9) * 100)));
 }
 
 function normalizeInovasiRows(rows: unknown[], contractPayload: unknown) {
@@ -272,14 +209,9 @@ export default function Penelitian() {
   const pendingPatents = ngijoNumber(pendingPatentsPayload);
   const collaboration = ngijoNumber(collaborationPayload);
   const tableData = normalizeInovasiRows(backendRows, contractPayload);
-  const liveSummaryCards = summaryCards.map((card, index) => {
-    const values = [activeProjects, averageTrl, pendingPatents, collaboration];
-    return {
-      ...card,
-      value: values[index] ?? null,
-      trend: null,
-    };
-  });
+  const domains = aggregateDomains(tableData);
+  const averageDisplay =
+    averageTrl === null ? DATA_EMPTY_TEXT : averageTrl.toLocaleString("id-ID", { maximumFractionDigits: 1 });
 
   const rowsPerPageNumber = Number(rowsPerPage);
   const totalPages = Math.max(
@@ -293,111 +225,190 @@ export default function Penelitian() {
   );
 
   return (
-    <div className="flex flex-col gap-5 p-4 md:p-6 bg-gray-50/50 min-h-screen">
-      <div className="flex flex-col gap-1 rounded-xl border border-emerald-100 bg-white px-5 py-4 shadow-sm">
-        <div className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-wide text-emerald-700">
-          <Microscope className="size-4" />
-          KST Ngijo
+    <div className="flex min-h-screen flex-col gap-5 bg-gray-50/50 p-4 md:p-6">
+      <NgijoHero
+        title="Riset dan Inovasi Green Science Park"
+        description="Pemantauan portofolio penelitian Ngijo, kesiapan TRL, paten, kolaborasi, dan fokus inovasi yang mendukung produksi jamu/atsiri, perikanan air tawar, energi, serta pengolahan limbah."
+        badges={["Riset", "Inovasi", "Green Performance"]}
+        metric={{ label: "Kesiapan TRL", value: `${trlReadiness(averageTrl)}%` }}
+      />
+
+      <NgijoKpiCards
+        items={[
+          {
+            icon: Activity,
+            label: "Inovasi Aktif",
+            value: formatMetric(activeProjects),
+            helper: "Jumlah penelitian dan inovasi aktif dari API Ngijo.",
+            tone: "emerald",
+          },
+          {
+            icon: BarChart3,
+            label: "Rata-rata TRL",
+            value: averageDisplay,
+            helper: "Indikasi kesiapan teknologi dari portofolio riset.",
+            tone: "blue",
+          },
+          {
+            icon: Shield,
+            label: "Paten Tertunda",
+            value: formatMetric(pendingPatents),
+            helper: "Luaran inovasi yang masih dalam proses perlindungan.",
+            tone: "amber",
+          },
+          {
+            icon: Users,
+            label: "Kolaborasi",
+            value: formatMetric(collaboration),
+            helper: "Kolaborasi riset dan inovasi yang dilaporkan backend.",
+            tone: "lime",
+          },
+        ]}
+      />
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm lg:col-span-2">
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-bold text-gray-950">Fokus Riset Ngijo</p>
+              <p className="mt-1 text-xs font-medium leading-5 text-gray-500">
+                Distribusi domain dari data penelitian yang tersedia.
+              </p>
+            </div>
+            <Microscope className="size-5 text-emerald-600" />
+          </div>
+          {domains.length === 0 ? (
+            <NgijoEmptyState description="Domain riset akan tampil setelah baris penelitian tersedia dari backend." />
+          ) : (
+            <div className="space-y-3">
+              {domains.map(([domain, count]) => {
+                const width = Math.max(8, Math.round((count / tableData.length) * 100));
+                return (
+                  <div key={domain}>
+                    <div className="mb-1 flex items-center justify-between gap-3 text-xs font-semibold">
+                      <span className="truncate text-gray-700">{domain}</span>
+                      <span className="tabular-nums text-gray-500">{count} proyek</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-gray-100">
+                      <div className="h-2 rounded-full bg-emerald-500" style={{ width: `${width}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
-        <h1 className="text-xl font-extrabold text-gray-950">Penelitian</h1>
-        <p className="text-sm font-medium text-gray-500">
-          Ringkasan penelitian, inovasi, dan status TRL dari gateway Ngijo.
-        </p>
+
+        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <p className="text-sm font-bold text-gray-950">Representasi Program</p>
+          <p className="mt-1 text-xs font-medium leading-5 text-gray-500">
+            Area Ngijo yang diprioritaskan pada dashboard ini.
+          </p>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {[
+              { label: "Jamu/Atsiri", icon: FlaskConical },
+              { label: "Produksi", icon: Factory },
+              { label: "Perikanan", icon: Fish },
+              { label: "Mikrohidro", icon: Zap },
+              { label: "Limbah", icon: Leaf },
+              { label: "Riset", icon: Microscope },
+            ].map((item) => (
+              <div key={item.label} className="rounded-xl border border-emerald-100 bg-emerald-50/50 p-3">
+                <item.icon className="mb-2 size-4 text-emerald-700" />
+                <p className="text-xs font-bold text-gray-800">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-        {liveSummaryCards.map((card) => (
-          <SummaryCard key={card.title} data={card} />
-        ))}
-      </div>
-
-      <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+        <div className="border-b border-gray-100 px-5 py-4">
+          <p className="text-sm font-bold text-gray-950">Tracker Penelitian dan Inovasi</p>
+          <p className="mt-1 text-xs font-medium text-gray-500">
+            Data baris berasal dari endpoint penelitian Ngijo dan mapping kolom mengikuti contract.
+          </p>
+        </div>
         <div className="overflow-x-auto">
-          <Table className="min-w-[960px]">
+          <Table className="min-w-[900px] table-fixed">
             <TableHeader>
-              <TableRow className="bg-gray-50/80 hover:bg-gray-50/80">
-                <TableHead className="font-bold text-gray-500 text-[12px] w-[60px] pl-5">
+              <TableRow className={ngijoTableHeaderClass}>
+                <TableHead className={`${ngijoTableHeadClass} w-[64px] pl-5 text-center`}>
                   No.
                 </TableHead>
 
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[260px]">
+                <TableHead className={`${ngijoTableHeadClass} w-[28%]`}>
                   Nama Proyek
                 </TableHead>
 
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[220px]">
+                <TableHead className={`${ngijoTableHeadClass} w-[22%]`}>
                   Kepala Riset
                 </TableHead>
 
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[200px]">
+                <TableHead className={`${ngijoTableHeadClass} w-[18%]`}>
                   Domain
                 </TableHead>
 
-                <TableHead className="font-bold text-gray-500 text-[12px] min-w-[260px]">
+                <TableHead className={`${ngijoTableHeadClass} w-[26%]`}>
                   TRL Status
                 </TableHead>
-
-                <TableHead className="w-[48px]" />
               </TableRow>
             </TableHeader>
 
             <TableBody>
               {isTableLoading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center text-sm font-medium text-gray-500">
-                    Memuat data penelitian...
+                <TableRow className={ngijoTableRowClass}>
+                  <TableCell colSpan={5} className="p-0">
+                    <NgijoTableSkeleton columns={5} />
                   </TableCell>
                 </TableRow>
               ) : tableError ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center text-sm font-medium text-red-500">
-                    {tableError}
+                <TableRow className={ngijoTableRowClass}>
+                  <TableCell colSpan={5} className="p-5">
+                    <NgijoEmptyState title={friendlyDataMessage(tableError)} />
                   </TableCell>
                 </TableRow>
               ) : paginatedData.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="h-32 text-center text-sm font-medium text-gray-500">
-                    Data penelitian belum tersedia.
+                <TableRow className={ngijoTableRowClass}>
+                  <TableCell colSpan={5} className="p-5">
+                    <NgijoEmptyState title="Data belum tersedia" description="Data penelitian Ngijo sedang disiapkan." />
                   </TableCell>
                 </TableRow>
               ) : paginatedData.map((row, index) => (
                 <TableRow
                   key={row.id || `${row.namaProyek}-${index}`}
-                  className="hover:bg-gray-50/50 group"
+                  className={ngijoTableRowClass}
                 >
-                  <TableCell className="text-[13px] text-gray-500 font-medium pl-5">
+                  <TableCell className="pl-5 text-center text-[13px] font-semibold tabular-nums text-gray-500">
                     {(currentPage - 1) * rowsPerPageNumber + index + 1}.
                   </TableCell>
 
-                  <TableCell className="text-[13px] font-medium text-gray-900 max-w-[260px] whitespace-normal break-words leading-relaxed">
+                  <TableCell className="whitespace-normal break-words text-[13px] font-semibold leading-relaxed text-gray-900">
                     {row.namaProyek}
                   </TableCell>
 
-                  <TableCell className="text-[13px] text-gray-600 max-w-[220px] whitespace-normal break-words leading-relaxed">
+                  <TableCell className="whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
                     {row.kepalaRiset}
                   </TableCell>
 
-                  <TableCell className="text-[13px] text-gray-600 max-w-[200px] whitespace-normal break-words leading-relaxed">
-                    {row.domain}
+                  <TableCell className="whitespace-normal break-words text-[13px] text-gray-600">
+                    <span className={cn(ngijoBadgeNeutralClass, domainTone(row.domain))}>
+                      {row.domain}
+                    </span>
                   </TableCell>
 
-                  <TableCell className="min-w-[240px]">
+                  <TableCell>
                     {row.trlLevel === null ? (
-                      <span className="text-[12px] font-semibold text-gray-400">TRL belum tersedia</span>
+                      <span className="text-[12px] font-semibold text-gray-400">Data belum tersedia</span>
                     ) : (
                       <div className="flex flex-col gap-1.5">
                         <div className="flex items-baseline gap-1.5">
                           <span className="text-[13px] font-bold text-gray-900">TRL {row.trlLevel}</span>
-                          <span className="text-[12px] font-medium text-gray-500">{row.trlLabel}</span>
+                          <span className="whitespace-normal break-words text-[12px] font-medium text-gray-500">{row.trlLabel}</span>
                         </div>
                         <TrlIndicator level={row.trlLevel} />
                       </div>
                     )}
-                  </TableCell>
-
-                  <TableCell>
-                    <button className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-gray-100">
-                      <MoreVertical className="size-4 text-gray-400" />
-                    </button>
                   </TableCell>
                 </TableRow>
               ))}
@@ -405,71 +416,16 @@ export default function Penelitian() {
           </Table>
         </div>
 
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 px-4 sm:px-5 py-3 border-t border-gray-100">
-          <div className="flex items-center gap-2 text-[13px] text-gray-500 font-medium">
-            <span className="whitespace-nowrap">Baris per Page</span>
-
-            <Select
-              value={rowsPerPage}
-              onValueChange={(value) => {
-                setRowsPerPage(value);
-                setCurrentPage(1);
-              }}
-            >
-              <SelectTrigger className="h-8 w-[70px] border-gray-200 bg-white text-[13px]">
-                <SelectValue />
-              </SelectTrigger>
-
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="25">25</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="text-[13px] text-gray-500 font-medium whitespace-nowrap">
-              Page {currentPage} dari {totalPages}
-            </span>
-
-            <div className="flex items-center gap-1">
-              {[
-                {
-                  icon: ChevronsLeft,
-                  action: () => setCurrentPage(1),
-                  disabled: currentPage === 1,
-                },
-                {
-                  icon: ChevronLeft,
-                  action: () => setCurrentPage(Math.max(1, currentPage - 1)),
-                  disabled: currentPage === 1,
-                },
-                {
-                  icon: ChevronRight,
-                  action: () =>
-                    setCurrentPage(Math.min(totalPages, currentPage + 1)),
-                  disabled: currentPage === totalPages,
-                },
-                {
-                  icon: ChevronsRight,
-                  action: () => setCurrentPage(totalPages),
-                  disabled: currentPage === totalPages,
-                },
-              ].map((button, index) => (
-                <button
-                  key={index}
-                  onClick={button.action}
-                  disabled={button.disabled}
-                  className="p-1.5 rounded-md border border-gray-200 text-gray-400 hover:bg-gray-50 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                >
-                  <button.icon className="size-4" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <NgijoPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          rowsPerPage={rowsPerPage}
+          onRowsPerPageChange={(value) => {
+            setRowsPerPage(value);
+            setCurrentPage(1);
+          }}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </div>
   );
