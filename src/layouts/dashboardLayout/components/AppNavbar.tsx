@@ -17,8 +17,8 @@ export function AppNavbar() {
         return { title: "Beranda" };
       case ROUTES.KELOLA_AKUN:
         return { title: "Kelola Akun" };
-      case ROUTES.TRACKER_INOVASI:
-        return { parent: "KST Ngijo", title: "Tracker Inovasi" };
+      case ROUTES.PENELITIAN:
+        return { parent: "KST Ngijo", title: "Penelitian" };
       case ROUTES.KEBERLANJUTAN:
         return { parent: "KST Ngijo", title: "Keberlanjutan" };
       case ROUTES.PRODUKSI:

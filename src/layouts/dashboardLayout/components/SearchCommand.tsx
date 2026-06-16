@@ -79,10 +79,10 @@ export function SearchCommand({ open, setOpen }: SearchCommandProps) {
           <>
             <CommandGroup heading="KST Ngijo">
               <CommandItem
-                onSelect={() => runCommand(() => navigate(ROUTES.TRACKER_INOVASI))}
+                onSelect={() => runCommand(() => navigate(ROUTES.PENELITIAN))}
               >
                 <Activity className="mr-2 h-4 w-4" />
-                <span>Tracker Inovasi</span>
+                <span>Penelitian</span>
               </CommandItem>
               <CommandItem
                 onSelect={() => runCommand(() => navigate(ROUTES.KEBERLANJUTAN))}

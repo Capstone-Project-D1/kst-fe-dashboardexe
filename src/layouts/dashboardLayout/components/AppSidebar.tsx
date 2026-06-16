@@ -67,8 +67,8 @@ const NAV_ITEMS = [
     title: "KST Ngijo",
     items: [
       {
-        title: "Tracker Inovasi",
-        url: ROUTES.TRACKER_INOVASI,
+        title: "Penelitian",
+        url: ROUTES.PENELITIAN,
         icon: Activity,
       },
       {
@@ -134,7 +134,7 @@ type ReportKst = "ngijo" | "cangar" | "jatikerto";
 type ReportFormat = "csv" | "xlsx" | "pdf";
 
 const REPORT_OPTIONS: Record<ReportKst, string[]> = {
-  ngijo: ["Tracker Inovasi", "Keberlanjutan"],
+  ngijo: ["Penelitian", "Keberlanjutan"],
   cangar: ["Stok Opname", "Manajemen Booking", "Keuangan"],
   jatikerto: [
     "Pertanian",
@@ -166,6 +166,11 @@ const MONTH_OPTIONS = [
   "November",
   "Desember",
 ];
+
+function reportSlug(reportName: string) {
+  if (reportName === "Penelitian") return "tracker-inovasi";
+  return reportName.toLowerCase().replaceAll(" ", "-");
+}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const location = useLocation();
@@ -210,7 +215,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       throw new Error("Tidak memiliki akses untuk mengunduh laporan KST ini");
     }
 
-    const reportName = effectiveSelectedReport.toLowerCase().replaceAll(" ", "-");
+    const reportName = reportSlug(effectiveSelectedReport);
     const token = localStorage.getItem("access_token");
     const response = await fetch(
       getDownloadUrl("/reports/download", {

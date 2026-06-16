@@ -42,7 +42,7 @@ interface ReportItem {
 
 const reports: ReportItem[] = [
   {
-    title: "Tracker Inovasi",
+    title: "Penelitian",
     kst: "KST Ngijo",
     format: "csv",
     icon: Activity,
@@ -103,6 +103,11 @@ const reports: ReportItem[] = [
   },
 ];
 
+function reportSlug(reportTitle: string) {
+  if (reportTitle === "Penelitian") return "tracker-inovasi";
+  return reportTitle.toLowerCase().replaceAll(" ", "-");
+}
+
 async function downloadReport(report: ReportItem) {
   const token = localStorage.getItem("access_token");
   const kst = report.kst.includes("Ngijo")
@@ -113,7 +118,7 @@ async function downloadReport(report: ReportItem) {
   const response = await fetch(
     getDownloadUrl("/reports/download", {
       kst,
-      report: report.title.toLowerCase().replaceAll(" ", "-"),
+      report: reportSlug(report.title),
       year: "2026",
       month: "Semua Bulan",
       format: report.format,
@@ -129,7 +134,7 @@ async function downloadReport(report: ReportItem) {
   const disposition = response.headers.get("content-disposition") ?? "";
   const fileName =
     disposition.match(/filename="([^"]+)"/)?.[1] ??
-    `laporan-${report.title.toLowerCase().replaceAll(" ", "-")}.csv`;
+    `laporan-${reportSlug(report.title)}.csv`;
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
