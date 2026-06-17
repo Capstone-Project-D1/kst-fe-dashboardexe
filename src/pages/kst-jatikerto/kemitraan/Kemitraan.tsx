@@ -61,7 +61,7 @@ function formatContractRange(row: MitraRow) {
   const start = formatIndonesianDate(row.tanggalMulai);
   const end = formatIndonesianDate(row.tanggalSelesai);
 
-  if (start !== "-" && end !== "-") return `${start} - ${end}`;
+  if (start !== "-" || end !== "-") return `${start} - ${end}`;
   return row.jangkaWaktuKontrak || "-";
 }
 

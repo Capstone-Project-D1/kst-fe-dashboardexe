@@ -27,6 +27,7 @@ import {
 import { useApiData, usePageData } from "@/api/hooks";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { cn } from "@/lib/utils";
+import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { formatIndonesianCalendarDate } from "@/lib/date";
 import {
   colValue,
@@ -200,19 +201,19 @@ function greenScore(value: number | null) {
 export default function Keberlanjutan() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
-  const { data: renewableEnergyPayload } = useApiData<unknown>(
+  const { data: renewableEnergyPayload, isLoading: isRenewableEnergyLoading } = useApiData<unknown>(
     API_ENDPOINTS.kst.ngijo.renewableEnergy,
   );
-  const { data: greenPerformancePayload } = useApiData<unknown>(
+  const { data: greenPerformancePayload, isLoading: isGreenPerformanceLoading } = useApiData<unknown>(
     API_ENDPOINTS.kst.ngijo.greenPerformance,
   );
-  const { data: recycledWaterPayload } = useApiData<unknown>(
+  const { data: recycledWaterPayload, isLoading: isRecycledWaterLoading } = useApiData<unknown>(
     API_ENDPOINTS.kst.ngijo.recycledWater,
   );
-  const { data: wasteMetricPayload } = useApiData<unknown>(
+  const { data: wasteMetricPayload, isLoading: isWasteMetricLoading } = useApiData<unknown>(
     API_ENDPOINTS.kst.ngijo.wasteMetric,
   );
-  const { data: energyDynamicsPayload } = useApiData<unknown>(
+  const { data: energyDynamicsPayload, isLoading: isEnergyDynamicsLoading } = useApiData<unknown>(
     API_ENDPOINTS.kst.ngijo.energyDynamics,
     { start_time: 0, end_time: 9999999999, limit: 100 },
   );
@@ -250,7 +251,7 @@ export default function Keberlanjutan() {
         title="Keberlanjutan dan Operasi Hijau"
         description="Ringkasan energi terbarukan, air daur ulang, pengolahan limbah, sensor operasional, dan green performance untuk Green Science Park Ngijo."
         badges={["Sustainability", "Mikrohidro", "Limbah"]}
-        metric={{ label: "Green Performance", value: greenScore(greenPerformance) }}
+        metric={{ label: "Green Performance", value: isGreenPerformanceLoading ? <LoadingIndicator /> : greenScore(greenPerformance) }}
       />
 
       <NgijoKpiCards
@@ -258,28 +259,28 @@ export default function Keberlanjutan() {
           {
             icon: Zap,
             label: "Energi Terbarukan",
-            value: formatMetric(renewableEnergy, "MWh"),
+            value: isRenewableEnergyLoading ? <LoadingIndicator /> : formatMetric(renewableEnergy, "MWh"),
             helper: "Produksi energi dari sumber terbarukan.",
             tone: "amber",
           },
           {
             icon: Leaf,
             label: "Green Performance",
-            value: greenScore(greenPerformance),
+            value: isGreenPerformanceLoading ? <LoadingIndicator /> : greenScore(greenPerformance),
             helper: "Skor performa hijau yang dikirim API Ngijo.",
             tone: "emerald",
           },
           {
             icon: Droplets,
             label: "Air Daur Ulang",
-            value: formatMetric(recycledWater),
+            value: isRecycledWaterLoading ? <LoadingIndicator /> : formatMetric(recycledWater),
             helper: "Pemanfaatan ulang air untuk proses operasional.",
             tone: "blue",
           },
           {
             icon: Trash2,
             label: "Metrik Limbah",
-            value: formatMetric(wasteMetric),
+            value: isWasteMetricLoading ? <LoadingIndicator /> : formatMetric(wasteMetric),
             helper: "Indikator pengelolaan dan pemrosesan limbah.",
             tone: "slate",
           },
@@ -296,7 +297,11 @@ export default function Keberlanjutan() {
             </div>
           </div>
 
-          {greenPerformance === null ? (
+          {isGreenPerformanceLoading ? (
+            <div className="flex min-h-[160px] items-center justify-center">
+              <LoadingIndicator />
+            </div>
+          ) : greenPerformance === null ? (
             <NgijoEmptyState title="Data belum tersedia" description="Green performance Ngijo sedang disiapkan." />
           ) : (
             <>
@@ -319,7 +324,11 @@ export default function Keberlanjutan() {
             </div>
           </div>
 
-          {recycledWater === null ? (
+          {isRecycledWaterLoading ? (
+            <div className="flex min-h-[160px] items-center justify-center">
+              <LoadingIndicator />
+            </div>
+          ) : recycledWater === null ? (
             <NgijoEmptyState title="Data belum tersedia" description="Data air daur ulang sedang disiapkan." />
           ) : (
             <div className="flex flex-col items-center justify-center gap-2 py-4">
@@ -348,7 +357,11 @@ export default function Keberlanjutan() {
             </p>
           </div>
 
-          {wasteMetric === null ? (
+          {isWasteMetricLoading ? (
+            <div className="flex min-h-[140px] items-center justify-center">
+              <LoadingIndicator />
+            </div>
+          ) : wasteMetric === null ? (
             <NgijoEmptyState title="Data belum tersedia" description="Metrik limbah Ngijo sedang disiapkan." />
           ) : (
             <div className="flex flex-col justify-center gap-2 py-6">
@@ -376,7 +389,11 @@ export default function Keberlanjutan() {
             </p>
           </div>
 
-          {energyRows.length === 0 ? (
+          {isEnergyDynamicsLoading ? (
+            <div className="flex min-h-[220px] items-center justify-center">
+              <LoadingIndicator />
+            </div>
+          ) : energyRows.length === 0 ? (
             <NgijoEmptyState title="Data belum tersedia" description="Dinamika energi belum dikirim oleh backend." />
           ) : (
             <>
@@ -425,7 +442,11 @@ export default function Keberlanjutan() {
             </div>
           </div>
 
-          {renewableEnergy === null ? (
+          {isRenewableEnergyLoading ? (
+            <div className="flex min-h-[120px] items-center justify-center">
+              <LoadingIndicator />
+            </div>
+          ) : renewableEnergy === null ? (
             <NgijoEmptyState title="Data belum tersedia" description="Data energi terbarukan Ngijo sedang disiapkan." />
           ) : (
             <div className="mt-2 flex items-baseline gap-2">

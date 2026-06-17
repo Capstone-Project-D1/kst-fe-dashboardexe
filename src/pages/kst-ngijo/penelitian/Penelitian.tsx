@@ -20,6 +20,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { useApiData, usePageData } from "@/api/hooks";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { colValue, fieldNumber, fieldValue, getContractColumnIndex, getContractColumnVariants, isRecord, ngijoNumber, textOrFallback } from "../adapters";
@@ -185,16 +186,16 @@ function normalizeInovasiRows(rows: unknown[], contractPayload: unknown) {
 export default function Penelitian() {
   const [currentPage, setCurrentPage] = useState(1);
   const [rowsPerPage, setRowsPerPage] = useState("10");
-  const { data: activeProjectsPayload } = useApiData<unknown>(
+  const { data: activeProjectsPayload, isLoading: isActiveProjectsLoading } = useApiData<unknown>(
     API_ENDPOINTS.kst.ngijo.activeProjects,
   );
-  const { data: averageTrlPayload } = useApiData<unknown>(
+  const { data: averageTrlPayload, isLoading: isAverageTrlLoading } = useApiData<unknown>(
     API_ENDPOINTS.kst.ngijo.averageTrl,
   );
-  const { data: pendingPatentsPayload } = useApiData<unknown>(
+  const { data: pendingPatentsPayload, isLoading: isPendingPatentsLoading } = useApiData<unknown>(
     API_ENDPOINTS.kst.ngijo.pendingPatents,
   );
-  const { data: collaborationPayload } = useApiData<unknown>(
+  const { data: collaborationPayload, isLoading: isCollaborationLoading } = useApiData<unknown>(
     API_ENDPOINTS.kst.ngijo.collaboration,
   );
   const { data: contractPayload } = useApiData<unknown>(
@@ -230,7 +231,7 @@ export default function Penelitian() {
         title="Riset dan Inovasi Green Science Park"
         description="Pemantauan portofolio penelitian Ngijo, kesiapan TRL, paten, kolaborasi, dan fokus inovasi yang mendukung produksi jamu/atsiri, perikanan air tawar, energi, serta pengolahan limbah."
         badges={["Riset", "Inovasi", "Green Performance"]}
-        metric={{ label: "Kesiapan TRL", value: `${trlReadiness(averageTrl)}%` }}
+        metric={{ label: "Kesiapan TRL", value: isAverageTrlLoading ? <LoadingIndicator /> : `${trlReadiness(averageTrl)}%` }}
       />
 
       <NgijoKpiCards
@@ -238,28 +239,28 @@ export default function Penelitian() {
           {
             icon: Activity,
             label: "Inovasi Aktif",
-            value: formatMetric(activeProjects),
+            value: isActiveProjectsLoading ? <LoadingIndicator /> : formatMetric(activeProjects),
             helper: "Jumlah penelitian dan inovasi aktif dari API Ngijo.",
             tone: "emerald",
           },
           {
             icon: BarChart3,
             label: "Rata-rata TRL",
-            value: averageDisplay,
+            value: isAverageTrlLoading ? <LoadingIndicator /> : averageDisplay,
             helper: "Indikasi kesiapan teknologi dari portofolio riset.",
             tone: "blue",
           },
           {
             icon: Shield,
             label: "Paten Tertunda",
-            value: formatMetric(pendingPatents),
+            value: isPendingPatentsLoading ? <LoadingIndicator /> : formatMetric(pendingPatents),
             helper: "Luaran inovasi yang masih dalam proses perlindungan.",
             tone: "amber",
           },
           {
             icon: Users,
             label: "Kolaborasi",
-            value: formatMetric(collaboration),
+            value: isCollaborationLoading ? <LoadingIndicator /> : formatMetric(collaboration),
             helper: "Kolaborasi riset dan inovasi yang dilaporkan backend.",
             tone: "lime",
           },

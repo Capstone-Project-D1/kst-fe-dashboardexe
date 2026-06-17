@@ -1,6 +1,7 @@
 import type { ComponentType, ReactNode } from "react";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import {
   Select,
   SelectContent,
@@ -116,6 +117,9 @@ export function JatikertoSummaryCards({ items }: { items: SummaryCardItem[] }) {
 export function JatikertoTableSkeleton({ columns = 6 }: { columns?: number }) {
   return (
     <div className="space-y-3 px-5 py-5">
+      <div className="flex justify-center pb-1">
+        <LoadingIndicator label="Memuat data" />
+      </div>
       {Array.from({ length: 5 }).map((_, rowIndex) => (
         <div key={rowIndex} className="grid gap-3" style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
           {Array.from({ length: columns }).map((__, columnIndex) => (
@@ -274,10 +278,11 @@ export function matchesFields(fields: Array<unknown>, searchQuery: string) {
 }
 
 export function statusBadgeClass(status: string) {
-  if (status === "Aktif") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (status === "Aktif") return "border-blue-200 bg-blue-50 text-blue-700";
   if (status === "Akan Berakhir" || status === "Akan Dimulai") {
     return "border-amber-200 bg-amber-50 text-amber-700";
   }
+  if (status === "Selesai") return "border-emerald-200 bg-emerald-50 text-emerald-700";
   return "border-gray-200 bg-gray-100 text-gray-600";
 }
 

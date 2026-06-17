@@ -15,6 +15,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { parsePageContainer, useApiData, usePageData } from "@/api/hooks";
 import {
@@ -96,7 +97,7 @@ function dataStatusText(
   error?: string | null,
   hasData = false,
 ) {
-  if (isLoading) return "Memuat data...";
+  if (isLoading) return <LoadingIndicator label="Memuat data" />;
   if (error) return ERROR_MESSAGE;
   return hasData ? "" : EMPTY_MESSAGE;
 }
@@ -353,7 +354,7 @@ function CompactMetricCard({
 }: {
   label: string;
   value: ReactNode;
-  description: string;
+  description: ReactNode;
   icon: IconComponent;
   tone: Tone;
   className?: string;
@@ -366,7 +367,7 @@ function CompactMetricCard({
           <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">{label}</p>
           <div className="mt-1 break-words text-2xl font-bold leading-tight tracking-tight text-gray-950">{value}</div>
           {description ? (
-            <p className="mt-1 text-xs leading-5 text-gray-500">{description}</p>
+            <div className="mt-1 text-xs leading-5 text-gray-500">{description}</div>
           ) : null}
         </div>
       </CardContent>
@@ -464,7 +465,7 @@ function DonutMetricCard({
             <div className="grid size-24 place-items-center rounded-full bg-white">
               <div className="text-center">
                 <div className="text-3xl font-bold tracking-tight text-gray-950">
-                  {isLoading ? "..." : `${Math.round(completedPercent)}%`}
+                  {isLoading ? <LoadingIndicator /> : `${Math.round(completedPercent)}%`}
                 </div>
                 <div className="text-[11px] font-bold text-gray-500">Booking aktif</div>
               </div>
@@ -504,7 +505,7 @@ function MiniBarComparisonCard({
   leftValue: number | null;
   rightLabel: string;
   rightValue: number | null;
-  message?: string;
+  message?: ReactNode;
 }) {
   const hasValues = leftValue !== null && rightValue !== null;
   const safeLeftValue = leftValue ?? 0;
@@ -574,7 +575,7 @@ function FinancialHighlightCard({
           <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-500">Financial Highlight</p>
           <p className="mt-5 text-sm font-medium text-gray-500">Saldo aktif unit</p>
           <div className="mt-2 break-words text-3xl font-bold leading-tight tracking-tight text-gray-950">
-            {isLoading ? "Memuat..." : saldo === null ? EMPTY_TEXT : formatRupiah(saldo)}
+            {isLoading ? <LoadingIndicator /> : saldo === null ? EMPTY_TEXT : formatRupiah(saldo)}
           </div>
         </div>
         <div className="relative mt-auto space-y-3 border-t border-gray-100 pt-4 text-sm">
@@ -907,6 +908,18 @@ export default function Dashboard() {
       konservasiError ||
       akademikError,
   );
+  const isAnyLoading =
+    isSummaryLoading ||
+    isAverageTrlLoading ||
+    isGreenLoading ||
+    isRenewableLoading ||
+    isBookingLoading ||
+    isStockLoading ||
+    isFinanceLoading ||
+    isPertanianLoading ||
+    isPeternakanLoading ||
+    isKonservasiLoading ||
+    isAkademikLoading;
   const ngijoStatusMessage = dataStatusText(
     isAverageTrlLoading || isGreenLoading,
     averageTrlError || greenError,
@@ -918,7 +931,7 @@ export default function Dashboard() {
     renewableEnergy !== null,
   );
   const stockComparisonMessage = isStockLoading
-    ? "Memuat data..."
+    ? <LoadingIndicator label="Memuat data" />
     : stockError
       ? "Data stok tidak dapat dimuat saat ini"
       : displayStockIn === null || displayStockOut === null
@@ -939,7 +952,7 @@ export default function Dashboard() {
       ? dataStatusText(isKonservasiLoading, konservasiError, true)
       : dataStatusText(isAkademikLoading, akademikError, displayActiveResearch !== null);
   const kstTerpantauValue = isSummaryLoading
-    ? "..."
+    ? <LoadingIndicator />
     : summary.activeKst !== null && summary.totalKst !== null
       ? `${summary.activeKst}/${summary.totalKst}`
       : `${Math.max(integratedKst, directKstCount)}/${KST_KEYS.length}`;
@@ -950,7 +963,7 @@ export default function Dashboard() {
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-8">
         <HeroOverview
           kstValue={kstTerpantauValue}
-          indicatorValue={mainIndicators > 0 ? mainIndicators : WAITING_TEXT}
+          indicatorValue={mainIndicators > 0 ? mainIndicators : isAnyLoading ? <LoadingIndicator /> : WAITING_TEXT}
           focusValue={focusAktifValue}
         />
 
@@ -994,7 +1007,7 @@ export default function Dashboard() {
             />
             <ExecutiveSummaryCard
               label="Total Indikator Utama"
-              value={mainIndicators > 0 ? mainIndicators : WAITING_TEXT}
+              value={mainIndicators > 0 ? mainIndicators : isAnyLoading ? <LoadingIndicator /> : WAITING_TEXT}
               description="Highlight yang memiliki data angka"
               icon={ClipboardList}
             >
@@ -1009,7 +1022,13 @@ export default function Dashboard() {
             </ExecutiveSummaryCard>
             <ExecutiveSummaryCard
               label="Fokus Riset & Keberlanjutan"
-              value={hasNgijoData ? formatPercent(greenPerformance) : WAITING_TEXT}
+              value={
+                hasNgijoData
+                  ? formatPercent(greenPerformance)
+                  : isAverageTrlLoading || isGreenLoading
+                    ? <LoadingIndicator />
+                    : WAITING_TEXT
+              }
               description="TRL, green performance, energi, kolaborasi atau paten"
               icon={Leaf}
             >
@@ -1056,7 +1075,7 @@ export default function Dashboard() {
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
               <CompactMetricCard
                 label="Energi Terbarukan"
-                value={isRenewableLoading ? "Memuat..." : formatNumber(renewableEnergy, "MWh")}
+                value={isRenewableLoading ? <LoadingIndicator /> : formatNumber(renewableEnergy, "MWh")}
                 description={renewableStatusMessage}
                 icon={Zap}
                 tone="emerald"
@@ -1066,7 +1085,9 @@ export default function Dashboard() {
                 value={formatNumber(ngijoPartnershipMetric)}
                 description={
                   ngijoPartnershipMetric === null
-                    ? WAITING_TEXT
+                    ? isAverageTrlLoading || isGreenLoading
+                      ? <LoadingIndicator label="Memuat data" />
+                      : WAITING_TEXT
                     : ngijoCollaboration !== null
                       ? "Kolaborasi yang dilaporkan API Ngijo."
                       : "Paten tertunda yang dilaporkan API Ngijo."
@@ -1123,7 +1144,7 @@ export default function Dashboard() {
                   <div className="min-w-0">
                     <p className="text-[11px] font-bold uppercase tracking-wide text-teal-700">Proyeksi Panen</p>
                     <h3 className="mt-2 text-2xl font-bold tracking-tight text-gray-950">
-                      {isPertanianLoading ? "Memuat..." : formatNumber(displayTotalPanen, "Kg")}
+                      {isPertanianLoading ? <LoadingIndicator /> : formatNumber(displayTotalPanen, "Kg")}
                     </h3>
                     <p className="mt-2 max-w-xl text-sm leading-6 text-gray-500">
                       Visual ringkasan berdasarkan komoditas pertanian yang tersedia, bukan data historis bulanan.
@@ -1144,7 +1165,7 @@ export default function Dashboard() {
             <div className="grid gap-4 sm:grid-cols-3 lg:grid-cols-1">
               <CompactMetricCard
                 label="Komoditas Agro"
-                value={isPertanianLoading ? "Memuat..." : formatNumber(displayKomoditasAgro)}
+                value={isPertanianLoading ? <LoadingIndicator /> : formatNumber(displayKomoditasAgro)}
                 description="Jumlah komoditas dari data pertanian Jatikerto."
                 icon={Sprout}
                 tone="teal"
@@ -1152,7 +1173,7 @@ export default function Dashboard() {
               />
               <CompactMetricCard
                 label="Populasi Ternak"
-                value={isPeternakanLoading ? "Memuat..." : formatNumber(displayPopulasiTernak)}
+                value={isPeternakanLoading ? <LoadingIndicator /> : formatNumber(displayPopulasiTernak)}
                 description={livestockStatusMessage}
                 icon={Boxes}
                 tone="teal"
@@ -1162,7 +1183,7 @@ export default function Dashboard() {
                 label={displayKonservasi !== null ? "Populasi Konservasi" : "Mahasiswa Riset"}
                 value={
                   isKonservasiLoading || isAkademikLoading
-                    ? "Memuat..."
+                    ? <LoadingIndicator />
                     : formatNumber(conservationOrResearchMetric)
                 }
                 description={

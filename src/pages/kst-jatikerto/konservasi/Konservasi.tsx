@@ -81,7 +81,7 @@ function mapKonservasiRow(row: KonservasiRow, category: KonservasiCategory): Kon
     ...row,
     id: row.rowId ?? row.id,
     namaKomoditas: getTextValue(row, 0, fieldAliases.nama, row.namaKomoditas),
-    foto: getTextValue(row, 1, ["foto", "image", "gambar", "photo", "url"], row.foto ?? ""),
+    foto: getTextValue(row, 7, ["foto", "image", "gambar", "photo", "url"], row.foto ?? ""),
     jumlah: getNumberValue(row, 4, fieldAliases.jumlah, row.jumlah),
     satuan: getTextValue(row, 5, ["satuan", "unit"], row.satuan),
     keterangan: getTextValue(row, 6, ["keterangan", "description", "catatan"], row.keterangan ?? "-"),

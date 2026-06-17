@@ -33,6 +33,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { LoadingIndicator } from "@/components/ui/loading-indicator";
 import {
   Select,
   SelectContent,
@@ -563,8 +564,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   disabled={isGeneratingReport || !selectedReportDefinition}
                   className="h-10 px-5 gap-2 bg-[#27A376] hover:bg-[#1f8a63] text-white text-[14px] rounded-xl"
                 >
-                  <Download className="size-4" />
-                  {isGeneratingReport ? "Menyiapkan..." : "Unduh"}
+                  {isGeneratingReport ? (
+                    <LoadingIndicator label="Menyiapkan" className="text-white" iconClassName="text-white" />
+                  ) : (
+                    <>
+                      <Download className="size-4" />
+                      Unduh
+                    </>
+                  )}
                 </Button>
               </div>
             </div>
