@@ -15,12 +15,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ImageOff, LayoutGrid, Leaf, ShieldCheck, Sprout } from "lucide-react";
+import { ImageOff, LayoutGrid, Leaf, Sprout } from "lucide-react";
 import { usePageData } from "@/api/hooks";
 import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
 import {
   fieldAliases,
+  formatDescription,
   getNumberValue,
   getTextValue,
   rowIdentity,
@@ -91,14 +92,6 @@ function rowMatchesKonservasiSearch(row: KonservasiRow, searchQuery: string) {
   return matchesFields([row.namaKomoditas, row.satuan, row.keterangan], searchQuery);
 }
 
-function countProtectedSpecies(rows: KonservasiRow[]) {
-  return rows.filter((row) =>
-    /dilindungi|endemik|langka|konservasi|protected/i.test(
-      `${row.namaKomoditas} ${row.keterangan}`,
-    ),
-  ).length;
-}
-
 function ConservationImage({ src, alt }: { src?: string; alt: string }) {
   const [failed, setFailed] = useState(false);
 
@@ -148,13 +141,11 @@ export default function Konservasi() {
   const rowsPerPageNumber = Number(rowsPerPage);
   const totalPages = Math.max(1, Math.ceil(displayData.length / rowsPerPageNumber));
   const totalJumlah = mappedData.reduce((sum, row) => sum + Number(row.jumlah || 0), 0);
-  const protectedSpecies = countProtectedSpecies(mappedData);
   const lastUpdated = getLastUpdated(mappedData);
   const summaryCards = [
     { label: "Total Item Konservasi", value: formatNumber(mappedData.length), icon: Leaf },
     { label: "Total Populasi / Jumlah", value: formatNumber(totalJumlah), icon: Sprout },
     { label: "Kategori Aktif", value: categoryLabels[selectedCategory], icon: LayoutGrid },
-    { label: "Spesies Dilindungi", value: formatNumber(protectedSpecies), icon: ShieldCheck },
   ];
 
   const paginatedData = displayData.slice(
@@ -283,7 +274,7 @@ export default function Konservasi() {
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-[300px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
-                      <p className="line-clamp-3 break-words">{row.keterangan || "Belum tersedia"}</p>
+                      <p className="line-clamp-3 break-words">{formatDescription(row.keterangan)}</p>
                     </TableCell>
                   </TableRow>
                 ))

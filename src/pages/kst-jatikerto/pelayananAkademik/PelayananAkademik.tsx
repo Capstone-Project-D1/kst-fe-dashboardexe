@@ -225,8 +225,8 @@ export default function PelayananAkademik() {
                       <TableCell className="max-w-[240px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
                         {row.dosenPembimbing || "Belum tersedia"}
                       </TableCell>
-                      <TableCell className="max-w-[190px] whitespace-normal break-words text-[13px] text-gray-600">
-                        <Badge className={`${getProgramStudiBadgeClass(row.programStudi)} border`}>
+                      <TableCell className="max-w-[160px] overflow-hidden text-[13px] text-gray-600">
+                        <Badge className={`${getProgramStudiBadgeClass(row.programStudi)} inline-block h-auto max-w-[150px] truncate rounded-full border px-2.5 py-1 align-middle`}>
                           {normalizeProgramStudi(row.programStudi) || "Belum tersedia"}
                         </Badge>
                       </TableCell>

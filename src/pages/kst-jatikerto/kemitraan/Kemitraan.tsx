@@ -14,6 +14,7 @@ import { API_ENDPOINTS } from "@/api/endpoints";
 import { getJatikertoDataMessage } from "../dataState";
 import {
   fieldAliases,
+  formatDescription,
   getDateValue,
   getTextValue,
   rowIdentity,
@@ -254,7 +255,7 @@ export default function Kemitraan() {
                         </Badge>
                       </TableCell>
                       <TableCell className="max-w-[260px] whitespace-normal break-words text-[13px] leading-relaxed text-gray-600">
-                        <p className="line-clamp-3 break-words">{row.keterangan || "Belum tersedia"}</p>
+                        <p className="line-clamp-3 break-words">{formatDescription(row.keterangan)}</p>
                       </TableCell>
                     </TableRow>
                   );

@@ -109,3 +109,8 @@ export const fieldAliases = ALIAS_GROUPS;
 export function rowIdentity(row: JatikertoApiRow) {
   return row.id ?? row.rowId ?? row.no;
 }
+
+export function formatDescription(value: unknown) {
+  const text = String(value ?? "").trim();
+  return text ? text : "-";
+}

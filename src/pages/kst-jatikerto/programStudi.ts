@@ -4,17 +4,27 @@ const PROGRAM_STUDI_LABELS = {
   teknikKomputer: "Teknik Komputer",
   pendidikanTeknologiInformasi: "Pendidikan Teknologi Informasi",
   teknikInformatika: "Teknik Informatika",
+  agroekoteknologi: "Agroekoteknologi",
+  agribisnis: "Agribisnis",
+  peternakan: "Peternakan",
+  biologi: "Biologi",
+  teknikPertanian: "Teknik Pertanian",
 } as const;
 
 type RecognizedProgramStudi =
   (typeof PROGRAM_STUDI_LABELS)[keyof typeof PROGRAM_STUDI_LABELS];
 
 const PROGRAM_STUDI_BADGE_CLASSES: Record<RecognizedProgramStudi, string> = {
-  "Teknik Informatika": "bg-sky-400 border-sky-500 text-white",
-  "Teknik Komputer": "bg-amber-400 border-amber-500 text-white",
-  "Teknologi Informasi": "bg-emerald-400 border-emerald-500 text-white",
   "Sistem Informasi": "bg-orange-400 border-orange-500 text-white",
+  "Teknologi Informasi": "bg-green-500 border-green-600 text-white",
+  "Teknik Komputer": "bg-indigo-400 border-indigo-500 text-white",
   "Pendidikan Teknologi Informasi": "bg-rose-400 border-rose-500 text-white",
+  "Teknik Informatika": "bg-blue-500 border-blue-600 text-white",
+  "Agroekoteknologi": "bg-emerald-500 border-emerald-600 text-white",
+  "Agribisnis": "bg-amber-400 border-amber-500 text-amber-950",
+  "Peternakan": "bg-purple-500 border-purple-600 text-white",
+  "Biologi": "bg-teal-500 border-teal-600 text-white",
+  "Teknik Pertanian": "bg-lime-400 border-lime-500 text-lime-950",
 };
 
 const NEUTRAL_PROGRAM_STUDI_BADGE_CLASS = "bg-gray-200 border-gray-300 text-gray-700";
@@ -150,11 +160,62 @@ export function normalizeProgramStudi(value: unknown) {
   if (
     matchesAlias(normalizedValue, ["if", "tif", "informatika", "teknik informatika"]) ||
     isNearOfficialName(normalizedValue, "teknik informatika") ||
-    hasAnyInitialPattern(normalizedValue, ["tif", "ti"]) ||
+    hasAnyInitialPattern(normalizedValue, ["tif"]) ||
     (hasWordLike(normalizedValue, ["teknik"]) &&
       hasWordLike(normalizedValue, ["informatika", "informasi", "info"]))
   ) {
     return PROGRAM_STUDI_LABELS.teknikInformatika;
+  }
+
+  if (
+    matchesAlias(normalizedValue, [
+      "agroekoteknologi",
+      "agroeko teknologi",
+      "agroteknologi",
+      "agro teknologi",
+    ]) ||
+    isNearOfficialName(normalizedValue, "agroekoteknologi") ||
+    isNearOfficialName(normalizedValue, "agroteknologi") ||
+    hasWordLike(normalizedValue, ["agroekoteknologi", "agroteknologi"])
+  ) {
+    return PROGRAM_STUDI_LABELS.agroekoteknologi;
+  }
+
+  if (
+    matchesAlias(normalizedValue, ["agribisnis", "agri bisnis"]) ||
+    isNearOfficialName(normalizedValue, "agribisnis") ||
+    hasWordLike(normalizedValue, ["agribisnis"])
+  ) {
+    return PROGRAM_STUDI_LABELS.agribisnis;
+  }
+
+  if (
+    matchesAlias(normalizedValue, ["peternakan", "ilmu peternakan"]) ||
+    isNearOfficialName(normalizedValue, "peternakan") ||
+    hasWordLike(normalizedValue, ["peternakan", "ternak"])
+  ) {
+    return PROGRAM_STUDI_LABELS.peternakan;
+  }
+
+  if (
+    matchesAlias(normalizedValue, ["biologi"]) ||
+    isNearOfficialName(normalizedValue, "biologi") ||
+    hasWordLike(normalizedValue, ["biologi"])
+  ) {
+    return PROGRAM_STUDI_LABELS.biologi;
+  }
+
+  if (
+    matchesAlias(normalizedValue, [
+      "teknik pertanian",
+      "teknik pertanian dan biosistem",
+      "tpb",
+    ]) ||
+    isNearOfficialName(normalizedValue, "teknik pertanian") ||
+    (hasWordLike(normalizedValue, ["teknik"]) &&
+      hasWordLike(normalizedValue, ["pertanian", "biosistem"]))
+  ) {
+    return PROGRAM_STUDI_LABELS.teknikPertanian;
   }
 
   return originalValue;
